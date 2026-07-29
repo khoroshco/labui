@@ -92,10 +92,13 @@ test('гейт видит потерю компенсации — иначе о�
 test('надпись кнопки стоит в оптическом центре капсулы', async ({ page }) => {
   await open(page, 'Button', { label: 'Выгрузить' });
   const m = await measure(page, '#dc-root button span', '#dc-root button');
+  // Допуск 1.5px, а не 0.5: метрики шрифта округляются по-разному на macOS и Linux
+  // (замер той же кнопки — 0.6px и 1.0px). Потерянная компенсация даёт 2.5px и больше,
+  // то есть гейт по-прежнему ловит именно её, а не разницу платформ.
   expect(
     Math.abs(m.inkCenter - m.boxCenter),
     `чернильный центр надписи ушёл от центра капсулы на ${(m.inkCenter - m.boxCenter).toFixed(2)}px`
-  ).toBeLessThan(1.0);
+  ).toBeLessThan(1.5);
 });
 
 test('значение и единицы в слайдере стоят на одной линии', async ({ page }) => {
