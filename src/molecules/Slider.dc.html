@@ -20,7 +20,13 @@
 <script src="focus-modality.js"></script>
 <script src="ds-helpers.js"></script>
 </helmet>
-<div ref="{{ ref }}" tabindex="{{ tabIdx }}" role="slider" aria-label="{{ text }}" aria-disabled="{{ ariaDisabled }}" aria-valuemin="{{ ariaMin }}" aria-valuemax="{{ ariaMax }}" aria-valuenow="{{ ariaNow }}" aria-valuetext="{{ ariaText }}" onPointerDown="{{ down }}" onPointerMove="{{ move }}" onPointerUp="{{ up }}" onKeyDown="{{ key }}" style="position:relative; height:var(--row-h); background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden; cursor:{{ cursor }}; user-select:none; touch-action:none">
+<div ref="{{ ref }}" onPointerDown="{{ down }}" onPointerMove="{{ move }}" onPointerUp="{{ up }}" style="position:relative; height:var(--row-h); background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden; cursor:{{ cursor }}; user-select:none; touch-action:none">
+  <!-- Слайдер как ВИДЖЕТ живёт отдельным слоем. Роль slider — лист: у неё не может быть
+       фокусируемых потомков, а в ряду их двое (поле значения и циклер единиц) — axe
+       называет это nested-interactive, и скринридер до них не доберётся. Слой пустой,
+       лежит под содержимым и не ловит указатель: перетаскивание по-прежнему обрабатывает
+       корень, клик по полю попадает в поле, а клавиатура и ARIA принадлежат слою. -->
+  <div data-slider="true" tabindex="{{ tabIdx }}" role="slider" aria-label="{{ text }}" aria-disabled="{{ ariaDisabled }}" aria-valuemin="{{ ariaMin }}" aria-valuemax="{{ ariaMax }}" aria-valuenow="{{ ariaNow }}" aria-valuetext="{{ ariaText }}" onKeyDown="{{ key }}" style="position:absolute; inset:0; border-radius:inherit; pointer-events:none"></div>
   <div ref="{{ fillRef }}" style="position:absolute; top:0; bottom:0; left:0; width:{{ fill }}; background:var(--bg-active); border-radius:var(--r-m)"></div>
   <div data-ticks="true" style="position:absolute; left:var(--sp-35); right:var(--sp-35); top:50%; height:0; pointer-events:none">
     <sc-for list="{{ dots }}" as="dot" hint-placeholder-count="0">
