@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
+<title>SwitchRow · Banner Lab DS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Рантайм иначе перечитывает документ вторым запросом и пересобирает шаблон поверх уже
      смонтированного дерева. Второй разбор отличается от первого ТОЛЬКО регистром имён
@@ -47,7 +48,11 @@ class Component extends DCLogic {
   state = { on: null, infoOpen: false };
   renderVals() {
     const p = this.props, noop = () => {};
-    const on = this.state.on ?? !!p.checked;
+    // Управление ряда — то же, что у атомов: пришёл колбэк, значит значением владеет
+    // родитель и ряд показывает ровно переданное. Иначе экран, отказавший в смене,
+    // видел бы ряд уже перещёлкнутым: своё состояние переживало чужой отказ.
+    const controlled = typeof p.onChange === 'function';
+    const on = controlled ? !!p.checked : (this.state.on ?? !!p.checked);
     const hasInfo = !!p.info;
     const open = hasInfo && this.state.infoOpen;
     // мышиный клик (detail>0) снимает фокус с ряда — действие мгновенное; клавиатура фокус сохраняет
@@ -57,7 +62,7 @@ class Component extends DCLogic {
     // и порядок обработчиков между маунтами не гарантирован. Ряд сам игнорирует
     // клики, пришедшие из кнопки-раскрывашки.
     const fromInfo = (e) => !!(e && e.target && e.target.closest && e.target.closest('button[aria-expanded]'));
-    const flip = (e) => { if (disabled || fromInfo(e)) return; if (e && e.detail > 0 && e.currentTarget) e.currentTarget.blur(); this.setState({ on: !on }); (p.onChange ?? noop)(!on); };
+    const flip = (e) => { if (disabled || fromInfo(e)) return; if (e && e.detail > 0 && e.currentTarget) e.currentTarget.blur(); if (!controlled) this.setState({ on: !on }); (p.onChange ?? noop)(!on); };
     return {
       label: p.label ?? '', subtitle: p.subtitle ?? '',
       ariaChecked: on ? 'true' : 'false',

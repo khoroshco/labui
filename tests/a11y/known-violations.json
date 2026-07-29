@@ -1,0 +1,23 @@
+{
+  "_почему": [
+    "Ledger известных нарушений axe. Гейт красный на ЛЮБОМ нарушении, которого здесь нет,",
+    "и красный же на строке, которая перестала воспроизводиться: устаревшая запись хуже",
+    "отсутствующей — она выглядит как истина и живёт вечно.",
+    "Каждая строка — не 'починим потом', а решение, которое нужно принять человеку:",
+    "оба оставшихся класса меняют либо палитру, либо структуру виджета, то есть дизайн.",
+    "Цифры и предлагаемые правки — в отчёте scripts/check-contrast.mjs."
+  ],
+  "known": {
+    "OptionGroup/light/color-contrast": "невыбранные опции — --text-tertiary (3.27:1 при норме 4.5)",
+    "Disclosure/light/color-contrast": "капс-рубрика заголовка — --text-tertiary (3.27:1)",
+    "Tabs/light/color-contrast": "счётчик у вкладки — --text-tertiary (3.27:1)",
+    "Island/light/color-contrast": "лейблы рядов и значения — --text-tertiary (3.31:1)",
+    "PinCard/light/color-contrast": "имя автора, 11px — --text-tertiary (3.31:1)",
+    "PinCard/dark/color-contrast": "имя автора, 11px — --text-tertiary (4.36:1, не хватает 0.14)",
+    "RowMsg/light/color-contrast": "текст ошибки — --danger в светлой теме (3.77:1)",
+    "Storybook/light/color-contrast": "витрина набрана тем же --text-tertiary: 182 узла",
+    "Storybook/dark/color-contrast": "подпись версии в шапке — --text-tertiary на --bg-base (2.73:1)",
+    "Slider/dark/nested-interactive": "role=slider содержит поле ручного ввода значения",
+    "Slider/light/nested-interactive": "то же самое во второй теме"
+  }
+}

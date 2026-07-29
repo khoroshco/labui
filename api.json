@@ -390,6 +390,13 @@
           "callback": false
         },
         {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
           "name": "placeholder",
           "type": "string",
           "default": "",

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
+<title>InputRow · Banner Lab DS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Рантайм иначе перечитывает документ вторым запросом и пересобирает шаблон поверх уже
      смонтированного дерева. Второй разбор отличается от первого ТОЛЬКО регистром имён
@@ -33,7 +34,7 @@
         <span style="display:inline-flex; animation:ds-fade .25s ease"><dc-import name="Skeleton" shape="line" width="96px" hint-size="96px,12px"></dc-import></span>
       </sc-if>
       <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
-        <span data-nums="{{ numsAttr }}" style="flex:1; min-width:0; display:flex"><dc-import name="Input" bare="{{ true }}" align="right" value="{{ value }}" placeholder="{{ placeholder }}" max-length="{{ maxLength }}" invalid="{{ invalid }}" disabled="{{ disabled }}" on-input="{{ input }}" on-focus="{{ focusCb }}" on-blur="{{ blurCb }}" style="width:100%" hint-size="100%,20px"></dc-import></span>
+        <span data-nums="{{ numsAttr }}" style="flex:1; min-width:0; display:flex"><dc-import name="Input" bare="{{ true }}" align="right" aria-label="{{ label }}" value="{{ value }}" placeholder="{{ placeholder }}" max-length="{{ maxLength }}" invalid="{{ invalid }}" disabled="{{ disabled }}" on-input="{{ input }}" on-focus="{{ focusCb }}" on-blur="{{ blurCb }}" style="width:100%" hint-size="100%,20px"></dc-import></span>
         <sc-if value="{{ hasCycle }}" hint-placeholder-val="{{ false }}">
           <span style="display:flex; align-items:center"><dc-import name="CycleButton" options="{{ cycleOpts }}" value="{{ cycleIdx }}" disabled="{{ disabled }}" on-change="{{ cycleChange }}" hint-size="34px,22px"></dc-import></span>
         </sc-if>

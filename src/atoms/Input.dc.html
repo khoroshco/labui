@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
+<title>Input · Banner Lab DS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Рантайм иначе перечитывает документ вторым запросом и пересобирает шаблон поверх уже
      смонтированного дерева. Второй разбор отличается от первого ТОЛЬКО регистром имён
@@ -23,13 +24,14 @@
 <label ref="{{ boxRef }}" data-field="{{ fieldAttr }}" data-disabled="{{ disabledAttr }}" data-invalid="{{ invalidAttr }}" onMouseDown="{{ down }}" style="display:inline-flex; align-items:center; gap:var(--sp-2); width:100%; height:{{ h }}; padding:{{ pad }}; background:{{ bg }}; border:{{ border }}; box-shadow:{{ ring }}; border-radius:{{ radius }}; cursor:{{ cursor }}; pointer-events:{{ pe }}; transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .35s var(--ease-spring)">
   <sc-if value="{{ hasIcon }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; color:var(--text-tertiary); flex:none"><g-icon name="{{ iconName }}" size="14"></g-icon></span></sc-if>
   <sc-if value="{{ hasPrefix }}" hint-placeholder-val="{{ false }}"><span style="font-size:{{ fs }}; font-family:{{ font }}; font-weight:var(--fw-regular); color:var(--text-tertiary); flex:none; position:relative; top:0.5px">{{ prefix }}</span></sc-if>
-  <input value="{{ val }}" disabled="{{ isDisabled }}" aria-invalid="{{ ariaInvalid }}" onChange="{{ input }}" onFocus="{{ focus }}" onBlur="{{ blur }}" onKeyDown="{{ keyDown }}" onPaste="{{ paste }}" placeholder="{{ placeholder }}" maxLength="{{ maxLen }}" style="border:none; background:transparent; padding:0; position:relative; flex:1; min-width:0; outline:none; color:{{ color }}; font-family:{{ font }}; font-weight:var(--fw-regular); font-size:{{ fs }}; line-height:var(--lh-ui); text-align:{{ align }}; position:relative; top:{{ optical }}; cursor:inherit; transition:color .2s ease">
+  <input value="{{ val }}" disabled="{{ isDisabled }}" aria-label="{{ ariaLabel }}" aria-invalid="{{ ariaInvalid }}" onChange="{{ input }}" onFocus="{{ focus }}" onBlur="{{ blur }}" onKeyDown="{{ keyDown }}" onPaste="{{ paste }}" placeholder="{{ placeholder }}" maxLength="{{ maxLen }}" style="border:none; background:transparent; padding:0; position:relative; flex:1; min-width:0; outline:none; color:{{ color }}; font-family:{{ font }}; font-weight:var(--fw-regular); font-size:{{ fs }}; line-height:var(--lh-ui); text-align:{{ align }}; position:relative; top:{{ optical }}; cursor:inherit; transition:color .2s ease">
   <sc-if value="{{ hasSuffix }}" hint-placeholder-val="{{ false }}"><span style="font-size:{{ fs }}; font-family:{{ font }}; font-weight:var(--fw-regular); color:var(--text-tertiary); flex:none; position:relative; top:0.5px">{{ suffix }}</span></sc-if>
   <sc-if value="{{ showClear }}" hint-placeholder-val="{{ false }}"><button data-tap="true" data-tooltip="{{ clearLabel }}" aria-label="{{ clearLabel }}" onMouseDown="{{ stopMd }}" onClick="{{ clear }}" style="display:inline-flex; align-items:center; justify-content:center; padding:0; border:none; background:none; color:var(--text-tertiary); cursor:pointer; flex:none; animation:ds-fade .15s ease" style-hover="color:var(--text-primary)"><g-icon name="xmark" size="14"></g-icon></button></sc-if>
 </label>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 280, &quot;height&quot;: 68},
 &quot;value&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Осенний сейл&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;ariaLabel&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
 &quot;placeholder&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
 &quot;icon&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
 &quot;prefix&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
@@ -64,6 +66,10 @@ class Component extends DCLogic {
     return {
       // состояния текста: placeholder — tertiary (::placeholder в ds.css), введённое — primary, disabled — text-disabled
       val, placeholder: p.placeholder ?? '',
+      // Подпись поля лежит СНАРУЖИ компонента (лейбл ряда, панель пропсов), поэтому имя
+      // приходит пропом — иначе поле безымянно для скринридера. То же правило, что у
+      // Toggle и Checkbox: контрол без видимой подписи обязан назвать себя сам.
+      ariaLabel: (p.ariaLabel ?? '') || undefined,
       // Оптика по ФАКТУ содержимого: у цифр нет выносных, их пятно сидит выше прозы.
       // Но если на той же строке есть префикс или суффикс — сдвиг обязан быть общим,
       // иначе разъезжается базовая линия внутри поля («$ 100»). Тогда — прозаический 0.5px.
