@@ -1,0 +1,94 @@
+name: CI
+
+# Красный прогон блокирует мёрж: ревью человеком здесь нет, и это единственное,
+# что стоит между ошибкой и main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Гейты
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # changesets сравнивает с main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Кэш браузеров Playwright
+        uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Браузеры Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Линтеры контракта
+        run: npm run lint
+
+      - name: Логика (unit)
+        run: npm run test:unit
+
+      - name: Загрузка страниц (smoke)
+        run: npm run test:smoke
+
+      - name: Инварианты и снапшоты
+        run: npm run test:visual
+
+      - name: Доступность
+        run: npm run test:a11y
+
+      # Диффы и отчёты кладём к прогону: разбирать «упало на снапшоте» без картинки нельзя,
+      # а обновлять снапшоты не глядя запрещено правилом.
+      - name: Отчёт Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Визуальные диффы и артефакты падений
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14
+
+  changeset:
+    name: Ченджсет
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Правка исходников без записи ченджсета — это смена контракта, которая уедет
+      # к потребителю молча. Именно так у нас переименовывались пропсы.
+      - name: Ченджсет обязателен для правок в src/
+        run: node scripts/check-changeset.mjs
