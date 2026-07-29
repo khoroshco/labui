@@ -1,0 +1,976 @@
+{
+  "$description": "Дизайн-токены Banner Lab. Три слоя: примитивы → алиасы → тема. Имя листа = имя CSS-переменной без «--»; ссылки записаны синтаксисом DTCG и разворачиваются в var(). Часть значений — CSS-выражения, которых спецификация не описывает: они помечены расширением com.bannerlab.css (docs/adr/0009).",
+  "primitive": {
+    "$description": "Сырая палитра. Смысл: «какой это цвет». В компоненты напрямую не попадают.",
+    "c-black": {
+      "$type": "color",
+      "$value": "#000000"
+    },
+    "c-gray-950": {
+      "$type": "color",
+      "$value": "#0c0c0d"
+    },
+    "c-gray-925": {
+      "$type": "color",
+      "$value": "#111113"
+    },
+    "c-gray-900": {
+      "$type": "color",
+      "$value": "#151517"
+    },
+    "c-gray-850": {
+      "$type": "color",
+      "$value": "#1d1d20"
+    },
+    "c-gray-800": {
+      "$type": "color",
+      "$value": "#242428"
+    },
+    "c-gray-100": {
+      "$type": "color",
+      "$value": "#e9e9e6"
+    },
+    "c-gray-75": {
+      "$type": "color",
+      "$value": "#f6f6f4"
+    },
+    "c-paper": {
+      "$type": "color",
+      "$value": "#f4f4f2"
+    },
+    "c-white": {
+      "$type": "color",
+      "$value": "#ffffff"
+    },
+    "k-light": {
+      "$type": "color",
+      "$value": "244 244 242",
+      "$description": "краска на тёмном фоне"
+    },
+    "k-dark": {
+      "$type": "color",
+      "$value": "17 17 19",
+      "$description": "краска на светлом фоне"
+    },
+    "c-yellow-ink": {
+      "$type": "color",
+      "$value": "#191903"
+    },
+    "k-yellow-d": {
+      "$type": "color",
+      "$value": "246 244 62"
+    },
+    "k-yellow-l": {
+      "$type": "color",
+      "$value": "236 199 0"
+    },
+    "c-ai-orange": {
+      "$type": "color",
+      "$value": "#ff7a2f"
+    },
+    "c-ai-red": {
+      "$type": "color",
+      "$value": "#ff3d68"
+    },
+    "c-ai-pink": {
+      "$type": "color",
+      "$value": "#f5348f"
+    },
+    "c-ok-d": {
+      "$type": "color",
+      "$value": "#35d98a"
+    },
+    "c-ok-l": {
+      "$type": "color",
+      "$value": "#0caf5f"
+    },
+    "k-ok-d": {
+      "$type": "color",
+      "$value": "53 217 138"
+    },
+    "k-ok-l": {
+      "$type": "color",
+      "$value": "12 175 95"
+    },
+    "c-warn-d": {
+      "$type": "color",
+      "$value": "#ffc233"
+    },
+    "c-warn-l": {
+      "$type": "color",
+      "$value": "#e09a00"
+    },
+    "k-warn-d": {
+      "$type": "color",
+      "$value": "255 194 51"
+    },
+    "k-warn-l": {
+      "$type": "color",
+      "$value": "224 154 0"
+    },
+    "c-danger-d": {
+      "$type": "color",
+      "$value": "#ff5a3c"
+    },
+    "c-danger-l": {
+      "$type": "color",
+      "$value": "#e83e1c"
+    },
+    "k-danger-d": {
+      "$type": "color",
+      "$value": "255 90 60"
+    },
+    "k-danger-l": {
+      "$type": "color",
+      "$value": "232 62 28"
+    },
+    "c-info-d": {
+      "$type": "color",
+      "$value": "#4d9fff"
+    },
+    "c-info-l": {
+      "$type": "color",
+      "$value": "#1f6fd6"
+    }
+  },
+  "alias": {
+    "$description": "Семантика. Смысл: «для чего цвет». Единственный слой, который используют компоненты.",
+    "ink": {
+      "$type": "color",
+      "$value": "{primitive.k-light}",
+      "$description": "канал текста текущей темы"
+    },
+    "tint": {
+      "$type": "color",
+      "$value": "255 255 255",
+      "$description": "канал наложений (hover/border) текущей темы"
+    },
+    "k-accent": {
+      "$type": "color",
+      "$value": "{primitive.k-yellow-d}",
+      "$description": "канал акцента текущей темы"
+    },
+    "bg-canvas": {
+      "$type": "color",
+      "$value": "{primitive.c-black}",
+      "$description": "рабочие области: канвас нарезки, сетка приёмки"
+    },
+    "bg-base": {
+      "$type": "color",
+      "$value": "{primitive.c-gray-950}",
+      "$description": "фон приложения"
+    },
+    "bg-surface": {
+      "$type": "color",
+      "$value": "{primitive.c-gray-900}",
+      "$description": "панели, карточки"
+    },
+    "bg-raised": {
+      "$type": "color",
+      "$value": "{primitive.c-gray-850}",
+      "$description": "всплывающее: меню, тултипы, модалки"
+    },
+    "bg-float": {
+      "$type": "color",
+      "$value": "{primitive.c-gray-800}",
+      "$description": "плавающее над контентом (тост, пин): в тёмной теме — ступень светлее вместо тени"
+    },
+    "bg-hover": {
+      "$type": "color",
+      "$value": "rgb(var(--tint) / .05)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "bg-active": {
+      "$type": "color",
+      "$value": "rgb(var(--tint) / .09)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "border-subtle": {
+      "$type": "color",
+      "$value": "rgb(var(--tint) / .07)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "border": {
+      "$type": "color",
+      "$value": "rgb(var(--tint) / .13)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "rgb(var(--tint) / .24)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "text-primary": {
+      "$type": "color",
+      "$value": "rgb(var(--ink))",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "text-body": {
+      "$type": "color",
+      "$value": "rgb(var(--ink) / .76)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "text-secondary": {
+      "$type": "color",
+      "$value": "rgb(var(--ink) / .64)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "text-tertiary": {
+      "$type": "color",
+      "$value": "rgb(var(--ink) / .48)",
+      "$description": "плейсхолдеры, капшны, счётчики",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "text-disabled": {
+      "$type": "color",
+      "$value": "rgb(var(--ink) / .32)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "inverse-bg": {
+      "$type": "color",
+      "$value": "{primitive.c-paper}"
+    },
+    "inverse-text": {
+      "$type": "color",
+      "$value": "{primitive.c-gray-925}"
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "rgb(var(--k-accent))",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "{primitive.c-yellow-ink}"
+    },
+    "accent-dim": {
+      "$type": "color",
+      "$value": "rgb(var(--k-accent) / .16)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "ai-grad": {
+      "$type": "gradient",
+      "$value": "linear-gradient(135deg, var(--c-ai-orange) 0%, var(--c-ai-red) 55%, var(--c-ai-pink) 100%)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "ai": {
+      "$type": "color",
+      "$value": "{primitive.c-ai-red}"
+    },
+    "on-ai": {
+      "$type": "color",
+      "$value": "{primitive.c-white}"
+    },
+    "on-tone": {
+      "$type": "color",
+      "$value": "{primitive.c-white}",
+      "$description": "текст/иконка на СПЛОШНОЙ заливке семантического тона (ok/danger) — белый в обеих темах"
+    },
+    "ok": {
+      "$type": "color",
+      "$value": "{primitive.c-ok-d}"
+    },
+    "warn": {
+      "$type": "color",
+      "$value": "{primitive.c-warn-d}"
+    },
+    "danger": {
+      "$type": "color",
+      "$value": "{primitive.c-danger-d}"
+    },
+    "info": {
+      "$type": "color",
+      "$value": "{primitive.c-info-d}"
+    },
+    "ok-dim": {
+      "$type": "color",
+      "$value": "rgb(var(--k-ok-d) / .15)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "warn-dim": {
+      "$type": "color",
+      "$value": "rgb(var(--k-warn-d) / .17)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "danger-dim": {
+      "$type": "color",
+      "$value": "rgb(var(--k-danger-d) / .15)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "font-ui": {
+      "$type": "fontFamily",
+      "$value": "'Unica 77', 'Helvetica Neue', Helvetica, sans-serif",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "fs-xs": {
+      "$type": "dimension",
+      "$value": "11px"
+    },
+    "fs-s": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "fs-m": {
+      "$type": "dimension",
+      "$value": "14px"
+    },
+    "fs-l": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "fs-h3": {
+      "$type": "dimension",
+      "$value": "18px"
+    },
+    "fs-h2": {
+      "$type": "dimension",
+      "$value": "24px"
+    },
+    "fs-h1": {
+      "$type": "dimension",
+      "$value": "36px"
+    },
+    "fs-display": {
+      "$type": "dimension",
+      "$value": "64px"
+    },
+    "fw-regular": {
+      "$type": "fontWeight",
+      "$value": "400"
+    },
+    "fw-medium": {
+      "$type": "fontWeight",
+      "$value": "500"
+    },
+    "fw-black": {
+      "$type": "fontWeight",
+      "$value": "900"
+    },
+    "lh-display": {
+      "$type": "number",
+      "$value": "1.05",
+      "$description": "h1 / display"
+    },
+    "lh-heading": {
+      "$type": "number",
+      "$value": "1.2",
+      "$description": "h2 / h3"
+    },
+    "lh-ui": {
+      "$type": "number",
+      "$value": "1.4",
+      "$description": "однострочный интерфейс: ряды, кнопки, бейджи"
+    },
+    "lh-text": {
+      "$type": "number",
+      "$value": "1.6",
+      "$description": "абзацы и описания"
+    },
+    "lh-loose": {
+      "$type": "number",
+      "$value": "1.75",
+      "$description": "списки правил, длинные пояснения"
+    },
+    "measure-text": {
+      "$type": "dimension",
+      "$value": "80ch"
+    },
+    "measure-narrow": {
+      "$type": "dimension",
+      "$value": "60ch"
+    },
+    "sp-05": {
+      "$type": "dimension",
+      "$value": "2px"
+    },
+    "sp-15": {
+      "$type": "dimension",
+      "$value": "6px"
+    },
+    "sp-25": {
+      "$type": "dimension",
+      "$value": "10px"
+    },
+    "sp-35": {
+      "$type": "dimension",
+      "$value": "14px"
+    },
+    "sp-1": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "sp-2": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "sp-3": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "sp-4": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "sp-5": {
+      "$type": "dimension",
+      "$value": "24px"
+    },
+    "sp-6": {
+      "$type": "dimension",
+      "$value": "32px"
+    },
+    "sp-7": {
+      "$type": "dimension",
+      "$value": "48px"
+    },
+    "sp-8": {
+      "$type": "dimension",
+      "$value": "64px"
+    },
+    "row-h": {
+      "$type": "dimension",
+      "$value": "52px"
+    },
+    "r-s": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "r-m": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "r-l": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "r-full": {
+      "$type": "dimension",
+      "$value": "999px"
+    },
+    "ease-spring": {
+      "$type": "cubicBezier",
+      "$value": "linear(0, 0.062 5%, 0.23 12%, 0.46 21%, 0.68 30%, 0.86 40%, 0.985 51%, 1.038 62%, 1.042 69%, 1.021 80%, 1.005 90%, 1)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "ease-out": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(.22,1,.36,1)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "ease-in": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(.55,.06,.68,.19)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "ease-inout": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(.45,.15,.55,.85)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "dur-base": {
+      "$type": "duration",
+      "$value": ".3s"
+    },
+    "press-strong": {
+      "$type": "number",
+      "$value": ".96",
+      "$description": "кнопки"
+    },
+    "press-label": {
+      "$type": "number",
+      "$value": ".97",
+      "$description": "плавающий лейбл / чекбокс-плитка"
+    },
+    "press-subtle": {
+      "$type": "number",
+      "$value": ".985",
+      "$description": "data-press: соло-иконки, пины"
+    },
+    "press-soft": {
+      "$type": "number",
+      "$value": ".99",
+      "$description": "поля и ряды острова"
+    },
+    "shadow-sm": {
+      "$type": "shadow",
+      "$value": "0 2px 6px rgba(0,0,0,.16), 0 1px 2px rgba(0,0,0,.10)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "shadow-md": {
+      "$type": "shadow",
+      "$value": "0 6px 16px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "shadow-lg": {
+      "$type": "shadow",
+      "$value": "0 16px 40px rgba(0,0,0,.24), 0 6px 16px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.08)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "control-h-xs": {
+      "$type": "dimension",
+      "$value": "24px"
+    },
+    "control-h-s": {
+      "$type": "dimension",
+      "$value": "36px"
+    },
+    "control-h-m": {
+      "$type": "dimension",
+      "$value": "48px"
+    },
+    "control-h-l": {
+      "$type": "dimension",
+      "$value": "56px"
+    },
+    "ls-caps-s": {
+      "$type": "dimension",
+      "$value": ".5px"
+    },
+    "ls-pill": {
+      "$type": "dimension",
+      "$value": ".04em"
+    },
+    "ls-display": {
+      "$type": "dimension",
+      "$value": "-.02em"
+    },
+    "ls-heading": {
+      "$type": "dimension",
+      "$value": "-.01em"
+    },
+    "ls-eyebrow": {
+      "$type": "dimension",
+      "$value": ".08em"
+    },
+    "dot-unread": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "touch-target": {
+      "$type": "dimension",
+      "$value": "44px"
+    },
+    "focus-ring": {
+      "$type": "shadow",
+      "$value": "0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    },
+    "focus-ring-inset": {
+      "$type": "shadow",
+      "$value": "inset 0 0 0 2px var(--accent)",
+      "$description": "для контента внутри overflow:hidden (ряды острова)",
+      "$extensions": {
+        "com.bannerlab.css": {
+          "expression": true,
+          "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+        }
+      }
+    }
+  },
+  "theme": {
+    "$description": "Тема перемапливает алиасы на другие примитивы. Имя алиаса стабильно, меняется значение.",
+    "light": {
+      "$description": "Светлая тема: переопределяет два «чернильных» канала и часть алиасов.",
+      "ink": {
+        "$type": "color",
+        "$value": "{primitive.k-dark}"
+      },
+      "tint": {
+        "$type": "color",
+        "$value": "17 17 19"
+      },
+      "k-accent": {
+        "$type": "color",
+        "$value": "{primitive.k-yellow-l}"
+      },
+      "bg-canvas": {
+        "$type": "color",
+        "$value": "{primitive.c-gray-100}"
+      },
+      "bg-base": {
+        "$type": "color",
+        "$value": "{primitive.c-gray-75}"
+      },
+      "bg-surface": {
+        "$type": "color",
+        "$value": "{primitive.c-white}"
+      },
+      "bg-raised": {
+        "$type": "color",
+        "$value": "{primitive.c-white}"
+      },
+      "bg-float": {
+        "$type": "color",
+        "$value": "{primitive.c-white}"
+      },
+      "border-strong": {
+        "$type": "color",
+        "$value": "rgb(var(--tint) / .28)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "inverse-bg": {
+        "$type": "color",
+        "$value": "{primitive.c-gray-925}"
+      },
+      "inverse-text": {
+        "$type": "color",
+        "$value": "{primitive.c-paper}"
+      },
+      "on-accent": {
+        "$type": "color",
+        "$value": "{primitive.c-yellow-ink}"
+      },
+      "accent-dim": {
+        "$type": "color",
+        "$value": "rgb(var(--k-accent) / .22)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "ok": {
+        "$type": "color",
+        "$value": "{primitive.c-ok-l}"
+      },
+      "warn": {
+        "$type": "color",
+        "$value": "{primitive.c-warn-l}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{primitive.c-danger-l}"
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{primitive.c-info-l}"
+      },
+      "ok-dim": {
+        "$type": "color",
+        "$value": "rgb(var(--k-ok-l) / .12)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "warn-dim": {
+        "$type": "color",
+        "$value": "rgb(var(--k-warn-l) / .14)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "danger-dim": {
+        "$type": "color",
+        "$value": "rgb(var(--k-danger-l) / .12)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "shadow-sm": {
+        "$type": "shadow",
+        "$value": "0 2px 6px rgba(17,17,19,.05), 0 1px 2px rgba(17,17,19,.04)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "shadow-md": {
+        "$type": "shadow",
+        "$value": "0 6px 16px rgba(17,17,19,.06), 0 2px 6px rgba(17,17,19,.04), 0 1px 2px rgba(17,17,19,.03)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      },
+      "shadow-lg": {
+        "$type": "shadow",
+        "$value": "0 16px 40px rgba(17,17,19,.09), 0 6px 16px rgba(17,17,19,.05), 0 2px 6px rgba(17,17,19,.04)",
+        "$extensions": {
+          "com.bannerlab.css": {
+            "expression": true,
+            "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
+          }
+        }
+      }
+    }
+  },
+  "$extensions": {
+    "com.bannerlab.sections": {
+      "primitive": {
+        "c-black": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-950": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-925": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-900": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-850": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-800": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-100": "нейтральная шкала (тёмный → светлый)",
+        "c-gray-75": "нейтральная шкала (тёмный → светлый)",
+        "c-paper": "нейтральная шкала (тёмный → светлый)",
+        "c-white": "нейтральная шкала (тёмный → светлый)",
+        "k-light": "«чернильные» каналы (RGB без alpha) для полупрозрачных токенов",
+        "k-dark": "«чернильные» каналы (RGB без alpha) для полупрозрачных токенов",
+        "c-yellow-ink": "акцент — жёлтый",
+        "k-yellow-d": "акцент — жёлтый",
+        "k-yellow-l": "акцент — жёлтый",
+        "c-ai-orange": "AI-градиент",
+        "c-ai-red": "AI-градиент",
+        "c-ai-pink": "AI-градиент",
+        "c-ok-d": "статусы (пара dark/light)",
+        "c-ok-l": "статусы (пара dark/light)",
+        "k-ok-d": "статусы (пара dark/light)",
+        "k-ok-l": "статусы (пара dark/light)",
+        "c-warn-d": "статусы (пара dark/light)",
+        "c-warn-l": "статусы (пара dark/light)",
+        "k-warn-d": "статусы (пара dark/light)",
+        "k-warn-l": "статусы (пара dark/light)",
+        "c-danger-d": "статусы (пара dark/light)",
+        "c-danger-l": "статусы (пара dark/light)",
+        "k-danger-d": "статусы (пара dark/light)",
+        "k-danger-l": "статусы (пара dark/light)",
+        "c-info-d": "статусы (пара dark/light)",
+        "c-info-l": "статусы (пара dark/light)"
+      },
+      "alias": {
+        "ink": "статусы (пара dark/light)",
+        "tint": "статусы (пара dark/light)",
+        "k-accent": "статусы (пара dark/light)",
+        "bg-canvas": "фон",
+        "bg-base": "фон",
+        "bg-surface": "фон",
+        "bg-raised": "фон",
+        "bg-float": "фон",
+        "bg-hover": "фон",
+        "bg-active": "фон",
+        "border-subtle": "границы",
+        "border": "границы",
+        "border-strong": "границы",
+        "text-primary": "текст (контраст поднят до WCAG AA там, где текст несёт смысл)",
+        "text-body": "текст (контраст поднят до WCAG AA там, где текст несёт смысл)",
+        "text-secondary": "текст (контраст поднят до WCAG AA там, где текст несёт смысл)",
+        "text-tertiary": "текст (контраст поднят до WCAG AA там, где текст несёт смысл)",
+        "text-disabled": "текст (контраст поднят до WCAG AA там, где текст несёт смысл)",
+        "inverse-bg": "инверсия (кнопка-приморка, тултип)",
+        "inverse-text": "инверсия (кнопка-приморка, тултип)",
+        "accent": "акцент — жёлтый, используется редко",
+        "on-accent": "акцент — жёлтый, используется редко",
+        "accent-dim": "акцент — жёлтый, используется редко",
+        "ai-grad": "AI — фирменный градиент: ВСЁ от имени AI всегда в нём",
+        "ai": "AI — фирменный градиент: ВСЁ от имени AI всегда в нём",
+        "on-ai": "AI — фирменный градиент: ВСЁ от имени AI всегда в нём",
+        "on-tone": "AI — фирменный градиент: ВСЁ от имени AI всегда в нём",
+        "ok": "семантические тоны (ось tone)",
+        "warn": "семантические тоны (ось tone)",
+        "danger": "семантические тоны (ось tone)",
+        "info": "семантические тоны (ось tone)",
+        "ok-dim": "семантические тоны (ось tone)",
+        "warn-dim": "семантические тоны (ось tone)",
+        "danger-dim": "семантические тоны (ось tone)",
+        "font-ui": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-xs": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-s": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-m": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-l": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-h3": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-h2": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-h1": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fs-display": "типографика. Кегли: xs/s — служебное, m — БАЗА текста (body), l — крупный ввод и тач",
+        "fw-regular": "вес: Regular — это и есть обычный текст; Medium — осознанный акцент",
+        "fw-medium": "вес: Regular — это и есть обычный текст; Medium — осознанный акцент",
+        "fw-black": "вес: Regular — это и есть обычный текст; Medium — осознанный акцент",
+        "lh-display": "интерлиньяж по назначению, а не набор десятичных литералов",
+        "lh-heading": "интерлиньяж по назначению, а не набор десятичных литералов",
+        "lh-ui": "интерлиньяж по назначению, а не набор десятичных литералов",
+        "lh-text": "интерлиньяж по назначению, а не набор десятичных литералов",
+        "lh-loose": "интерлиньяж по назначению, а не набор десятичных литералов",
+        "measure-text": "мера строки: длинный текст не должен растягиваться на всю ширину",
+        "measure-narrow": "мера строки: длинный текст не должен растягиваться на всю ширину",
+        "sp-05": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-15": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-25": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-35": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-1": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-2": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-3": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-4": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-5": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-6": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-7": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "sp-8": "отступы: базовый шаг 4px; дробные имена — доли шага (05 = 2px, 15 = 6px, 25 = 10px).",
+        "row-h": "высота ряда острова (контрол, не отступ — своя семантика)",
+        "r-s": "радиусы",
+        "r-m": "радиусы",
+        "r-l": "радиусы",
+        "r-full": "радиусы",
+        "ease-spring": "движение — easing'и только через токены; пружина сгенерирована из физики (linear-кривая затухающей пружины, овершут ~4%)",
+        "ease-out": "движение — easing'и только через токены; пружина сгенерирована из физики (linear-кривая затухающей пружины, овершут ~4%)",
+        "ease-in": "движение — easing'и только через токены; пружина сгенерирована из физики (linear-кривая затухающей пружины, овершут ~4%)",
+        "ease-inout": "движение — easing'и только через токены; пружина сгенерирована из физики (linear-кривая затухающей пружины, овершут ~4%)",
+        "dur-base": "длительность: токен только для сквозной смены темы; остальные — тюнингованные",
+        "press-strong": "пресс-состояние: единая шкала scale вместо разбросанных литералов",
+        "press-label": "пресс-состояние: единая шкала scale вместо разбросанных литералов",
+        "press-subtle": "пресс-состояние: единая шкала scale вместо разбросанных литералов",
+        "press-soft": "пресс-состояние: единая шкала scale вместо разбросанных литералов",
+        "shadow-sm": "тени — многослойная шкала (реалистичная тень = несколько слоёв)",
+        "shadow-md": "тени — многослойная шкала (реалистичная тень = несколько слоёв)",
+        "shadow-lg": "тени — многослойная шкала (реалистичная тень = несколько слоёв)",
+        "control-h-xs": "контролы",
+        "control-h-s": "контролы",
+        "control-h-m": "контролы",
+        "control-h-l": "контролы",
+        "ls-caps-s": "трекинг (компенсация хвоста после последней буквы — margin-right:calc(-1 * токен))",
+        "ls-pill": "трекинг (компенсация хвоста после последней буквы — margin-right:calc(-1 * токен))",
+        "ls-display": "трекинг заголовков: крупный кегль набирается плотнее",
+        "ls-heading": "трекинг заголовков: крупный кегль набирается плотнее",
+        "ls-eyebrow": "трекинг капс-набора: рубрики и бейджи",
+        "dot-unread": "точка-индикатор непрочитанного",
+        "touch-target": "минимальный тач-таргет (Apple HIG)",
+        "focus-ring": "фокус-кольцо (kb-модальность): зазор фоном + кольцо акцентом",
+        "focus-ring-inset": "фокус-кольцо (kb-модальность): зазор фоном + кольцо акцентом"
+      }
+    }
+  }
+}
