@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build:site": "node scripts/build-site.mjs",
+    "build:tokens": "node scripts/build-tokens.mjs",
     "api": "node scripts/build-api.mjs",
     "changeset": "changeset",
     "lint": "npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:showcase",
@@ -34,5 +35,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^8.1.5"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

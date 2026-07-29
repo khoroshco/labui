@@ -1,0 +1,19 @@
+{
+  "name": "@banner-lab/tokens",
+  "version": "0.1.0",
+  "description": "Дизайн-токены Banner Lab: цвет, типографика, отступы, радиусы, тени, движение",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json"
+  },
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "git+https://github.com/khoroshco/labui.git", "directory": "packages/tokens" },
+  "scripts": {
+    "prepack": "node ../../scripts/build-tokens.mjs"
+  }
+}

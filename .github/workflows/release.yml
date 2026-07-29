@@ -1,0 +1,55 @@
+name: Релиз
+
+# Публикуется ТОЛЬКО @banner-lab/tokens: он не зависит от рантайма и полезен любому стеку
+# сразу. Компоненты на DC-рантайме не публикуются осознанно (docs/adr/0003), корневой пакет
+# помечен private — случайный npm publish не пройдёт.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      - name: Есть ли ключ публикации
+        id: guard
+        run: |
+          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::NPM_TOKEN не задан — версия будет посчитана, но публикации не будет."
+          fi
+
+      # changesets сам решает, что делать: есть незакрытые записи — открывает PR с версиями
+      # и CHANGELOG; записи уже влиты — публикует.
+      - uses: changesets/action@v1
+        with:
+          version: npx changeset version
+          publish: ${{ steps.guard.outputs.ready == 'true' && 'npx changeset publish' || '' }}
+          commit: 'релиз: версии и CHANGELOG'
+          title: 'Релиз: версии и CHANGELOG'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
