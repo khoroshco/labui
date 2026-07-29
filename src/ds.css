@@ -72,6 +72,8 @@ button:focus, select:focus { outline:none; }
 [data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { background:var(--danger-dim); }
 [data-row] input, [data-row] select, [data-row] textarea { outline:none; box-shadow:none; }
 html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
+/* Слой-виджет слайдера: кольцо inset, потому что корень слайдера режет overflow'ом — та же причина, что у рядов острова. Геометрия кольца не меняется: слой лежит inset:0. */
+html[data-modality="kb"] [data-slider]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* кольцо ряда — ТОЛЬКО когда внутри реально сфокусирован текстовый ввод; залётный фокус ряда мышью кольца не даёт */
 [data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
 [data-row]:focus-visible, [data-row]:focus-within { outline:none; }
