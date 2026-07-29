@@ -10,27 +10,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build as buildCss, flatten, readSource } from './build-tokens-css.mjs';
 
 // От файла, а не от cwd: npm запускает prepack из каталога пакета.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkgDir = path.join(root, 'packages/tokens');
 const dist = path.join(pkgDir, 'dist');
-const css = fs.readFileSync(path.join(root, 'src/tokens.css'), 'utf8');
 
-/** Объявления внутри блока-селектора. */
-function block(selector) {
-  const re = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([\\s\\S]*?)\\n\\}`, 'm');
-  const body = re.exec(css)?.[1] ?? '';
-  const out = {};
-  for (const m of body.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) out[m[1]] = m[2].trim();
-  return out;
-}
+// CSS в пакет уезжает собранным из того же источника — двух похожих файлов в системе нет.
+buildCss();
+const source = readSource();
+const flat = flatten(source);
+const base = { ...flat.primitive, ...flat.alias };
+const light = flat.light;
+if (Object.keys(base).length < 50) throw new Error('источник токенов пуст — сборка пакета остановлена');
 
-const base = block(':root');
-const light = block('[data-theme="light"]');
-if (Object.keys(base).length < 50) throw new Error('в tokens.css не разобрался :root — сборка токенов остановлена');
-
-const layerOf = (name) => (/^--[ck]-/.test(name) ? 'primitive' : 'alias');
+const layerOf = (name) => (flat.primitive[name] !== undefined ? 'primitive' : 'alias');
 
 const tokens = {
   $comment: 'Генерируется scripts/build-tokens.mjs из src/tokens.css. Руками не править.',

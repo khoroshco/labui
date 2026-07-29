@@ -9,3 +9,6 @@ blob-report/
 .vite/
 vendor/
 packages/*/dist/
+
+# собирается из tokens/banner-lab.tokens.json
+src/tokens.css
