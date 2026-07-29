@@ -12,35 +12,12 @@
 import { expect, test } from '@playwright/test';
 import { dcPages } from '../support/dc.js';
 import { open } from '../support/browser.js';
+import { FIXTURES } from '../support/fixtures.js';
 
 const components = dcPages()
   .filter((p) => p.file.startsWith('src/'))
   .map((p) => p.name);
 
-/**
- * Компоненты, у которых дефолтных пропсов не хватает даже на видимую картинку: контейнер
- * без содержимого, карточка без сообщений. Снимок пустоты ничего не сторожит, поэтому
- * даём минимальный правдоподобный набор — тот же, что показывает витрина.
- */
-const FIXTURES = {
-  Island: {
-    rows: [
-      { type: 'text', label: 'Название', value: 'Осенний сейл' },
-      { type: 'text', label: 'erid', value: '2Vtzqx', nums: true },
-      { type: 'toggle', label: 'Запекать в растр', checked: true },
-      { type: 'segmented', label: 'Формат', options: ['JPG', 'PNG', 'WEBP'], value: 1 },
-      { type: 'action', label: 'Выгрузить' },
-    ],
-  },
-  PinCard: {
-    author: 'Марина Ковалёва',
-    messages: [
-      { name: 'Марина Ковалёва', text: 'Логотип уезжает за охранное поле на мобильном.' },
-      { name: 'Пётр Соколов', text: 'Поправил, посмотри.' },
-    ],
-  },
-  Skeleton: { shape: 'line', width: '140px', height: '12px' },
-};
 
 for (const name of components) {
   for (const theme of ['dark', 'light']) {

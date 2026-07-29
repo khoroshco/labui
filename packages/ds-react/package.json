@@ -1,0 +1,17 @@
+{
+  "name": "@banner-lab/ds",
+  "version": "0.0.0",
+  "description": "Banner Lab Design System — компоненты на React",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./ds.css": "./dist/ds.css"
+  },
+  "files": ["dist"],
+  "peerDependencies": { "react": "^18.3.0 || ^19.0.0", "react-dom": "^18.3.0 || ^19.0.0" },
+  "dependencies": { "@banner-lab/tokens": "0.1.0" },
+  "repository": { "type": "git", "url": "git+https://github.com/khoroshco/labui.git", "directory": "packages/ds-react" }
+}

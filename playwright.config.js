@@ -4,6 +4,10 @@ export const BASE_URL = 'http://localhost:5173';
 
 export default defineConfig({
   testDir: 'tests',
+  // Эталоны лежат в одном месте и не привязаны к файлу теста: их снимает снапшот-тест
+  // с DC-версии, а сверяет с ними ещё и паритетный харнесс React. Один эталон на двоих —
+  // это и есть смысл паритета.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{arg}-{projectName}-{platform}{ext}',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0, // гейт обязан быть детерминированным: ретрай прячет гонку, а не чинит её
