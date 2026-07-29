@@ -1,0 +1,265 @@
+/* Banner Lab DS — общие правила состояний и шрифты. Токены — в tokens.css */
+@font-face { font-family:'Unica 77'; src:url('fonts/Unica77LLCyr-Regular.otf') format('opentype'); font-weight:100 450; font-style:normal; }
+@font-face { font-family:'Unica 77'; src:url('fonts/Unica77LLCyr-Medium.otf') format('opentype'); font-weight:451 700; font-style:normal; }
+@font-face { font-family:'Unica 77'; src:url('fonts/Unica77LLCyr-ExtraBlack.otf') format('opentype'); font-weight:800 950; font-style:normal; }
+html, body { margin:0; padding:0; background:var(--bg-base); color:var(--text-primary); font-family:var(--font-ui); font-weight:var(--fw-regular); font-size:var(--fs-m); line-height:var(--lh-text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+/* Оптика числового набора. У цифр нет выносных элементов, поэтому их чернильное пятно
+   сидит выше в строковом боксе, чем у прозы: замер по глифам Unica при --lh-ui даёт
+   разницу ~0.7px. Признак тот же, что у табличных цифр — хук data-nums: одно объявление
+   «это числовой набор» включает и равную ширину знаков, и свою оптическую компенсацию.
+   Значение контекстно (зависит от кегля и интерлиньяжа) и потому литерал, не токен. */
+input, select, textarea, button { font-family:inherit; }
+/* табличные цифры — ТОЛЬКО по явному хуку data-nums: у Unica tnum делает табличным и ПРОБЕЛ (в инпутах разъезжались даже плейсхолдеры) */
+[data-nums], [data-nums] input { font-variant-numeric:tabular-nums; }
+a { color:var(--text-primary); text-decoration-color:var(--border-strong); }
+a:hover { color:var(--accent); }
+* { box-sizing:border-box; }
+::placeholder { color:var(--text-tertiary); }
+/* ============================================================
+   УРОВНИ ЯРКОСТИ ТЕКСТА и их инвариант.
+   По убыванию: primary (содержание — значение, лейбл ряда) → secondary
+   (пояснение, subtitle) → tertiary (служебное: плейсхолдер, единицы,
+   счётчики, подсказки) → disabled (выключенное).
+   ИНВАРИАНТ: выключенное — ПОТОЛОК яркости. Ни один элемент внутри
+   disabled не может быть ярче --text-disabled — иначе порядок акцентов
+   переворачивается (плейсхолдер оказывался самым заметным в поле).
+   Семантика (ok/warn/danger) — другая ось, но в выключенном гаснет и она:
+   неактивный блок не кричит цветом.
+   ============================================================ */
+[data-disabled="true"], [data-disabled="true"] *, [aria-disabled="true"] * { color:var(--text-disabled) !important; }
+[data-disabled="true"] ::placeholder, [aria-disabled="true"] ::placeholder, :disabled::placeholder { color:var(--text-disabled) !important; }
+button { transition:background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease, filter .18s ease, transform .35s var(--ease-spring); }
+button:active:not(:disabled) { transform:scale(var(--press-strong)); filter:brightness(.94); transition-duration:.18s,.18s,.18s,.18s,.18s,.1s; }
+button:disabled { cursor:not-allowed; }
+/* фокус-кольцо (kb-модальность) — единый токен --focus-ring; ряды острова (overflow:hidden) используют inset-вариант ниже */
+html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible, html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+button:focus, select:focus { outline:none; }
+[data-field] { transition:border-color .12s, box-shadow .12s, background .12s, transform .35s var(--ease-spring); }
+[data-field]:active { transform:scale(var(--press-soft)); transition-duration:.12s,.12s,.12s,.1s; }
+/* ============================================================
+   ХОВЕРЫ КОНТРОЛОВ — ТОЛЬКО СТАТИКОЙ.
+   Ховер, заданный через {{ дырку }} в style-hover, компилируется в ПУСТОЕ правило:
+   значение подставляется на этапе парсинга, когда его ещё нет, и больше не обновляется.
+   Так молча умерли ховеры Button, Input, OptionGroup и CycleButton. Поэтому все
+   состояния указателя живут здесь и ключуются data-атрибутами, а не значениями.
+   ============================================================ */
+[data-cycle]:not(:disabled):hover { border-color:var(--border-strong); color:var(--text-primary); }
+/* выбранная опция уже максимально яркая — её ховер не трогает */
+[data-opt]:not(:disabled):not([aria-checked="true"]):hover { color:var(--text-primary); }
+[data-opt][data-inverse="true"]:not(:disabled):not([aria-checked="true"]):hover { color:var(--inverse-text); }
+[data-btn="primary"]:not(:disabled):not([data-busy="true"]):hover { opacity:.88; }
+[data-btn="secondary"]:not(:disabled):not([data-busy="true"]):hover { border-color:var(--border-strong); background:var(--bg-hover); }
+[data-btn="ghost"]:not(:disabled):not([data-busy="true"]):hover { background:var(--bg-hover); color:var(--text-primary); }
+[data-btn="accent"]:not(:disabled):not([data-busy="true"]):hover { filter:brightness(1.06); }
+/* тон перекрывает вариант: у залитых — ярче, у прозрачных — тонировка тоном */
+[data-btn="primary"][data-tone]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="accent"][data-tone]:not(:disabled):not([data-busy="true"]):hover { opacity:1; filter:brightness(1.08); }
+[data-btn="secondary"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="ghost"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover { background:var(--ok-dim); color:var(--ok); }
+[data-btn="secondary"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="ghost"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover { background:var(--danger-dim); color:var(--danger); }
+/* ховер и пресс — только у живого поля: disabled не подсвечивается, а ошибка и фокус не перекрашиваются в серый */
+[data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong); }
+[data-field][data-disabled="true"]:active { transform:none; }
+[data-field]:focus-within { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+[data-field]:focus-within:hover { border-color:var(--accent); }
+[data-field] input:focus-visible, [data-field] select:focus-visible { outline:none; box-shadow:none; }
+[data-row] { transition:transform .35s var(--ease-spring); }
+[data-row]:active { transform:scale(var(--press-soft)); }
+/* ховер/пресс/kb-фокус ряда: тон всегда несёт обёртка-маунт (зона под рядом), сам ряд не красится — при scale-прессе и пружинном возврате края не мигают */
+[data-island] > :not([data-row]) { transition:background .15s ease; }
+[data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):hover), [data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):active), html[data-modality="kb"] [data-island] > :not([data-row]):has([data-row]:focus-visible) { background:var(--bg-hover); }
+[data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { background:var(--danger-dim); }
+[data-row] input, [data-row] select, [data-row] textarea { outline:none; box-shadow:none; }
+html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
+/* кольцо ряда — ТОЛЬКО когда внутри реально сфокусирован текстовый ввод; залётный фокус ряда мышью кольца не даёт */
+[data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
+[data-row]:focus-visible, [data-row]:focus-within { outline:none; }
+html[data-modality="kb"] [data-row]:focus-visible, html[data-modality="kb"] [data-row]:focus-within, html[data-modality="kb"] [data-row] input:focus-visible, html[data-modality="kb"] [data-row] select:focus-visible { outline:none; }
+[data-row]:focus-visible + [data-row], [data-row]:focus-within + [data-row] { border-top-color:transparent; }
+/* ряды-компоненты монтируются в обёртках: гасим сепаратор соседа и через них */
+[data-island] > :has([data-row]:focus-within) + * [data-row], [data-island] > :has([data-row]:focus-within) + * > [class] { border-top-color:transparent; }
+/* геометрией углов владеет остров: крайние ряды наследуют его радиус (и внутри обёрток) */
+[data-island] > :first-child, [data-island] > :first-child [data-row] { border-top-left-radius:var(--r-m); border-top-right-radius:var(--r-m); }
+[data-island] > :last-child, [data-island] > :last-child [data-row] { border-bottom-left-radius:var(--r-m); border-bottom-right-radius:var(--r-m); }
+/* сепараторы рядов рисует остров на обёртках-маунтах — пресс ряда (scale) их не двигает */
+[data-island] > * + * { border-top:0.5px solid var(--border-subtle); }
+[data-island] > :has([data-row] input:focus), [data-island] > :has([data-row] input:focus) + * { border-top-color:transparent; }
+[data-island] > :has([data-row][data-invalid="true"]), [data-island] > :has([data-row][data-invalid="true"]) + * { border-top-color:transparent; }
+/* disabled-ряд: гасим весь ряд и тонируем зону под ним */
+[data-row][data-disabled="true"], [data-row][data-disabled="true"] * { color:var(--text-disabled) !important; cursor:not-allowed !important; }
+[data-row][data-disabled="true"]:active { transform:none; }
+[data-island] > :not([data-row]):has([data-row][data-disabled="true"]) { background:var(--bg-hover); }
+[data-ticks] { opacity:0; transition:opacity .25s ease; }
+[role="slider"]:hover [data-ticks], [role="slider"]:active [data-ticks], [role="slider"]:focus-visible [data-ticks] { opacity:1; }
+html[data-modality="kb"] [role="slider"]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+[data-press="true"] { transition:transform .35s var(--ease-spring); }
+[data-press="true"]:active { transform:scale(var(--press-subtle)); }
+/* ============================================================
+   ВЫКЛЮЧЕННОЕ НЕ ИМЕЕТ НИ ОДНОГО СОСТОЯНИЯ, СВЯЗАННОГО С УКАЗАТЕЛЕМ:
+   ни ховера, ни пресса, ни курсора-руки. Гейт УНИВЕРСАЛЬНЫЙ — по любому из трёх
+   признаков выключенности (нативный disabled, aria-disabled, хук data-disabled),
+   чтобы ЛЮБОЙ компонент — в том числе будущий — получал правило по умолчанию,
+   а не вспоминал его каждый раз руками. Потомки тоже: выключенный ряд
+   гасит пресс своих атомов.
+   ============================================================ */
+:disabled, [aria-disabled="true"], [data-disabled="true"] { cursor:not-allowed; }
+:disabled:active, [aria-disabled="true"]:active, [data-disabled="true"]:active,
+[aria-disabled="true"] :active, [data-disabled="true"] :active { transform:none !important; filter:none !important; }
+/* pressed кнопок-опций (Segments/OptionGroup): фон живёт в скользящей пилюле, нажатию нужна своя заливка поверх inline-стиля */
+[data-opt]:not(:disabled):active { background:var(--bg-hover) !important; }
+label[tabindex], [data-row][tabindex] { transition:transform .35s var(--ease-spring); }
+label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
+[data-row][tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active { transform:scale(var(--press-label)); }
+[data-float] label { top:50%; transform:translateY(-50%); font-size:var(--fs-l); color:var(--text-tertiary); transition:top .18s var(--ease-out), transform .18s var(--ease-out), font-size .18s var(--ease-out); }
+[data-float]:focus-within label, [data-float] input:not(:placeholder-shown) + label { top:12px; transform:translateY(0); font-size:var(--fs-s); }
+@media (pointer: coarse) { input, select { font-size:var(--fs-l) !important; } }
+/* Нумерованный список в документации: номер — служебный тон и кегль, он ориентир,
+   а не содержание, и не должен конкурировать с фразой. ::marker инлайном не задать. */
+[data-ol] > li::marker { color:var(--text-tertiary); font-size:var(--fs-xs); }
+/* Раскрывашка секции: пресс есть у каждого интерактивного элемента системы.
+   Заголовок широкий, поэтому масштаб мельче края шкалы (.99 у plain против .97 у
+   компактной рубрики) — иначе крупный блок «дышит» слишком заметно. */
+[data-disc] { transition:color .15s ease, transform .18s var(--ease-spring), filter .18s ease; }
+[data-disc="eyebrow"]:active:not([data-disabled="true"]) { transform:scale(.97); filter:brightness(.94); }
+[data-disc="plain"]:active:not([data-disabled="true"]) { transform:scale(.99); filter:brightness(.94); }
+/* Пресс табов. Таб — плоская кнопка без своей поверхности, поэтому масштабируется
+   только текст (--press-label), а подчёркивание остаётся на месте: оно принадлежит
+   ленте, а не кнопке, и дрожать вместе с надписью не должно. */
+[data-tab] { transition:transform .35s var(--ease-spring), color .15s ease; }
+[data-tab]:not([aria-disabled="true"]):active { transform:scale(var(--press-label)); }
+[data-disc]:hover:not([data-disabled="true"]) { color:var(--text-secondary); }
+[data-disc="plain"]:hover:not([data-disabled="true"]) { color:var(--text-primary); }
+@media (prefers-reduced-motion: reduce) {
+  /* пресс-масштаб заменяется гашением: факт нажатия остаётся, перемещения нет */
+  [data-disc]:active:not([data-disabled="true"]) { transform:none; opacity:.7; }
+  [data-tab]:active { transform:none; opacity:.7; }
+}
+@media (forced-colors: active) {
+  [data-disc] { filter:none; }
+}
+/* тач: мелкие контролы (ⓘ, CycleButton) получают невидимую расширенную зону нажатия ≥44px */
+[data-tap] { position:relative; }
+@media (pointer: coarse) { [data-tap]::after { content:''; position:absolute; inset:-13px; } }
+/* ============================================================
+   Ничьих пикселей внутри группы контролов быть не должно. Зазор между опциями
+   принадлежал контейнеру, и клик в него доставался родителю — в ряду с опциями
+   это открывало info вместо переключения. Хит-зона кнопки расширяется на ПОЛОВИНУ
+   зазора в каждую сторону: соседние зоны смыкаются ровно посередине, промахнуться
+   некуда, а вёрстка и визуальный ритм не меняются (::after вне потока).
+   Значение — по зазору контейнера: xs = --sp-05 (2px), l = --sp-5 (24px).
+   ============================================================ */
+[data-hit] { position:relative; }
+[data-hit]::after { content:''; position:absolute; top:0; bottom:0; }
+[data-hit="xs"]::after { left:-1px; right:-1px; }
+[data-hit="l"]::after { left:-12px; right:-12px; }
+/* тултип: атрибут data-tooltip на любом элементе; задержка 450 мс, на таче скрыт; браузерный title не используем */
+[data-tooltip] { position:relative; }
+[data-tooltip]:not([data-tooltip=""])::before { content:attr(data-tooltip); position:absolute; bottom:calc(100% + 7px); inset-inline-start:50%; transform:translateX(-50%) translateY(3px) scale(.96); background:var(--inverse-bg); color:var(--inverse-text); font-family:var(--font-ui); font-weight:var(--fw-medium); font-size:var(--fs-xs); line-height:1; padding:6px 6px 5px; border-radius:var(--r-s); white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .12s ease, transform .15s var(--ease-in); z-index:200; box-shadow:var(--shadow-sm); }
+[data-tooltip]:not([data-tooltip=""]):hover::before, html[data-modality="kb"] [data-tooltip]:not([data-tooltip=""]):focus-visible::before { opacity:1; transform:translateX(-50%) translateY(0) scale(1); transition:opacity .15s ease, transform .3s var(--ease-spring); transition-delay:.45s; }
+@media (pointer: coarse) { [data-tooltip]::before { display:none; } }
+/* плавная смена темы: View Transitions (GPU-кроссфейд, ставит логика) с фолбэком на data-theme-anim */
+[data-theme-anim], [data-theme-anim] * { transition:background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), fill var(--dur-base) var(--ease-out) !important; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration:.26s; animation-timing-function:var(--ease-out); }
+@keyframes pin-pop { 0% { transform:scale(0); } 100% { transform:scale(1); } }
+/* загрузка: спиннер и пульс скелетона */
+@keyframes ds-spin { to { transform:rotate(360deg); } }
+/* Появление плавающей карточки, растущей из точки привязки (PinCard у пина):
+   сдвиг снизу + лёгкий масштаб, пружиной. Живёт отдельно от входа тоста — тот
+   анимируется transition'ом обёртки, потому что ещё и раздвигает стек по высоте. */
+@keyframes ds-pop-in { from { opacity:0; transform:translateY(10px) scale(.96); } to { opacity:1; transform:none; } }
+@keyframes ds-pulse { 0%, 100% { opacity:.5; } 50% { opacity:1; } }
+@keyframes ds-appear { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
+/* Таймер тоста: полоса 2px по нижнему краю, УБЫВАЮЩАЯ — показывает остаток времени,
+   а не «прогресс». Раньше заливка --bg-hover ползла по всей поверхности: ничего
+   подобного в системе больше нет, и тост выглядел вечно наведённым.
+   Полоса 2px — существующий словарь (так же набрано подчёркивание Tabs).
+   Hover и пресс ставят на паузу. */
+@keyframes ds-toast-fill { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+[data-toast]:hover [data-toast-fill], [data-toast]:active [data-toast-fill] { animation-play-state:paused; }
+/* демо-дорожка изингов в сторибуке */
+@keyframes sb-slide { 0%, 12% { transform:translateX(0); } 50%, 62% { transform:translateX(180px); } 100% { transform:translateX(0); } }
+@keyframes ds-fade { from { opacity:0; } to { opacity:1; } }
+/* stagger: секции витрины входят каскадом ~45 мс */
+@keyframes ds-rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+main section { animation:ds-rise .3s var(--ease-out) backwards; }
+main section:nth-of-type(2) { animation-delay:45ms; }
+main section:nth-of-type(3) { animation-delay:90ms; }
+main section:nth-of-type(4) { animation-delay:135ms; }
+main section:nth-of-type(5) { animation-delay:180ms; }
+main section:nth-of-type(n+6) { animation-delay:225ms; }
+/* ============================================================
+   prefers-reduced-motion: убираем КРУПНОЕ и инерционное движение
+   (перемещения, scale-пресс, скольжение пилюли, пружины, авто-раскрытия),
+   ОСТАВЛЯЕМ безопасное — opacity-фейды, смену цвета, фокус-кольца.
+   Замена «перемещения» на «проявление», а не полное отключение.
+   JS-анимации (Slider-желе, скольжение пилюли, PinCard) читают этот же
+   флаг через window.dsReducedMotion() из ds-helpers.js.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+  /* пресс не масштабирует, только приглушает яркостью */
+  button:active:not(:disabled) { transform:none !important; }
+  [data-field]:active, [data-row]:active, [data-press="true"]:active, label[tabindex]:active, [data-row][tabindex]:active { transform:none !important; }
+  /* цветовые/opacity-переходы оставляем живыми (не мгновенными) — они безопасны и помогают ориентироваться */
+  button { transition:background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease, filter .18s ease !important; }
+  a { transition:color .18s ease !important; }
+}
+/* ============================================================
+   forced-colors (Windows High Contrast): система заменяет цвета автора
+   своей палитрой и ВЫРЕЗАЕТ box-shadow и градиенты. Всё, что у нас несёт
+   состояние заливкой или тенью, здесь переражается тем, что переживает
+   режим: outline, border и системные ключевые слова
+   (Highlight — выбранное/фокус, GrayText — disabled, ButtonBorder — границы).
+   forced-color-adjust:none — только там, где цвет и есть информация
+   (точка непрочитанного, градиент AI) и заменить его нечем.
+   ============================================================ */
+@media (forced-colors: active) {
+  /* 1. Фокус: box-shadow вырезан — кольцо переносим на outline */
+  html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible,
+  html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible,
+  html[data-modality="kb"] [role="slider"]:focus-visible { outline:2px solid Highlight !important; outline-offset:2px; }
+  /* ряды острова обрезаны overflow — кольцо внутрь */
+  html[data-modality="kb"] [data-row]:focus-visible, [data-row]:has(input:focus) { outline:2px solid Highlight !important; outline-offset:-2px; }
+  [data-field]:focus-within { outline:2px solid Highlight; outline-offset:-1px; }
+  /* 2. Границы полей и сепараторы рядов должны остаться видимыми */
+  [data-field] { border-color:ButtonBorder; }
+  [data-island] > * + * { border-top-color:ButtonBorder; }
+  /* 3. Toggle: заливка трека вырезана — состояние несут цвет трека и рамка */
+  [data-track] { background:Canvas !important; border:1px solid ButtonBorder; }
+  [data-knob] { background:ButtonBorder !important; }
+  [aria-checked="true"] [data-track] { background:Highlight !important; border-color:Highlight; }
+  [aria-checked="true"] [data-knob] { background:Canvas !important; }
+  /* 4. Checkbox: галочка на Highlight */
+  [data-box] { background:Canvas !important; border-color:ButtonBorder !important; color:CanvasText !important; }
+  [aria-checked="true"] [data-box] { background:Highlight !important; border-color:Highlight !important; color:Canvas !important; }
+  /* 5. Скользящая пилюля OptionGroup/Segments: выбранная опция читается заливкой Highlight */
+  [data-pill] { background:Highlight !important; }
+  [data-opt][aria-checked="true"] { color:Canvas !important; }
+  [data-opt]:active { background:transparent !important; }
+  /* 6. Disabled — системный GrayText */
+  button:disabled, [data-row][data-disabled="true"], [data-row][data-disabled="true"] * { color:GrayText !important; }
+  /* 7. Тон зоны под рядом (ховер/ошибка) вырезан — ошибку показываем рамкой */
+  [data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { outline:1px solid Mark; outline-offset:-1px; }
+  /* 8. Цвет как единственный носитель смысла — сохраняем принудительно */
+  [data-dot], [data-ai-grad] { forced-color-adjust:none; }
+}
+
+/* Упор в maxLength: ввод молча перестаёт приниматься — событие о заблокированном
+   символе браузер не даёт, поэтому компонент ловит попытку сам и дёргает поле.
+   Амплитуда мелкая (3px): это отказ, а не тревога. Только transform. */
+@keyframes ds-shake {
+  0%, 100% { transform:translateX(0); }
+  25% { transform:translateX(-1.5px); }
+  55% { transform:translateX(1.5px); }
+  80% { transform:translateX(-0.5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* крупные перемещения заменяются гашением: смысл «дальше нельзя» остаётся */
+  @keyframes ds-shake { 0%, 100% { opacity:1; } 50% { opacity:.55; } }
+}

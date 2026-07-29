@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+</helmet>
+<span style="display:flex; flex-direction:column; gap:0; min-width:0; position:relative; top:{{ shift }}">
+  <span style="display:inline-flex; align-items:center; gap:var(--sp-15)">
+    <span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:var(--text-secondary); position:relative; top:0.5px">{{ label }}</span>
+    <sc-if value="{{ hasInfo }}" hint-placeholder-val="{{ false }}">
+      <button data-tap="true" aria-expanded="{{ ariaExpanded }}" aria-label="{{ infoAria }}" onClick="{{ toggle }}" onMouseDown="{{ stop }}" style="display:inline-flex; align-items:center; justify-content:center; padding:0; border:none; background:none; color:{{ color }}; cursor:pointer; transition:color .15s ease, transform .35s var(--ease-spring); transform:{{ rotate }}" style-hover="color:var(--text-secondary)"><g-icon name="circle-info" size="14"></g-icon></button>
+    </sc-if>
+  </span>
+  <sc-if value="{{ hasSubtitle }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); color:var(--text-tertiary); line-height:var(--lh-ui)">{{ subtitle }}</span></sc-if>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 240, &quot;height&quot;: 60},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Запекать в растр&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;subtitle&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;hasInfo&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;open&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onToggle&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, open = !!p.open;
+    return {
+      label: p.label ?? '', subtitle: p.subtitle ?? '', hasSubtitle: !!p.subtitle,
+      // компенсация масс: двухстрочный блок оптически заваливается вверх — опускаем на 1px
+      shift: p.subtitle ? '1px' : '0',
+      hasInfo: !!p.hasInfo,
+      color: open ? 'var(--text-primary)' : 'var(--text-tertiary)',
+      rotate: open ? 'rotate(180deg)' : 'rotate(0deg)',
+      ariaExpanded: open ? 'true' : 'false', infoAria: open ? 'Скрыть подсказку' : 'Показать подсказку',
+      // ⓘ сам гасит всплытие: действие ряда (фокус, флип) не должно дёргаться
+      toggle: (e) => { e.preventDefault(); e.stopPropagation(); (p.onToggle ?? (() => {}))(); },
+      stop: (e) => { e.preventDefault(); e.stopPropagation(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

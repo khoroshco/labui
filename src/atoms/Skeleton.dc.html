@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+</helmet>
+<span style="display:block; width:{{ w }}; height:{{ h }}; border-radius:{{ r }}; background:var(--bg-active); animation:ds-pulse 1.4s ease-in-out infinite; flex:none"></span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 240, &quot;height&quot;: 60},
+&quot;shape&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;line&quot;, &quot;rect&quot;, &quot;circle&quot;], &quot;default&quot;: &quot;line&quot;, &quot;tsType&quot;: &quot;'line' | 'rect' | 'circle'&quot;},
+&quot;width&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;140px&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;height&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, shape = p.shape ?? 'line';
+    return {
+      w: p.width ?? (shape === 'circle' ? '24px' : shape === 'line' ? '140px' : '100%'),
+      h: p.height ?? (shape === 'line' ? '12px' : shape === 'circle' ? (p.width ?? '24px') : '64px'),
+      r: shape === 'circle' ? '50%' : shape === 'rect' ? 'var(--r-s)' : 'var(--r-full)',
+    };
+  }
+}
+</script>
+</body>
+</html>

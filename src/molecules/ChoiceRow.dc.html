@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<div data-row="true" data-disabled="{{ disabledAttr }}" style="position:relative; display:flex; flex-direction:column; padding:0 var(--sp-15) 0 var(--sp-4)">
+  <div data-press="{{ pressable }}" onClick="{{ rowClick }}" style="display:flex; height:var(--row-h); align-items:center; justify-content:space-between; gap:var(--sp-3); cursor:{{ headCursor }}">
+    <dc-import name="RowLabel" label="{{ label }}" has-info="{{ hasInfo }}" open="{{ infoOpen }}" on-toggle="{{ toggleInfo }}" style="flex:none" hint-size="120px,20px"></dc-import>
+    <span onClick="{{ stopRow }}" style="display:flex; align-items:center; align-self:stretch; cursor:default">
+      <dc-import name="OptionGroup" options="{{ options }}" value="{{ value }}" disabled="{{ disabled }}" on-change="{{ change }}" hint-size="150px,36px"></dc-import>
+    </span>
+  </div>
+  <span style="display:block; padding-right:var(--sp-25)">
+    <dc-import name="RowInfo" open="{{ infoOpen }}" text="{{ info }}" image="{{ infoImage }}" hint-size="100%,0px"></dc-import>
+  </span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 100},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Тип выхода&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(string | {icon: string, title?: string, label?: string})[]&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;info&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;infoImage&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(index: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { infoOpen: false };
+  renderVals() {
+    const p = this.props, noop = () => {};
+    const hasInfo = !!p.info, disabled = !!p.disabled;
+    const open = hasInfo && this.state.infoOpen;
+    const flipInfo = () => this.setState(s => ({ infoOpen: !s.infoOpen }));
+    return {
+      label: p.label ?? '',
+      options: p.options ?? [], value: p.value ?? 0,
+      change: typeof p.onChange === 'function' ? (i) => p.onChange(i) : undefined,
+      // клик по всему ряду не занят действием ряда — при наличии ⓘ он открывает info
+      disabled, disabledAttr: disabled ? 'true' : 'false',
+      rowClick: (hasInfo && !disabled) ? flipInfo : noop,
+      // Ряд 52px, группа опций 36px — сверху и снизу неё оставалось по 8px «ничьей» зоны,
+      // и клик туда доставался ряду, то есть открывал info вместо переключения опции.
+      // Зона контрола растянута на всю высоту ряда и клики наружу не пускает:
+      // промах мимо опции по вертикали теперь не делает ничего, а не чужое действие.
+      stopRow: (e) => e.stopPropagation(),
+      headCursor: hasInfo ? 'pointer' : 'default',
+      // ряд без info не кликабелен — не продавливается
+      pressable: hasInfo ? 'true' : 'false',
+      hasInfo, info: p.info ?? '', infoImage: p.infoImage ?? '', infoOpen: open,
+      toggleInfo: flipInfo,
+    };
+  }
+}
+</script>
+</body>
+</html>

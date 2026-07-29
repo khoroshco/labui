@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<label tabindex="{{ tabIdx }}" role="{{ role }}" aria-hidden="{{ ariaHidden }}" aria-checked="{{ ariaChecked }}" aria-disabled="{{ ariaDisabled }}" aria-label="{{ aria }}" onKeyDown="{{ key }}" onClick="{{ toggle }}" style="display:flex; width:fit-content; align-items:center; gap:var(--sp-2); cursor:{{ cursor }}; user-select:none; pointer-events:{{ pe }}">
+  <span data-track="true" style="width:36px; height:21px; border-radius:var(--r-full); background:{{ bg }}; position:relative; transition:background .25s ease; display:inline-block; flex:none">
+    <span data-knob="true" style="position:absolute; top:2.5px; left:{{ knobLeft }}; width:16px; height:16px; border-radius:50%; background:{{ knob }}; transition:left .35s var(--ease-spring), background .25s ease"></span>
+  </span>
+  <sc-if value="{{ hasLabel }}" hint-placeholder-val="{{ true }}"><span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:{{ txtColor }}; position:relative; top:0.5px">{{ text }}</span></sc-if>
+</label>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 260, &quot;height&quot;: 48},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Живое превью&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;checked&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;ariaLabel&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;bare&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(checked: boolean) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { on: null };
+  // Контрол без имени невидим для скринридера. Подпись даёт label; если она лежит
+  // СНАРУЖИ (ряд собран не нашим SwitchRow, панель пропсов) — нужен ariaLabel.
+  // bare — исключение: там семантику и имя несёт родительский ряд.
+  componentDidMount() {
+    const p = this.props;
+    if (!p.bare && !(p.label ?? '') && !(p.ariaLabel ?? '')) {
+      console.warn('Toggle: нет ни label, ни ariaLabel — контрол безымянный для скринридера');
+    }
+  }
+  renderVals() {
+    const p = this.props, bare = !!p.bare, disabled = !!p.disabled;
+    // bare: чисто визуал, состоянием и вводом владеет родитель (напр. ряд Island)
+    const controlled = typeof p.onChange === 'function';
+    const on = (bare || controlled) ? !!p.checked : (this.state.on ?? !!(p.checked ?? false));
+    const flip = () => { if (bare || disabled) return; if (!controlled) this.setState({ on: !on }); else p.onChange(!on); };
+    return {
+      text: p.label ?? '', hasLabel: !!(p.label ?? ''),
+      ariaChecked: on ? 'true' : 'false', ariaDisabled: disabled ? 'true' : 'false',
+      // bare: семантику несёт родительский ряд — прячем свою роль, чтобы SR не читал два свитча
+      role: bare ? undefined : 'switch', ariaHidden: bare ? 'true' : undefined,
+      // если видимого лейбла нет (только тумблер) — озвучиваем через aria-label
+      aria: (p.label ?? '') ? undefined : (p.ariaLabel ?? undefined),
+      tabIdx: (bare || disabled) ? '-1' : '0', pe: bare ? 'none' : 'auto', cursor: bare ? 'default' : disabled ? 'not-allowed' : 'pointer',
+      // disabled — единый язык ДС: гасим токеном text-disabled + приглушаем поверхность (без ad-hoc opacity)
+      txtColor: disabled ? 'var(--text-disabled)' : 'var(--text-primary)',
+      bg: disabled ? 'var(--bg-hover)' : on ? 'var(--inverse-bg)' : 'var(--bg-active)',
+      knob: disabled ? 'var(--text-disabled)' : on ? 'var(--inverse-text)' : 'var(--text-secondary)',
+      knobLeft: on ? '17.5px' : '2.5px',
+      toggle: flip,
+      key: (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+</helmet>
+<div style="display:flex; flex-direction:column">
+  <button data-disc="{{ variantAttr }}" data-disabled="{{ disabledAttr }}" disabled="{{ isDisabled }}" aria-expanded="{{ ariaExpanded }}" aria-controls="{{ bodyId }}" onMouseDown="{{ stopMd }}" onClick="{{ toggle }}" style="display:flex; align-items:center; align-self:{{ headAlign }}; width:{{ headWidth }}; justify-content:space-between; gap:var(--sp-2); min-height:{{ headH }}; padding:0; border:none; background:none; color:{{ labelColor }}; font-family:var(--font-ui); font-weight:{{ fw }}; font-size:{{ fs }}; letter-spacing:{{ ls }}; text-transform:{{ tt }}; cursor:{{ cursor }}; text-align:left">
+    <span style="display:inline-flex; align-items:baseline; gap:var(--sp-15); min-width:0">
+      <span style="position:relative; top:0.5px; margin-right:{{ lsFix }}">{{ label }}</span>
+      <sc-if value="{{ hasCount }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); letter-spacing:normal; color:var(--text-tertiary)">{{ countText }}</span></sc-if>
+    </span>
+    <span style="display:inline-flex; flex:none; transform:{{ rot }}; transition:transform .35s var(--ease-spring)"><g-icon name="chevron-down" size="{{ iconSz }}"></g-icon></span>
+  </button>
+  <div id="{{ bodyId }}" role="group" style="display:grid; grid-template-rows:{{ rows }}; transition:{{ trans }}">
+    <div style="overflow:hidden; min-height:0">
+      <div style="padding-top:{{ bodyPad }}">{{ content }}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 460, &quot;height&quot;: 180},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Примеры&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;count&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;number | string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;variant&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;eyebrow&quot;, &quot;plain&quot;], &quot;default&quot;: &quot;eyebrow&quot;, &quot;tsType&quot;: &quot;'eyebrow'|'plain'&quot;, &quot;section&quot;: &quot;Вид&quot;},
+&quot;open&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Состояние&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Состояние&quot;},
+&quot;onToggle&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;((open: boolean) =&gt; void) | null&quot;}}">
+class Component extends DCLogic {
+  // Раскрывашка уровня СЕКЦИИ: заголовок-кнопка + содержимое, которое растёт по высоте.
+  // Родня RowInfo (ⓘ внутри ряда), но со своим заголовком и вне острова — как Slider.
+  // Движение взято у RowMsg один в один: grid-rows, вход .3s ease-out, выход короче
+  // (.2s ease-in), без прозрачности — содержимое не мигает, а именно раскрывается.
+  //
+  // Управление двоякое, как у Toggle/Checkbox: если пришёл onToggle — состоянием владеет
+  // родитель (open — истина), иначе компонент ведёт своё и open работает начальным.
+  state = { open: null };
+  componentDidMount() {
+    Component._n = (Component._n ?? 0) + 1;
+    this._id = 'disc-' + Component._n;
+    this.forceUpdate();
+  }
+  renderVals() {
+    const p = this.props;
+    const controlled = typeof p.onToggle === 'function';
+    const disabled = !!p.disabled;
+    const open = !disabled && (controlled ? !!p.open : (this.state.open ?? !!p.open));
+    const eyebrow = (p.variant ?? 'eyebrow') === 'eyebrow';
+    const count = p.count;
+    const hasCount = count !== undefined && count !== null && count !== '';
+    return {
+      label: p.label ?? '',
+      hasCount, countText: hasCount ? String(count) : '',
+      variantAttr: eyebrow ? 'eyebrow' : 'plain',
+      isDisabled: disabled, disabledAttr: disabled ? 'true' : 'false',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      ariaExpanded: open ? 'true' : 'false',
+      bodyId: this._id ?? 'disc',
+      // рубрика жмётся по содержимому, обычный вид — во всю ширину с шевроном у правого края
+      headAlign: eyebrow ? 'flex-start' : 'stretch',
+      headWidth: eyebrow ? 'auto' : '100%',
+      headH: eyebrow ? 'var(--control-h-xs)' : 'var(--control-h-m)',
+      fs: eyebrow ? 'var(--fs-xs)' : 'var(--fs-m)',
+      fw: eyebrow ? 'var(--fw-medium)' : 'var(--fw-regular)',
+      ls: eyebrow ? 'var(--ls-eyebrow)' : 'normal',
+      // хвост трекинга у капса компенсируем, иначе шеврон отъезжает
+      lsFix: eyebrow ? 'calc(-1 * var(--ls-eyebrow))' : '0px',
+      tt: eyebrow ? 'uppercase' : 'none',
+      iconSz: eyebrow ? 12 : 14,
+      labelColor: disabled ? 'var(--text-disabled)' : open ? 'var(--text-secondary)' : 'var(--text-tertiary)',
+      rot: open ? 'rotate(180deg)' : 'rotate(0deg)',
+      rows: open ? '1fr' : '0fr',
+      trans: open ? 'grid-template-rows .3s var(--ease-out)' : 'grid-template-rows .2s var(--ease-in)',
+      bodyPad: eyebrow ? 'var(--sp-25)' : 'var(--sp-2)',
+      content: p.children,
+      // мгновенное действие мышью не оставляет фокус-кольца (клавиатурный Tab — оставляет)
+      stopMd: (e) => { e.preventDefault(); },
+      toggle: () => {
+        if (disabled) return;
+        if (controlled) p.onToggle(!open);
+        else this.setState({ open: !open });
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

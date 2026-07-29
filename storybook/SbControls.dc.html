@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+</helmet>
+<dc-import name="Island" rows="{{ rows }}" hint-size="100%,200px"></dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 300},
+&quot;ctrls&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;SbCtrl[]&quot;}}">
+class Component extends DCLogic {
+  // Панель пропсов плейграунда — это обычный остров, а не своя вёрстка.
+  // Была рукописная копия рядов: свои лейблы, своя ⓘ, свой тоггл, свои пилюли enum'а.
+  // Из-за этого харнес расходился с продуктом (например, подпись рядом с тогглом
+  // не была связана с ним программно) и правки ДС до витрины не доезжали.
+  // Теперь SbControls только раскладывает ctrls в конфиг rows.
+  renderVals() {
+    const ctrls = this.props.ctrls ?? [];
+    return {
+      rows: ctrls.map((c) => {
+        const info = c.info || '';
+        if (c.isBool) return { type: 'toggle', label: c.name, checked: c.on, info, onChange: c.set };
+        // действие в панели — тот же ActionRow, что в продукте: своей кнопки витрина не рисует
+        if (c.isAction) return { type: 'action', label: c.label ?? c.name, info, variant: 'secondary', onClick: c.act };
+        if (c.isEnum || c.isSelect) {
+          const opts = (c.opts || c.selOpts || []).map(o => o.label ?? o.v ?? '');
+          const raw = (c.opts || []).map(o => o.raw ?? o.label);
+          // enum из имён иконок показываем иконками, а не длинными строками:
+          // ряд опций шириной в «triangle-exclamation-fill» в остров не влезает.
+          // Признак — имя пропа (icon / iconRight / actionIcon), а не форма значения:
+          // по форме 'plus' и 'primary' неразличимы.
+          const iconish = /icon/i.test(c.name) && opts.length > 0;
+          const idx = Math.max(0, raw.indexOf(c.val));
+          if (iconish) {
+            return {
+              // Иконочность несёт ФОРМА опции ({icon, title}), а не отдельный тип ряда:
+              // OptionGroup сам выбирает иконку или подпись по наличию o.icon.
+              type: 'segmented', label: c.name, info, value: idx,
+              options: opts.map(o => o === '—' ? { icon: 'square-dashed', title: 'без иконки' } : { icon: o, title: o }),
+              onChange: (i) => (c.opts[i] && c.opts[i].pick ? c.opts[i].pick() : null),
+            };
+          }
+          return {
+            type: 'segmented', label: c.name, info, value: idx, options: opts,
+            onChange: (i) => (c.opts[i] && c.opts[i].pick ? c.opts[i].pick() : null),
+          };
+        }
+        // text и num — обычный ряд ввода; num получает табличные цифры
+        return { type: 'text', label: c.name, value: c.val, info, nums: !!c.isNum, onInput: c.setText };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

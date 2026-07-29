@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<button data-tap="true" data-cycle="true" disabled="{{ isDisabled }}" onClick="{{ cycle }}" onMouseDown="{{ stop }}" data-tooltip="{{ title }}" style="display:inline-flex; align-items:center; justify-content:center; height:var(--control-h-xs); padding:0 var(--sp-15); background:transparent; border:1px solid {{ bd }}; border-radius:var(--r-s); cursor:{{ cur }}; color:{{ col }}; font-size:var(--fs-xs); line-height:var(--lh-ui); letter-spacing:var(--ls-pill)"><span style="position:relative; top:1.5px; text-transform:uppercase; margin-right:calc(-1 * var(--ls-pill))">{{ current }}</span></button>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 120, &quot;height&quot;: 60},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string[]&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;tooltip&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(index: number, option: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { i: null };
+  renderVals() {
+    const p = this.props, opts = (Array.isArray(p.options) && p.options.length) ? p.options : ['PX', 'REM'];
+    const i = (this.state.i ?? p.value ?? 0) % opts.length;
+    return {
+      current: String(opts[i] ?? ''),
+      col: p.disabled ? 'var(--text-disabled)' : 'var(--text-secondary)',
+      // disabled не реагирует ни на что: ни ховера, ни курсора-руки, ни тултипа.
+      // Раньше кнопка лишь гасила цвет, но подсвечивалась под мышью и звала кликнуть.
+      // disabled на самом <button> ещё и убирает её из таба и озвучивает состояние.
+      isDisabled: !!p.disabled,
+      bd: p.disabled ? 'var(--border-subtle)' : 'var(--border)',
+      cur: p.disabled ? 'not-allowed' : 'pointer',
+      title: p.disabled ? '' : (p.tooltip ?? ''),
+      // живёт внутри кликабельных рядов: гасим mousedown, чтобы не красть фокус у ряда
+      stop: (e) => { e.preventDefault(); e.stopPropagation(); },
+      cycle: (e) => { e.preventDefault(); e.stopPropagation(); if (p.disabled) return; const n = (i + 1) % opts.length; if (typeof p.onChange !== 'function') this.setState({ i: n }); else p.onChange(n, opts[n]); },
+    };
+  }
+}
+</script>
+</body>
+</html>

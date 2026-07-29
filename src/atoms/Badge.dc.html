@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+</helmet>
+<span data-nums="{{ numsAttr }}" style="display:inline-flex; align-items:center; gap:var(--sp-1); height:var(--control-h-xs); padding:{{ pad }}; background:{{ bg }}; color:{{ fg }}; border:{{ bd }}; border-radius:var(--r-s); font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); text-transform:uppercase; letter-spacing:var(--ls-eyebrow); white-space:nowrap; vertical-align:middle">
+  <sc-if value="{{ hasIcon }}" hint-placeholder-val="{{ false }}"><g-icon name="{{ iconName }}" size="12" style="flex:none"></g-icon></sc-if>
+  <span style="position:relative; top:0.5px; margin-right:calc(-1 * var(--ls-eyebrow))">{{ text }}</span>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 240, &quot;height&quot;: 60},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;300×250&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;icon&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;&quot;, &quot;circle-check-fill&quot;, &quot;triangle-exclamation-fill&quot;, &quot;circle-exclamation-fill&quot;, &quot;lock&quot;, &quot;clock&quot;], &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;nums&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;variant&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;solid&quot;, &quot;soft&quot;, &quot;quiet&quot;], &quot;default&quot;: &quot;soft&quot;, &quot;tsType&quot;: &quot;'solid'|'soft'|'quiet'&quot;, &quot;section&quot;: &quot;Вид&quot;},
+&quot;tone&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;neutral&quot;, &quot;ok&quot;, &quot;warn&quot;, &quot;danger&quot;, &quot;info&quot;], &quot;default&quot;: &quot;neutral&quot;, &quot;tsType&quot;: &quot;'neutral'|'ok'|'warn'|'danger'|'info'&quot;, &quot;section&quot;: &quot;Вид&quot;}}">
+class Component extends DCLogic {
+  // Бейдж — ярлык для КОРОТКОЙ информации: значение, формат, статус одним-двумя словами.
+  // Одна высота на все варианты, перенос строк запрещён (white-space:nowrap): если текст
+  // не помещается в строку — это не бейдж, а текст или сообщение.
+  //
+  // Две ОРТОГОНАЛЬНЫЕ оси (раньше их путал один enum из четырёх несовместимых видов):
+  //   variant — вес подачи: solid (заливка) | soft (тонировка) | quiet (только текст)
+  //   tone    — семантика:  neutral | ok | warn | danger | info — работает с ЛЮБЫМ вариантом
+  // Бывший вариант erid убран: это бизнес-сущность, а не способ подачи. Такой ярлык
+  // собирается из общих осей — quiet + nums, а слово «erid» приходит в label от вызывающего.
+  TONES = {
+    neutral: { c: 'var(--text-secondary)', dim: 'var(--bg-active)', solidBg: 'var(--inverse-bg)', solidFg: 'var(--inverse-text)', quiet: 'var(--text-tertiary)' },
+    ok: { c: 'var(--ok)', dim: 'var(--ok-dim)', solidBg: 'var(--ok)', solidFg: 'var(--on-tone)', quiet: 'var(--ok)' },
+    warn: { c: 'var(--warn)', dim: 'var(--warn-dim)', solidBg: 'var(--warn)', solidFg: 'var(--on-tone)', quiet: 'var(--warn)' },
+    danger: { c: 'var(--danger)', dim: 'var(--danger-dim)', solidBg: 'var(--danger)', solidFg: 'var(--on-tone)', quiet: 'var(--danger)' },
+    info: { c: 'var(--info)', dim: 'var(--info-dim)', solidBg: 'var(--info)', solidFg: 'var(--on-tone)', quiet: 'var(--info)' },
+  };
+  renderVals() {
+    const p = this.props;
+    const variant = p.variant ?? 'soft';
+    const t = this.TONES[p.tone ?? 'neutral'] ?? this.TONES.neutral;
+    const quiet = variant === 'quiet', solid = variant === 'solid';
+    return {
+      text: p.label ?? '',
+      hasIcon: !!p.icon, iconName: p.icon ?? '',
+      numsAttr: p.nums ? 'true' : undefined,
+      // quiet не занимает своей поверхности — стоит прямо в строке текста
+      pad: quiet ? '0' : '0 var(--sp-15)',
+      bg: quiet ? 'transparent' : solid ? t.solidBg : t.dim,
+      fg: quiet ? t.quiet : solid ? t.solidFg : t.c,
+      bd: 'none',
+    };
+  }
+}
+</script>
+</body>
+</html>

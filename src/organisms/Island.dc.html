@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+</helmet>
+<div data-island="true" style="display:{{ islandDisplay }};   flex-direction:column; background:{{ islandBg }}; border-radius:var(--r-m); overflow:hidden; transition:background .2s ease">
+  <sc-for list="{{ rowList }}" as="row" hint-placeholder-count="3">
+    <sc-if value="{{ row.isInput }}" hint-placeholder-val="{{ true }}">
+      <dc-import name="InputRow" loading="{{ row.loading }}" disabled="{{ row.disabled }}" label="{{ row.label }}" value="{{ row.value }}" placeholder="{{ row.placeholder }}" options="{{ row.cycleOpts }}" option-index="{{ row.optionIndex }}" max-length="{{ row.maxLength }}" nums="{{ row.nums }}" msg="{{ row.msg }}" msg-level="{{ row.msgLevel }}" info="{{ row.info }}" info-image="{{ row.infoImage }}" on-input="{{ row.onInput }}" on-focus="{{ row.onFocus }}" on-blur="{{ row.onBlur }}" on-option-change="{{ row.onOptionChange }}" hint-size="100%,52px"></dc-import>
+    </sc-if>
+    <sc-if value="{{ row.isChoice }}" hint-placeholder-val="{{ false }}">
+      <dc-import name="ChoiceRow" disabled="{{ row.disabled }}" label="{{ row.label }}" options="{{ row.options }}" value="{{ row.value }}" info="{{ row.info }}" info-image="{{ row.infoImage }}" on-change="{{ row.onChange }}" hint-size="100%,52px"></dc-import>
+    </sc-if>
+    <sc-if value="{{ row.isSwitch }}" hint-placeholder-val="{{ false }}">
+      <dc-import name="SwitchRow" disabled="{{ row.disabled }}" label="{{ row.label }}" subtitle="{{ row.subtitle }}" checked="{{ row.checked }}" msg="{{ row.msg }}" msg-level="{{ row.msgLevel }}" info="{{ row.info }}" info-image="{{ row.infoImage }}" on-change="{{ row.onChange }}" hint-size="100%,52px"></dc-import>
+    </sc-if>
+    <sc-if value="{{ row.isCheckbox }}" hint-placeholder-val="{{ false }}">
+      <dc-import name="CheckboxRow" disabled="{{ row.disabled }}" label="{{ row.label }}" subtitle="{{ row.subtitle }}" checked="{{ row.checked }}" msg="{{ row.msg }}" msg-level="{{ row.msgLevel }}" info="{{ row.info }}" info-image="{{ row.infoImage }}" on-change="{{ row.onChange }}" hint-size="100%,52px"></dc-import>
+    </sc-if>
+    <sc-if value="{{ row.isAction }}" hint-placeholder-val="{{ false }}">
+      <dc-import name="ActionRow" disabled="{{ row.disabled }}" label="{{ row.label }}" variant="{{ row.variant }}" loading="{{ row.loading }}" on-click="{{ row.onClick }}" hint-size="100%,52px"></dc-import>
+    </sc-if>
+
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 260},
+&quot;rows&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;IslandRow[]&quot;}}">
+class Component extends DCLogic {
+  // Остров — чистый контейнер: геометрия углов, фон, сепараторы, тонировка при тотальной ошибке.
+  // Поведение, состояние и валидация живут в компонентах рядов и у родителя (бизнес-слой).
+  renderVals() {
+    const rows = this.props.rows ?? [];
+    const noop = () => {};
+    return {
+      islandDisplay: rows.length ? 'flex' : 'none',
+      islandBg: 'var(--bg-surface)',
+      rowList: rows.map((r, i) => {
+        const type = r.type ?? 'text';
+        return {
+          label: r.label ?? '', loading: !!r.loading,
+          isInput: type === 'text',
+          isChoice: type === 'segmented',
+          isSwitch: type === 'toggle',
+          isCheckbox: type === 'checkbox',
+          isAction: type === 'action',
+          value: r.value ?? '', placeholder: r.placeholder ?? '',
+          cycleOpts: type === 'text' ? (r.options ?? null) : null, nums: !!r.nums,
+          msg: r.msg ?? '', msgLevel: r.msgLevel ?? 'ok',
+          info: r.info ?? '', infoImage: r.infoImage ?? '',
+          options: r.options ?? [],
+          subtitle: r.subtitle ?? '', checked: !!r.checked,
+          variant: r.variant ?? 'primary',
+          // Колбэки отдаём ровно те, что дал конфиг: подстановка noop делала их
+          // «всегда есть», ряд форвардил их вниз, и атом встаёт в управляемый режим
+          // со значением из статичного конфига — то есть без хозяина, и замирает.
+          disabled: !!r.disabled,
+          maxLength: r.maxLength, optionIndex: r.optionIndex,
+          onInput: r.onInput, onFocus: r.onFocus, onBlur: r.onBlur, onChange: r.onChange,
+          onClick: r.onClick, onOptionChange: r.onOptionChange,
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

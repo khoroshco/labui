@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+<button data-tap="{{ tapAttr }}" data-btn="{{ variantAttr }}" data-tone="{{ toneAttr }}" data-busy="{{ busyAttr }}" disabled="{{ isDisabled }}" onClick="{{ click }}" data-tooltip="{{ tip }}" aria-label="{{ ariaLabel }}" style="display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-15); height:{{ h }}; width:{{ w }}; padding:{{ pad }}; background:{{ bg }}; color:{{ fg }}; border:{{ border }}; border-radius:var(--r-full); font-family:var(--font-ui); font-weight:var(--fw-medium); font-size:{{ fs }}; cursor:{{ cursor }}; flex:none; position:relative">
+  <sc-if value="{{ showInlineSpin }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; flex:none; animation:ds-appear .3s var(--ease-spring)"><span style="width:{{ spinSz }}; height:{{ spinSz }}; border:1.5px solid currentColor; border-top-color:transparent; border-radius:50%; animation:ds-spin .8s linear infinite"></span></span></sc-if>
+  <sc-if value="{{ hasIcon }}" hint-placeholder-val="{{ false }}"><g-icon name="{{ iconName }}" size="{{ iconSize }}"></g-icon></sc-if>
+  <sc-if value="{{ hasLabel }}" hint-placeholder-val="{{ true }}"><span style="position:relative; top:1px; opacity:{{ contentOp }}; transition:opacity .15s ease">{{ text }}</span></sc-if>
+  <sc-if value="{{ hasIconRight }}" hint-placeholder-val="{{ false }}"><g-icon name="{{ iconRightName }}" size="13" style="opacity:{{ contentOp }}; transition:opacity .15s ease"></g-icon></sc-if>
+  <sc-if value="{{ showOverlaySpin }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; animation:ds-appear .3s var(--ease-spring)"><span style="width:{{ spinSz }}; height:{{ spinSz }}; border:1.5px solid currentColor; border-top-color:transparent; border-radius:50%; animation:ds-spin .8s linear infinite"></span></span></sc-if>
+</button>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 240, &quot;height&quot;: 72},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Выгрузить&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;variant&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;primary&quot;, &quot;secondary&quot;, &quot;ghost&quot;, &quot;accent&quot;], &quot;default&quot;: &quot;primary&quot;, &quot;tsType&quot;: &quot;'primary'|'secondary'|'ghost'|'accent'&quot;},
+&quot;size&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;xs&quot;, &quot;s&quot;, &quot;m&quot;, &quot;l&quot;], &quot;default&quot;: &quot;m&quot;, &quot;tsType&quot;: &quot;'xs'|'s'|'m'|'l'&quot;},
+&quot;tone&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;default&quot;, &quot;ok&quot;, &quot;danger&quot;], &quot;default&quot;: &quot;default&quot;, &quot;tsType&quot;: &quot;'default'|'ok'|'danger'&quot;},
+&quot;icon&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;iconRight&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;tooltip&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;loading&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onClick&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { spin: false };
+  // анти-мерцание лоадера — общий хелпер DSSpin (ds-helpers.js): клики блокируются сразу, спиннер живёт по таймингам ДС
+  // ds-helpers.js грузится из helmet асинхронно — компонент может смонтироваться раньше; ждём хелпер и не роняем маунт
+  componentDidMount() { this._initSpin(); }
+  _initSpin() {
+    if (this._spin) { this._spin.sync(); return; }
+    if (!window.DSSpin) { this._spinWait = setTimeout(() => this._initSpin(), 30); return; }
+    this._spin = window.DSSpin({ isLoading: () => !!this.props.loading, getSpin: () => this.state.spin, setSpin: (v) => this.setState({ spin: v }) });
+    this._spin.sync();
+  }
+  componentDidUpdate() { this._spin && this._spin.sync(); }
+  componentWillUnmount() { clearTimeout(this._spinWait); this._spin && this._spin.dispose(); }
+  renderVals() {
+    const p = this.props;
+    const size = p.size ?? 'm';
+    let variant = p.variant ?? 'primary', toneName = p.tone ?? 'default';
+    const label = p.label ?? '', icon = p.icon ?? '', iconRight = p.iconRight ?? '';
+    const disabled = !!p.disabled;
+    const S = {
+      xs: { h: '28px', fs: 'var(--fs-s)', padX: 10, iconPad: 8, icon: 12 },
+      s: { h: 'var(--control-h-s)', fs: 'var(--fs-s)', padX: 12, iconPad: 9, icon: 14 },
+      m: { h: 'var(--control-h-m)', fs: 'var(--fs-m)', padX: 16, iconPad: 13, icon: 14 },
+      l: { h: 'var(--control-h-l)', fs: 'var(--fs-m)', padX: 20, iconPad: 16, icon: 18 },
+    };
+    const s = S[size] ?? S.m;
+    const V = {
+      // ховеры вариантов живут в ds.css по хуку data-btn — здесь только базовый вид
+      primary: { bg: 'var(--inverse-bg)', fg: 'var(--inverse-text)', border: 'none' },
+      secondary: { bg: 'transparent', fg: 'var(--text-primary)', border: '1px solid var(--border)' },
+      ghost: { bg: 'transparent', fg: 'var(--text-secondary)', border: 'none' },
+      accent: { bg: 'var(--accent)', fg: 'var(--on-accent)', border: 'none' },
+    };
+    let v = V[variant] ?? V.primary;
+    // тон: семантическая перекраска ЛЮБОГО варианта в цвет тона; иерархию задаёт variant, смысл — tone
+    const TONES = { ok: { c: 'var(--ok)', dim: 'var(--ok-dim)', on: 'var(--on-tone)' }, danger: { c: 'var(--danger)', dim: 'var(--danger-dim)', on: 'var(--on-tone)' } };
+    const t = TONES[toneName];
+    if (t) {
+      if (variant === 'primary' || variant === 'accent') v = { ...v, bg: t.c, fg: t.on, border: 'none' };
+      else if (variant === 'secondary') v = { ...v, fg: t.c, border: '1px solid ' + t.c };
+      else v = { ...v, fg: t.c };
+    }
+    const busy = !!p.loading, loading = this.state.spin;
+    const iconOnly = !!icon && !label;
+    // компенсация масс: у иконки боковой отступ меньше текстового
+    const padL = icon ? s.iconPad : s.padX, padR = iconRight ? s.iconPad : s.padX;
+    return {
+      text: label, iconName: icon, iconRightName: iconRight, tip: p.tooltip ?? '',
+      // На тач-устройстве соло-иконка мелких размеров (28/36px) не дотягивает до 44px:
+      // хук data-tap расширяет зону нажатия, не меняя вида. Раньше это умели только
+      // самодельные кнопки (закрытие тоста, ⓘ) — теперь умеет сам атом.
+      tapAttr: (iconOnly && (size === 'xs' || size === 's')) ? 'true' : undefined,
+      // Имя кнопки — ОДИН источник: tooltip. Отдельный проп ariaLabel был лазейкой
+      // сделать соло-иконку без тултипа, что правило ДС запрещает; и двумя источниками
+      // имени, которые расходятся. Есть подпись — имя из неё, нет — из тултипа.
+      ariaLabel: label ? undefined : (p.tooltip ?? ''),
+      // loading без прыжка ширины: была иконка — спиннер в её слот; не было — label гаснет (место держит), спиннер по центру
+      showInlineSpin: loading && !!icon, showOverlaySpin: loading && !icon,
+      contentOp: (loading && !icon) ? '0' : '1',
+      spinSz: s.icon + 'px',
+      hasLabel: !!label, hasIcon: !!icon && !loading, hasIconRight: !!iconRight && !iconOnly,
+      isDisabled: disabled,
+      h: s.h, fs: s.fs, iconSize: iconOnly ? s.icon + 2 : s.icon,
+      w: iconOnly ? s.h : 'auto',
+      pad: iconOnly ? '0' : `0 ${padR}px 0 ${padL}px`,
+      // Выключенное не может быть заметнее доступного. Приглушённую поверхность получают
+      // только варианты, у которых своя поверхность ЕСТЬ (primary/accent): у ghost и
+      // secondary её нет, и в disabled они не должны её приобретать — иначе недоступная
+      // кнопка становится единственной с заливкой и кричит громче соседей.
+      bg: disabled ? (v.bg === 'transparent' ? 'transparent' : 'var(--bg-hover)') : v.bg,
+      fg: disabled ? 'var(--text-disabled)' : v.fg,
+      // рамка secondary — его собственная форма, а не подсветка: в disabled она гаснет цветом, но остаётся
+      border: disabled ? (v.border === 'none' ? 'none' : '1px solid var(--border-subtle)') : v.border,
+      // ховер живёт в ds.css по этим хукам: в pseudo-правило значение из {{ }} не подставляется
+      variantAttr: variant, toneAttr: toneName || undefined, busyAttr: busy ? 'true' : undefined,
+      cursor: disabled ? 'not-allowed' : busy ? 'progress' : 'pointer',
+      click: busy ? (() => {}) : (p.onClick ?? (() => {})),
+    };
+  }
+}
+</script>
+</body>
+</html>

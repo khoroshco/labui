@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<div ref="{{ cardRef }}" tabindex="{{ tabIdx }}" onKeyDown="{{ keyDown }}" onClick="{{ pick }}" data-press="true" style="position:relative; width:{{ rootW }}; max-width:100%; background:var(--bg-float); border-radius:var(--r-m); overflow:hidden; box-shadow:var(--shadow-lg); cursor:pointer; opacity:{{ opacity }}; transition:opacity .2s ease">
+  <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:var(--sp-35) var(--sp-4) var(--sp-35) var(--sp-35); max-width:280px; font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-primary); line-height:var(--lh-text); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden">{{ firstText }}</div>
+  </sc-if>
+  <sc-if value="{{ isFull }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ hasResolve }}" hint-placeholder-val="{{ false }}">
+      <span style="position:absolute; top:var(--sp-2); right:var(--sp-2); z-index:2"><dc-import name="Button" icon="{{ resolveIcon }}" variant="ghost" size="xs" tone="{{ resolveTone }}" aria-label="{{ resolveTip }}" on-click="{{ resolveClick }}" hint-size="28px,28px"></dc-import></span>
+    </sc-if>
+    <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="1">
+      <div style="display:flex; gap:var(--sp-25); padding:var(--sp-3) var(--sp-4); padding-right:{{ m.padR }}; border-top:{{ m.sepCss }}; animation:ds-fade .3s ease">
+        <dc-import name="Avatar" author="{{ m.name }}" src="{{ m.src }}" ai="{{ m.isAi }}" size="s" hint-size="20px,20px"></dc-import>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; flex:1">
+          <sc-if value="{{ m.isAi }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start; font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); letter-spacing:var(--ls-caps-s); background:var(--ai-grad); -webkit-background-clip:text; background-clip:text; color:transparent">AI</span></sc-if><sc-if value="{{ m.isHuman }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ m.author }}</span></sc-if>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:{{ m.color }}; line-height:var(--lh-text); text-wrap:pretty">{{ m.text }}</div>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ hasComposer }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ stopIn }}" style="border-top:0.5px solid var(--border-subtle); padding:var(--sp-2); cursor:default">
+        <dc-import name="PinComposer" bare="{{ true }}" placeholder="Ответить…" author="{{ author }}" autofocus="{{ true }}" on-send="{{ sendClick }}" hint-size="100%,40px"></dc-import>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 340, &quot;height&quot;: 220},
+&quot;messages&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;({ ai: true; text: string } | { ai?: false; text: string; name: string; src?: string })[]&quot;},
+&quot;variant&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;thread&quot;, &quot;preview&quot;], &quot;default&quot;: &quot;thread&quot;, &quot;tsType&quot;: &quot;'thread'|'preview'&quot;},
+&quot;resolved&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;author&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;onClick&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onResolve&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(resolved: boolean) =&gt; void&quot;},
+&quot;onSend&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(text: string) =&gt; void&quot;},
+&quot;onClose&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  // тред у пина в языке островов: сообщения — ряды с сепараторами, композер — нижний ряд;
+  // preview (hover) — только текст первого сообщения по ширине контента, кламп 3 строки
+  renderVals() {
+    const p = this.props, noop = () => {};
+    const list = Array.isArray(p.messages) ? p.messages : [];
+    const resolved = !!p.resolved;
+    const hasResolve = !!p.onResolve && !(p.variant === 'preview');
+    return {
+      isPreview: !!(p.variant === 'preview'), isFull: !(p.variant === 'preview'),
+      cardRef: (el) => { this._card = el; },
+      // поповер, не модалка: жёсткий focus-trap был бы регрессом (Tab не выйти). Клавиатурный выход — Esc + клик мимо; возврат фокуса делает PinComposer
+      tabIdx: (p.variant === 'preview') ? undefined : '-1',
+      keyDown: (e) => { if (e.key === 'Escape' && p.onClose) { e.stopPropagation(); p.onClose(); } },
+      rootW: (p.variant === 'preview') ? 'max-content' : 'auto',
+      firstText: list.length ? (list[0].text ?? '') : '',
+      msgs: list.map((m, i) => ({
+        text: m.text ?? '', isAi: !!m.ai,
+        name: m.name ?? '', src: m.src ?? '',
+        author: m.ai ? 'AI' : (m.name ?? ''),
+        hasAuthor: !!(m.ai || m.name), isHuman: !m.ai && !!m.name,
+        color: m.ai ? 'var(--text-secondary)' : 'var(--text-primary)',
+        sepCss: i === 0 ? 'none' : '0.5px solid var(--border-subtle)',
+        padR: (i === 0 && hasResolve) ? 'var(--touch-target)' : 'var(--sp-4)',
+      })),
+      opacity: resolved ? '.55' : '1',
+      pick: p.onClick ?? noop,
+      hasResolve,
+      resolveIcon: resolved ? 'circle-check-fill' : 'circle-check',
+      // tone — только ok|danger (контракт ДС); «нет тона» — это undefined, не строка 'default'
+      resolveTone: resolved ? 'ok' : undefined,
+      resolveTip: resolved ? 'Вернуть' : 'Решено',
+      resolveClick: () => (p.onResolve ?? noop)(!resolved),
+      hasComposer: !!p.onSend && !(p.variant === 'preview') && !resolved,
+      author: p.author ?? '',
+      sendClick: (t) => (p.onSend ?? noop)(t),
+      stopIn: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

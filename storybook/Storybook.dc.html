@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+<!-- Прогрев файлов компонентов. Сторибук показывает один уровень за раз (sc-if),
+     поэтому компоненты остальных уровней иначе качаются только в момент клика по табу —
+     и заглушки появляются снова при каждом переключении.
+     URL обязан совпадать с монтажным символ в символ: рантайм тянет соседа как
+     «Button.dc.html», и любой лишний суффикс прогреет вторую, никем не читаемую
+     запись кэша. rel=prefetch — низкий приоритет: не конкурирует с текущим экраном. -->
+<link rel="prefetch" href="Button.dc.html">
+<link rel="prefetch" href="Input.dc.html">
+<link rel="prefetch" href="Checkbox.dc.html">
+<link rel="prefetch" href="Toggle.dc.html">
+<link rel="prefetch" href="CycleButton.dc.html">
+<link rel="prefetch" href="OptionGroup.dc.html">
+<link rel="prefetch" href="Badge.dc.html">
+<link rel="prefetch" href="Pin.dc.html">
+<link rel="prefetch" href="Avatar.dc.html">
+<link rel="prefetch" href="Skeleton.dc.html">
+<link rel="prefetch" href="RowLabel.dc.html">
+<link rel="prefetch" href="RowInfo.dc.html">
+<link rel="prefetch" href="RowMsg.dc.html">
+<link rel="prefetch" href="InputRow.dc.html">
+<link rel="prefetch" href="ChoiceRow.dc.html">
+<link rel="prefetch" href="SwitchRow.dc.html">
+<link rel="prefetch" href="CheckboxRow.dc.html">
+<link rel="prefetch" href="ActionRow.dc.html">
+<link rel="prefetch" href="Slider.dc.html">
+<link rel="prefetch" href="Segments.dc.html">
+<link rel="prefetch" href="Tabs.dc.html">
+<link rel="prefetch" href="PinCard.dc.html">
+<link rel="prefetch" href="PinComposer.dc.html">
+<link rel="prefetch" href="Toast.dc.html">
+<link rel="prefetch" href="EmptyState.dc.html">
+<link rel="prefetch" href="Island.dc.html">
+<link rel="prefetch" href="Disclosure.dc.html">
+<link rel="prefetch" href="SbControls.dc.html">
+</helmet>
+<div onClick="{{ anchorNav }}" style="min-height:100vh; background:var(--bg-base); transition:background .2s">
+  <header style="position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4); padding:var(--sp-3) var(--sp-6); background:color-mix(in srgb, var(--bg-base) 85%, transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-subtle)">
+    <div style="display:flex; align-items:baseline; gap:var(--sp-3); flex:1">
+      <div style="font-weight:var(--fw-black); font-size:var(--fs-h3); letter-spacing:var(--ls-heading); white-space:nowrap">Banner Lab</div>
+      <div style="color:var(--text-tertiary); font-size:var(--fs-s); white-space:nowrap">сторибук · v0.5</div>
+    </div>
+    <dc-import name="Segments" options="{{ lvlItems }}" value="{{ lvlIndex }}" on-change="{{ setLevel }}" hint-size="420px,46px"></dc-import>
+    <div style="display:flex; justify-content:flex-end; flex:1">
+      <dc-import name="Button" label="{{ themeLabel }}" icon="{{ themeIcon }}" variant="secondary" size="s" on-click="{{ toggleTheme }}" hint-size="112px,36px"></dc-import>
+    </div>
+  </header>
+  <div style="display:grid; grid-template-columns:220px 1fr; max-width:1320px; margin:0 auto; gap:var(--sp-6); padding:0 var(--sp-6)">
+    <nav style="position:sticky; top:76px; align-self:start; display:flex; flex-direction:column; gap:var(--sp-05); padding:var(--sp-5) 0; max-height:calc(100vh - 76px); overflow:auto">
+      <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">{{ lvlName }}</h4>
+      <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="10">
+        <a href="{{ nv.href }}" onClick="{{ nv.go }}" style="display:flex; align-items:baseline; gap:var(--sp-2); padding:7px 10px; border-radius:var(--r-s); color:var(--text-secondary); text-decoration:none; font-size:var(--fs-m)" style-hover="background:var(--bg-hover); color:var(--text-primary)"><span style="font-size:var(--fs-xs); color:var(--text-tertiary); width:20px; flex:none">{{ nv.n }}</span>{{ nv.label }}</a>
+      </sc-for>
+    </nav>
+    <main ref="{{ mainRef }}" style="display:flex; flex-direction:column; gap:var(--sp-7); padding:var(--sp-5) 0 var(--sp-8); min-width:0">
+
+      <sc-if value="{{ showPrim }}" hint-placeholder-val="{{ true }}">
+      <section id="tokenlayers" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); line-height:var(--lh-heading); letter-spacing:var(--ls-heading)">Токены и темы</h2>
+          <span style="font-size:var(--fs-xs); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Цвет проходит три слоя. Компоненты пишут только про средний — алиасы. Ниже один и тот же цвет прослежен от сырого значения до темы.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+          <sc-for list="{{ tokenLayers }}" as="L" hint-placeholder-count="3">
+            <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:grid; grid-template-columns:28px 1fr; gap:var(--sp-3); align-items:start">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:var(--r-full); background:var(--accent-dim); color:var(--accent); font-size:var(--fs-s); line-height:var(--lh-ui)">{{ L.n }}</span>
+              <div style="display:flex; flex-direction:column; gap:var(--sp-2); min-width:0">
+                <div style="font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">{{ L.name }}</div>
+                <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">{{ L.desc }}</div>
+                <div style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap">
+                  <span style="width:22px; height:22px; flex:none; border-radius:var(--r-s); background:{{ L.swatch }}; box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16), 0 0 0 1px rgb(0 0 0 / .24)"></span>
+                  <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2); overflow-x:auto; white-space:nowrap">{{ L.code }}</span>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-25); max-width:var(--measure-text)">
+          <div style="font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Приём двух каналов</div>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">Весь текст, границы и наложения выведены из двух «чернильных» каналов — <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">--ink</span> и <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">--danger-dim</span> — через запись <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">rgb(var(--ink) / .48)</span>. Поэтому светлая тема переопределяет два токена вместо двенадцати: переключите тему справа сверху и смотрите раздел «Цвет».</div>
+        </div>
+      </section>
+      <section id="color" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); line-height:var(--lh-heading); letter-spacing:var(--ls-heading)">Цвет</h2>
+          <span style="font-size:var(--fs-xs); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Две независимые оси: яркость (сколько внимания) и семантика (что значит). Значения показаны для текущей темы — переключите её и смотрите, как меняются числа при тех же именах.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3); background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Уровни яркости текста</h4>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Порядок яркости обязан совпадать с порядком важности. Наборный текст — это содержание, а не пояснение: абзац, который нужно прочесть, идёт первичным цветом, иначе главное на странице оказывается тише лейбла в контроле. Secondary — уровень относительный: он законен только там, где рядом есть более яркий элемент, которому текст подчинён.</div>
+          <div style="display:flex; flex-direction:column; gap:0">
+            <sc-for list="{{ textLevels }}" as="lv" hint-placeholder-count="4">
+              <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); gap:var(--sp-4); align-items:baseline; padding:var(--sp-25) 0; border-top:{{ lv.sep }}">
+                <span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:{{ lv.css }}">{{ lv.token }}</span>
+                <span style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-tertiary); text-wrap:pretty">{{ lv.role }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:var(--sp-2); border-top:0.5px solid var(--border-subtle); padding-top:var(--sp-3)">
+            <div style="font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Инвариант: выключенное — потолок яркости</div>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Ни один элемент внутри disabled не может быть ярче <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">--text-disabled</span>. Иначе порядок акцентов переворачивается — так плейсхолдер оказывался самым заметным в выключенном поле. Семантика — отдельная ось, но в выключенном гаснет и она: неактивный блок не кричит цветом.</div>
+          </div>
+        </div>
+        <sc-for list="{{ colorGroups }}" as="group" hint-placeholder-count="4">
+          <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">{{ group.title }}</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:var(--sp-3)">
+              <sc-for list="{{ group.items }}" as="c" hint-placeholder-count="4">
+                <div style="border-radius:var(--r-m); overflow:hidden; background:var(--bg-surface)">
+                  <div style="height:56px; background-image:repeating-linear-gradient(45deg, var(--bg-base) 0 6px, var(--bg-hover) 6px 12px)">
+                    <div style="width:100%; height:100%; background:{{ c.css }}"></div>
+                  </div>
+                  <div style="padding:var(--sp-25) var(--sp-3); display:flex; flex-direction:column; gap:2px">
+                    <div style="font-size:var(--fs-m); line-height:var(--lh-ui); color:var(--text-primary)">{{ c.name }}</div>
+                    <div style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ c.token }}</div>
+                    <div data-nums="true" style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-secondary)">{{ c.value }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+      <section id="type" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-5)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); line-height:var(--lh-heading); letter-spacing:var(--ls-heading)">Типографика</h2>
+          <span style="font-size:var(--fs-xs); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Один шрифт — Unica 77 LL Cyrillic, три начертания, восемь ступеней кегля. Курсива и моношрифта в системе нет. Все числа ниже прочитаны из движка, а не переписаны руками — расходиться с реальностью им негде.</div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Шкала кеглей</h4>
+          <div style="display:flex; flex-direction:column">
+            <sc-for list="{{ fontScaleRows }}" as="f" hint-placeholder-count="8">
+              <div style="display:grid; grid-template-columns:150px 64px 1fr; gap:var(--sp-4); align-items:center; padding:var(--sp-2) 0; border-top:{{ f.sep }}">
+                <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ f.token }}</span>
+                <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-secondary)">{{ f.px }}</span>
+                <span style="font-size:{{ f.css }}; line-height:var(--lh-heading); color:var(--text-primary); white-space:nowrap; overflow:hidden">Аа Bb 123</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Начертания</h4>
+          <div style="display:flex; flex-direction:column">
+            <sc-for list="{{ fontWeightRows }}" as="w" hint-placeholder-count="3">
+              <div style="display:grid; grid-template-columns:150px 64px 1fr; gap:var(--sp-4); align-items:center; padding:var(--sp-2) 0; border-top:{{ w.sep }}">
+                <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ w.token }}</span>
+                <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-secondary)">{{ w.value }}</span>
+                <span style="font-size:var(--fs-l); font-weight:{{ w.css }}; line-height:var(--lh-heading); color:var(--text-primary)">{{ w.role }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Стили набора</h4>
+          <div style="display:flex; flex-direction:column">
+            <sc-for list="{{ typeSamples }}" as="t" hint-placeholder-count="8">
+              <div style="display:grid; grid-template-columns:200px 1fr; gap:var(--sp-5); align-items:start; padding:var(--sp-4) 0; border-top:0.5px solid var(--border-subtle)">
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0">
+                  <div style="font-size:var(--fs-m); font-weight:var(--fw-medium); line-height:var(--lh-ui); color:var(--text-primary)">{{ t.name }}</div>
+                  <div data-nums="true" style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ t.metrics }}</div>
+                  <div style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-tertiary); text-wrap:pretty">{{ t.role }}</div>
+                </div>
+                <div style="font-size:{{ t.fs }}; font-weight:{{ t.fw }}; line-height:{{ t.lh }}; letter-spacing:{{ t.ls }}; text-transform:{{ t.caps }}; color:{{ t.color }}; max-width:{{ t.measure }}; text-wrap:pretty">{{ t.sample }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:var(--sp-5)">
+          <div style="display:flex; flex-direction:column; gap:var(--sp-25)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Мера строки</h4>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Длина строки — тоже токен. Узкая мера для пояснений в панели, обычная — для документации.</div>
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+              <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-3); max-width:var(--measure-narrow)">
+                <div style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">--measure-narrow</div>
+                <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">Пояснение под лейблом не должно тянуться на всю панель — глаз теряет начало следующей строки.</div>
+              </div>
+              <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-3); max-width:var(--measure-text)">
+                <div style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">--measure-text</div>
+                <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">Обычная мера для документации и описаний разделов: комфортный диапазон — 60–75 знаков в строке.</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:var(--sp-25)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Числа</h4>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Моношрифта нет. Табличные цифры включает хук <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">data-nums</span> — и только там, где цифры выравниваются в столбец. Глобально его включать нельзя: у Unica табличным становится и пробел, из-за чего разъезжаются слова.</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3); background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-3)">
+              <div style="display:flex; flex-direction:column; gap:2px">
+                <div style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">по умолчанию</div>
+                <sc-for list="{{ numRows }}" as="n" hint-placeholder-count="4"><div style="font-size:var(--fs-m); line-height:var(--lh-ui); color:var(--text-secondary)">{{ n }}</div></sc-for>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:2px">
+                <div style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-tertiary)">data-nums</div>
+                <sc-for list="{{ numRows }}" as="n" hint-placeholder-count="4"><div data-nums="true" style="font-size:var(--fs-m); line-height:var(--lh-ui); color:var(--text-primary)">{{ n }}</div></sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="space" data-screen-label="Отступы" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Отступы</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Шкала кратна четырём. Ступени <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">--sp-*</span> — примитивы: брать их можно где угодно, смысл задаёт место. Совпадение чисел связью не считается: высота ряда и ступень шкалы могут совпасть значением и всё равно остаться разными вещами.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-15); align-self:start">
+          <sc-for list="{{ spacings }}" as="s" hint-placeholder-count="12">
+            <div style="display:flex; align-items:center; gap:var(--sp-3)">
+              <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:56px">{{ s.token }}</span>
+              <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary); width:48px; text-align:right">{{ s.px }}</span>
+              <div style="height:16px; width:{{ s.bar }}; background:var(--accent); border-radius:2px"></div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section id="radius" data-screen-label="Радиусы" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Радиусы</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Три ступени и капсула. Геометрией углов владеет контейнер: остров задаёт радиус и <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">overflow:hidden</span>, а крайние ряды наследуют его — иначе inset-кольца и заливки срезаются наискось. Внутри уже скруглённой поверхности своих радиусов не рисуем.</div>
+        <div style="display:flex; gap:var(--sp-5); align-items:flex-end; flex-wrap:wrap; align-self:start">
+          <sc-for list="{{ radii }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2); align-items:center">
+              <div style="width:72px; height:72px; background:var(--bg-active); border-radius:{{ r.css }}"></div>
+              <div style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ r.token }}</div>
+              <div data-nums="true" style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary)">{{ r.px }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section id="shadow" data-screen-label="Тени" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Тени</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Тень отделяет плавающую поверхность от полотна. В тёмной теме её работу в основном делает ступень фона <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">--bg-float</span>, поэтому тени здесь мягче, чем ждёшь. Напрямую <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">box-shadow</span> не анимируем — кросс-фейдим слой тени через прозрачность.</div>
+        <div style="display:flex; gap:var(--sp-5); flex-wrap:wrap; align-self:start; background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-5)">
+          <sc-for list="{{ shadowTokens }}" as="sh" hint-placeholder-count="3">
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2); align-items:center">
+              <div style="width:132px; height:72px; background:var(--bg-float); border-radius:var(--r-m); box-shadow:{{ sh.css }}"></div>
+              <div style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ sh.token }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section id="controlh" data-screen-label="Контролы" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Контролы</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Четыре ступени высоты контролов. Ряд острова живёт на своей высоте — она не ступень этой шкалы, даже когда числа совпадают. Минимальная зона нажатия на таче отдельным токеном: мелкие контролы добирают её невидимой расширенной зоной, не меняя вида.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3); align-self:start">
+          <sc-for list="{{ controlHeights }}" as="ch" hint-placeholder-count="4">
+            <div style="display:flex; align-items:center; gap:var(--sp-3)">
+              <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:116px">{{ ch.token }}</span>
+              <div style="height:{{ ch.css }}; width:140px; background:var(--bg-surface); border-radius:var(--r-s); display:flex; align-items:center; justify-content:center"><span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary)">{{ ch.px }}</span></div>
+            </div>
+          </sc-for>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:116px">--row-h</span>
+            <div style="height:var(--row-h); width:140px; background:var(--bg-surface); border-radius:var(--r-s); display:flex; align-items:center; justify-content:center"><span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary)">{{ rowH }}</span></div>
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">высота ряда острова — не ступень шкалы</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:116px">--touch-target</span>
+            <div style="height:var(--touch-target); width:140px; background:var(--bg-surface); border-radius:var(--r-s); display:flex; align-items:center; justify-content:center"><span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary)">{{ touchH }}</span></div>
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">минимум для тача</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); margin-top:var(--sp-2)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:116px">--focus-ring</span>
+            <div style="height:36px; width:140px; border-radius:var(--r-s); background:var(--bg-surface); box-shadow:var(--focus-ring)"></div>
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">кольцо фокуса — тенью, чтобы не менять размер</span>
+          </div>
+        </div>
+      </section>
+      <section id="motion" data-screen-label="Движение" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-5)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Движение</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">tokens.css · ds.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Движение объясняет, что произошло: откуда взялся элемент, куда он ушёл, что действие принято. Поэтому кривые живут в токенах — их четыре и больше не появляется, — а длительности остаются литералами у места: они выверены под конкретный жест и в шкалу не сводятся.</div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+          <h3 style="margin:0; font-size:var(--fs-h3); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Кривые</h3>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">--ease-spring</span>
+            <div style="flex:1 1 auto; min-width:120px; max-width:260px; height:28px; background:var(--bg-surface); border-radius:var(--r-full); position:relative; overflow:hidden">
+              <span style="position:absolute; top:6px; left:6px; width:16px; height:16px; border-radius:50%; background:var(--accent); animation:sb-slide 2.6s var(--ease-spring) infinite"></span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">--ease-out</span>
+            <div style="flex:1 1 auto; min-width:120px; max-width:260px; height:28px; background:var(--bg-surface); border-radius:var(--r-full); position:relative; overflow:hidden">
+              <span style="position:absolute; top:6px; left:6px; width:16px; height:16px; border-radius:50%; background:var(--accent); animation:sb-slide 2.6s var(--ease-out) infinite"></span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">--ease-in</span>
+            <div style="flex:1 1 auto; min-width:120px; max-width:260px; height:28px; background:var(--bg-surface); border-radius:var(--r-full); position:relative; overflow:hidden">
+              <span style="position:absolute; top:6px; left:6px; width:16px; height:16px; border-radius:50%; background:var(--accent); animation:sb-slide 2.6s var(--ease-in) infinite"></span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">--ease-inout</span>
+            <div style="flex:1 1 auto; min-width:120px; max-width:260px; height:28px; background:var(--bg-surface); border-radius:var(--r-full); position:relative; overflow:hidden">
+              <span style="position:absolute; top:6px; left:6px; width:16px; height:16px; border-radius:50%; background:var(--accent); animation:sb-slide 2.6s var(--ease-inout) infinite"></span>
+            </div>
+          </div>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Пружина посчитана из физики затухающего колебания, а не подобрана на глаз: у неё овершут около 4% — ровно столько, чтобы движение читалось живым и не выглядело шатким.</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3)">
+          <h3 style="margin:0; font-size:var(--fs-h3); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Длительности</h3>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Токен один — <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-surface); border-radius:var(--r-s); padding:1px var(--sp-15)">--dur-base</span>, и нужен он только для сквозной смены темы, где одно значение обязано совпасть во всех компонентах. Остальное — литералы, растущие с размером объекта.</div>
+          <div style="display:flex; flex-direction:column; gap:0; background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden; max-width:var(--measure-narrow)">
+            <sc-for list="{{ durBands }}" as="d" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:var(--sp-2) var(--sp-4); border-top:{{ d.sep }}">
+                <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">{{ d.label }}</span>
+                <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-primary)">{{ d.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+          <h3 style="margin:0; font-size:var(--fs-h3); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Кейфреймы</h3>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Именованные анимации системы. Кривая и длительность задаются на месте — кейфрейм отвечает только за то, что именно меняется.</div>
+          <div style="display:flex; flex-direction:column; gap:0; background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden">
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-fade</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:20px; height:20px; border-radius:var(--r-s); background:var(--bg-active); animation:ds-fade 1.8s var(--ease-out) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Простое появление — когда движения не нужно вовсе.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-rise</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:20px; height:20px; border-radius:var(--r-s); background:var(--bg-active); animation:ds-rise 1.8s var(--ease-out) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Вход снизу: элемент приходит из потока, а не возникает.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-appear</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:20px; height:20px; border-radius:var(--r-full); background:var(--accent); animation:ds-appear 1.8s var(--ease-spring) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Пружинное появление мелкого: спиннер, точка, бейдж.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-pop-in</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:24px; height:16px; border-radius:var(--r-s); background:var(--bg-float); box-shadow:var(--shadow-md); animation:ds-pop-in 1.8s var(--ease-spring) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Карточка растёт из точки привязки: PinCard у пина.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">pin-pop</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:18px; height:18px; border-radius:var(--r-full) var(--r-full) var(--r-full) 2px; background:var(--accent); animation:pin-pop 1.8s var(--ease-spring) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Капля пина: ставится в точку клика.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-pulse</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:32px; height:10px; border-radius:var(--r-full); background:var(--bg-active); animation:ds-pulse 1.4s var(--ease-inout) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Ожидание без прогресса. Форма — атом Skeleton.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-spin</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:16px; height:16px; border:1.5px solid var(--text-secondary); border-top-color:transparent; border-radius:50%; animation:ds-spin .8s linear infinite; display:inline-block"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Работа идёт, конца не знаем. Только linear.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-shake</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:22px; height:16px; border-radius:var(--r-s); background:var(--bg-active); animation:ds-shake .9s var(--ease-inout) infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Упор в предел: дальше ввод не идёт. Под reduced-motion — гашение.</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-25) var(--sp-3); border-top:0.5px solid var(--border-subtle)">
+            <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); width:104px; flex:none">ds-toast-fill</span>
+            <span style="width:40px; flex:none; display:inline-flex; align-items:center; justify-content:center"><span style="width:32px; height:2px; background:var(--ok); transform-origin:left; animation:ds-toast-fill 2.4s linear infinite"></span></span>
+            <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-secondary)">Остаток времени тоста. Убывает, а не растёт.</span>
+          </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <h3 style="margin:0; font-size:var(--fs-h3); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Принципы</h3>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:var(--sp-5)">
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+              <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Материал</h4>
+              <ol data-ol="true" style="margin:0; padding-left:var(--sp-5); display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">
+                <li>Пружина — из физики, не на глаз: затухающее колебание с овершутом ~4%.</li>
+                <li>Анимируем только transform и opacity; grid-rows у раскрывашек — осознанное исключение.</li>
+                <li>box-shadow не анимируем напрямую — кросс-фейд слоя тени через opacity.</li>
+                <li>transform-origin — из точки привязки: карточка растёт из пина, раскрывашка — сверху.</li>
+                <li>Длительность растёт с размером объекта: мелкий отклик быстрее крупной панели.</li>
+              </ol>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+              <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Вход и выход</h4>
+              <ol data-ol="true" style="margin:0; padding-left:var(--sp-5); display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">
+                <li>Вход и выход асимметричны: вход — пружина или ease-out, выход короче и тише.</li>
+                <li>Выход — полноправное состояние: ничего не исчезает без анимации.</li>
+                <li>Stagger: секции и списки входят каскадом 40–50 мс, не разом.</li>
+                <li>Перестановки — layout-анимацией: сосед съезжает плавно, не телепортом.</li>
+                <li>Связанные изменения — одной последовательностью: поле, сообщение и тонировка меняются согласованно.</li>
+              </ol>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+              <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Отклик</h4>
+              <ol data-ol="true" style="margin:0; padding-left:var(--sp-5); display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">
+                <li>Интерактив — на transitions: прерванная анимация подхватывается из текущей точки, не стартует заново.</li>
+                <li>Скорость наследуется: JS-анимации продолжают движение с текущей velocity, не с нуля.</li>
+                <li>Пресс — единый жест: scale и brightness на всём кликабельном, мгновенно.</li>
+                <li>Анимация не блокирует ввод: состояние меняется сразу, визуал догоняет.</li>
+                <li>prefers-reduced-motion уважается: крупные перемещения и пружины заменяются гашением, цвет и кольцо фокуса остаются.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="icons" data-screen-label="Иконки" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Иконки</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">svgs/ · g-icon.js</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Набор один — <a href="https://github.com/gravity-ui/icons" target="_blank">Gravity UI</a>, своих иконок не рисуем. Ставятся тегом <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">&lt;g-icon name="plus" size="16"&gt;</span>, цвет наследуется от текста через currentColor. По умолчанию иконка декоративна и скрыта от скринридера; смысловой нужен атрибут <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">label</span> — он даёт роль и имя.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:var(--sp-2)">
+          <sc-for list="{{ iconNames }}" as="ic" hint-placeholder-count="20">
+            <div style="display:flex; align-items:center; gap:var(--sp-25); padding:var(--sp-2) var(--sp-25); border-radius:var(--r-s); color:var(--text-secondary)" style-hover="background:var(--bg-hover); color:var(--text-primary)">
+              <g-icon name="{{ ic }}" size="18"></g-icon>
+              <div style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ ic }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section id="a11y" data-screen-label="Доступность" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Доступность</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">ds.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Роль, имя и клавиатура — часть компонента, а не то, что доклеивает экран. Кольцо фокуса рисуется тенью, чтобы не менять размер элемента, и появляется только в клавиатурной модальности: залётный фокус от мыши кольца не даёт. Под <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">prefers-reduced-motion</span> уходят крупные перемещения и пружины, а цветовые переходы и кольцо остаются — они несут смысл, а не украшают.</div>
+        <div style="display:flex; flex-direction:column; gap:0; background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden">
+          <div style="display:grid; grid-template-columns:1.1fr 1.6fr 1.3fr; gap:var(--sp-3); padding:var(--sp-25) var(--sp-4); font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); letter-spacing:var(--ls-eyebrow); margin-right:calc(-1 * var(--ls-eyebrow)); text-transform:uppercase; color:var(--text-tertiary); border-bottom:0.5px solid var(--border-subtle)">
+            <span>Компонент</span><span>Роль / ARIA</span><span>Клавиатура</span>
+          </div>
+          <sc-for list="{{ a11yRows }}" as="r" hint-placeholder-count="8">
+            <div style="display:grid; grid-template-columns:1.1fr 1.6fr 1.3fr; gap:var(--sp-3); padding:var(--sp-25) var(--sp-4); border-top:{{ r.sep }}; font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui)">
+              <span style="color:var(--text-primary)">{{ r.comp }}</span>
+              <span style="color:var(--text-secondary)">{{ r.aria }}</span>
+              <span style="color:var(--text-secondary)">{{ r.keys }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Windows High Contrast</h4>
+          <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">В режиме <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">forced-colors</span> система вырезает тени и градиенты и подменяет цвета своими. Там, где цвет и был информацией, состояние переражается в системные: рамка вместо кольца, Highlight вместо заливки. Единственное исключение — градиент AI: он выключен из подмены, потому что сам является смыслом.</div>
+        </div>
+      </section>
+      <section id="vocab" data-screen-label="Словарь" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Словарь</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">имена осей в пропсах</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Три слова про разное — путать их нельзя, иначе один и тот же проп начинает значить два разных факта. Раньше здесь была и ось <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:1px var(--sp-15)">state</span>, но вместе с компонентом Status она из системы ушла: состояние сущности во времени описывает бизнес-слой, а не контрол.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:var(--sp-3)">
+          <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">variant</h4>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body)">Вид и вес подачи. Button: primary, secondary, ghost, accent. Badge: solid, soft, quiet. Disclosure: eyebrow, plain.</div>
+          </div>
+          <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">tone</h4>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body)">Семантика, накладываемая на ЛЮБОЙ вариант: ok, danger. Поэтому отдельного варианта danger нет ни у кнопки, ни у бейджа.</div>
+          </div>
+          <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+            <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">level</h4>
+            <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body)">Серьёзность сообщения: ok, warn, danger, info. У рядов приезжает как msgLevel — там же, где msg.</div>
+          </div>
+        </div>
+      </section>
+      <section id="uxwriting" data-screen-label="UX-writing" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">UX-writing</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)"></span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Тон и формат текста в компонентах. Правило одно на всё: подпись говорит, что случится, а не как устроен интерфейс.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:var(--sp-3)">
+          <sc-for list="{{ uxRules }}" as="u" hint-placeholder-count="8">
+            <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+              <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">{{ u.title }}</h4>
+              <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); text-wrap:pretty">{{ u.text }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section id="statusmatrix" data-screen-label="Статусы" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Статус компонентов</h2>
+          <span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)"></span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Зрелость по уровням. beta — API может ещё уточниться, обычно это новые компоненты и режимы: меняя такой, проверьте вызовы в продуктовых экранах. stable трогаем только с бампом версии.</div>
+        <div style="display:flex; flex-direction:column; gap:0; background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden">
+          <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:var(--sp-3); padding:var(--sp-25) var(--sp-4); font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); letter-spacing:var(--ls-eyebrow); margin-right:calc(-1 * var(--ls-eyebrow)); text-transform:uppercase; color:var(--text-tertiary); border-bottom:0.5px solid var(--border-subtle)">
+            <span>Компонент</span><span>Уровень</span><span>Статус</span>
+          </div>
+          <sc-for list="{{ statusRows }}" as="r" hint-placeholder-count="12">
+            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:var(--sp-3); align-items:center; padding:var(--sp-25) var(--sp-4); border-top:{{ r.sep }}; font-size:var(--fs-s); font-weight:var(--fw-regular); line-height:var(--lh-ui)">
+              <span style="color:var(--text-primary)">{{ r.name }}</span>
+              <span style="color:var(--text-secondary)">{{ r.level }}</span>
+              <span style="display:inline-flex; align-items:center; gap:var(--sp-15)"><span style="width:8px; height:8px; border-radius:50%; background:{{ r.dot }}; flex:none"></span><span style="color:var(--text-secondary); position:relative; top:0.5px">{{ r.status }}</span></span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ showAtoms }}" hint-placeholder-val="{{ false }}">
+      <section id="button" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Button</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Button.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Иерархию несёт variant, семантику — tone, и оси независимы: поэтому отдельного варианта danger нет, опасным может стать любой. Кнопка-иконка без подписи обязана иметь тултип — он же даёт имя для скринридера.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:180px">
+            <dc-import name="Button" label="{{ pgButton.label }}" variant="{{ pgButton.variant }}" size="{{ pgButton.size }}" tone="{{ pgButton.tone }}" icon="{{ pgButton.icon }}" icon-right="{{ pgButton.iconRight }}" disabled="{{ pgButton.disabled }}" loading="{{ pgButton.loading }}" tooltip="{{ pgButton.tooltip }}" hint-size="160px,44px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ buttonCtrls }}" hint-size="320px,340px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-3); align-items:center">
+          <dc-import name="Button" label="Выгрузить" variant="primary" hint-size="110px,44px"></dc-import>
+          <dc-import name="Button" label="Отмена" variant="secondary" hint-size="90px,44px"></dc-import>
+          <dc-import name="Button" label="Позже" variant="ghost" hint-size="80px,44px"></dc-import>
+          <dc-import name="Button" label="На пересборку · 4" variant="accent" hint-size="150px,44px"></dc-import>
+          <dc-import name="Button" label="Удалить" variant="secondary" tone="danger" hint-size="100px,44px"></dc-import>
+          <dc-import name="Button" label="Удалить всё" variant="primary" tone="danger" hint-size="120px,44px"></dc-import>
+          <dc-import name="Button" label="Недоступно" disabled="{{ true }}" hint-size="120px,44px"></dc-import>
+          <dc-import name="Button" label="Выгрузить 12 форматов" icon="arrow-down-to-line" variant="primary" hint-size="210px,44px"></dc-import>
+          <dc-import name="Button" label="Все площадки" icon-right="chevron-down" variant="secondary" hint-size="150px,44px"></dc-import>
+          <dc-import name="Button" label="Пересобрать" icon="arrows-rotate-right" variant="secondary" size="s" hint-size="140px,36px"></dc-import>
+          <dc-import name="Button" icon="ellipsis" variant="secondary" size="s" tooltip="Ещё" hint-size="36px,36px"></dc-import>
+          <dc-import name="Button" icon="pause-fill" variant="ghost" size="xs" tooltip="Пауза" hint-size="28px,28px"></dc-import>
+          <dc-import name="Button" label="Решено" icon="check" variant="ghost" size="s" tone="ok" hint-size="100px,36px"></dc-import>
+          <dc-import name="Button" icon="plus" variant="primary" size="l" tooltip="Создать" hint-size="52px,52px"></dc-import>
+          <dc-import name="Button" label="Извлечение…" loading="{{ true }}" variant="secondary" hint-size="140px,44px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="inputatom" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Input</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Input.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Поле ввода в двух видах: field со своей поверхностью и bare — внутри ряда, где поверхность принадлежит ряду. Аффиксы (иконка, префикс, кнопка очистки) живут только в field. Ошибку показывает после потери фокуса, а не во время набора.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <div style="width:280px; max-width:100%"><dc-import name="Input" value="{{ pgInput.value }}" placeholder="{{ pgInput.placeholder }}" icon="{{ pgInput.icon }}" prefix="{{ pgInput.prefix }}" suffix="{{ pgInput.suffix }}" clearable="{{ pgInput.clearable }}" max-length="{{ pgInput.maxLength }}" invalid="{{ pgInput.invalid }}" disabled="{{ pgInput.disabled }}" align="{{ pgInput.align }}" bare="{{ pgInput.bare }}" hint-size="100%,36px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ inputCtrls }}" hint-size="320px,220px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-3); align-items:center">
+          <dc-import name="Input" icon="magnifier" clearable="{{ true }}" value="осенний" placeholder="Поиск по кампаниям" style="width:220px" hint-size="220px,36px"></dc-import>
+          <dc-import name="Input" value="hvostilapy" invalid="{{ true }}" style="width:160px" hint-size="160px,36px"></dc-import>
+          <dc-import name="Input" value="Осенний сейл" disabled="{{ true }}" style="width:160px" hint-size="160px,36px"></dc-import>
+          <dc-import name="Input" value="24" suffix="px" style="width:90px" hint-size="90px,36px"></dc-import>
+          <dc-import name="Input" prefix="https://" value="hvost-i-lapy.ru/sale" style="width:230px" hint-size="230px,36px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="checkbox" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Checkbox</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Checkbox.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Выбор или согласие в форме — часть отправляемых данных, поэтому здесь есть invalid: снятая галочка — законное «нет», его можно потребовать исправить. Мгновенную настройку переключает не он, а тоггл.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="Checkbox" label="{{ pgCheckbox.label }}" checked="{{ pgCheckbox.checked }}" invalid="{{ pgCheckbox.invalid }}" disabled="{{ pgCheckbox.disabled }}" bare="{{ pgCheckbox.bare }}" hint-size="250px,24px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ checkboxCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+      </section>
+      <section id="toggle" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Toggle</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Toggle.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Мгновенная настройка: состояние применяется сразу, без подтверждения. Оба положения валидны, поэтому ошибки у тоггла не бывает — возможно только предупреждение о последствии выбора. Если подпись лежит снаружи, ariaLabel обязателен.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="Toggle" label="{{ pgToggle.label }}" checked="{{ pgToggle.checked }}" disabled="{{ pgToggle.disabled }}" bare="{{ pgToggle.bare }}" hint-size="160px,24px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ toggleCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+      </section>
+      <section id="cyclebutton" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">CycleButton</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">CycleButton.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Перебор коротких значений по кругу одним нажатием — единицы, форматы. Годится, когда вариантов два-три и каждый умещается в пару знаков; для выбора из перечня нужен OptionGroup, где все варианты видны сразу.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="CycleButton" options="{{ cbOptsLive }}" tooltip="{{ pgCycleButton.tooltip }}" disabled="{{ pgCycleButton.disabled }}" hint-size="52px,24px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ cycleButtonCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:center">
+          <dc-import name="CycleButton" options="{{ demoUnitOpts }}" hint-size="44px,22px"></dc-import>
+          <dc-import name="CycleButton" options="{{ demoCycleOpts }}" hint-size="44px,22px"></dc-import>
+          <dc-import name="CycleButton" options="{{ demoScaleOpts }}" hint-size="52px,22px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="optiongroup" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">OptionGroup</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">OptionGroup.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">←→ переключают опцию, активную ведёт скользящая пилюля.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="OptionGroup" options="{{ ogOptsLive }}" value="{{ pgOptionGroup.value }}" disabled="{{ pgOptionGroup.disabled }}" on-change="{{ ogChange }}" hint-size="160px,36px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ optionGroupCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:center">
+          <dc-import name="OptionGroup" options="{{ demoTypeOpts }}" value="0" hint-size="150px,36px"></dc-import>
+          <dc-import name="OptionGroup" options="{{ demoAnchorOpts }}" value="2" hint-size="150px,36px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="badge" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Badge</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Badge.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Ярлык короткой информации: значение, формат, статус в одно-два слова. Перенос строк запрещён — фраза или объяснение это текст, а не бейдж. Вес подачи несёт variant, семантику — tone, и работают они в любой комбинации.</div>
+        
+        <div style="display:flex; flex-direction:column; gap:var(--sp-2); background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4)">
+          <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Когда бейдж, а когда текст</h4>
+          <ul style="margin:0; padding-inline-start:var(--sp-4); font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-secondary); line-height:var(--lh-loose)">
+            <li>Бейдж — одно-два слова или значение: <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="300×250" nums="{{ true }}" hint-size="72px,24px"></dc-import></span>, <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="148 КБ" nums="{{ true }}" hint-size="60px,24px"></dc-import></span>, <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="block" variant="solid" tone="danger" hint-size="60px,24px"></dc-import></span>. Перенос строк запрещён: если текст не помещается в строку — это не бейдж.</li>
+            <li>Фраза, объяснение, причина — обычный текст. Внутри него бейджем помечают только само значение: «ховер живёт <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="120–180 мс" nums="{{ true }}" hint-size="80px,24px"></dc-import></span>, дольше — уже заметно».</li>
+            <li>Ошибка или подсказка к полю — не бейдж, а <a href="#rowmsg">RowMsg</a>. Бейдж не кликается: нужно действие — это <a href="#button">Button</a>.</li>
+            <li>Бизнес-сущности своего варианта не получают. Ярлык erid — это <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">variant=quiet</span> + <span style="font-size:var(--fs-s); line-height:var(--lh-ui); color:var(--text-primary); background:var(--bg-base); border-radius:var(--r-s); padding:2px var(--sp-2)">nums</span>, а слово «erid» приходит в label от вызывающего.</li>
+          </ul>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="{{ pgBadge.label }}" icon="{{ pgBadge.icon }}" nums="{{ pgBadge.nums }}" variant="{{ pgBadge.variant }}" tone="{{ pgBadge.tone }}" hint-size="100px,24px"></dc-import></span>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ badgeCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-3); align-items:center">
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="300×250" nums="{{ true }}" hint-size="72px,24px"></dc-import></span>
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="внимание" icon="triangle-exclamation-fill" tone="warn" hint-size="110px,24px"></dc-import></span>
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="block" icon="circle-exclamation-fill" variant="solid" tone="danger" hint-size="80px,24px"></dc-import></span>
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="аудит ок" icon="circle-check-fill" tone="ok" hint-size="100px,24px"></dc-import></span>
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="HTML5" variant="quiet" hint-size="56px,24px"></dc-import></span>
+          <span style="display:inline-flex; vertical-align:middle"><dc-import name="Badge" label="erid 2Vtzqx" variant="quiet" nums="{{ true }}" icon="lock" hint-size="120px,24px"></dc-import></span>
+        </div>
+              
+        </dc-import>
+      </section>
+            <section id="pin" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Pin</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Pin.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Метка обсуждения на канвасе: капля с острым углом в точке привязки. Сама себе поверхность — контент заполняет её целиком, обводка одна и принадлежит капле. Решённый пин гаснет, но не исчезает: контекст обсуждения остаётся на месте.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; gap:var(--sp-5); align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="Pin" number="{{ pgPin.number }}" author="{{ pgPin.author }}" src="{{ pgPin.src }}" resolved="{{ pgPin.resolved }}" has-reply="{{ pgPin.hasReply }}" hint-size="32px,32px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ pinCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+                <div style="display:flex; flex-wrap:wrap; gap:var(--sp-5); align-items:center">
+                  <dc-import name="Pin" number="1" hint-size="32px,32px"></dc-import>
+                  <dc-import name="Pin" author="Марина Ковалёва" hint-size="32px,32px"></dc-import>
+                  <dc-import name="Pin" number="2" resolved="{{ true }}" hint-size="32px,32px"></dc-import>
+                  <dc-import name="Pin" author="Игорь Волков" has-reply="{{ true }}" hint-size="32px,32px"></dc-import>
+                </div>
+              
+        </dc-import>
+      </section>
+      <section id="avatar" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Avatar</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Avatar.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Лицо участника: фото, инициалы или градиент AI. Битая ссылка падает на инициалы, а не оставляет пустоту. На инверсной подложке — inverse, без своей рамки — bare.</div>
+        
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="Avatar" author="{{ pgAvatar.author }}" src="{{ pgAvatar.src }}" inverse="{{ pgAvatar.inverse }}" bare="{{ pgAvatar.bare }}" ai="{{ pgAvatar.ai }}" size="{{ pgAvatar.size }}" hint-size="32px,32px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ avatarCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+                <div style="display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:center">
+                  <dc-import name="Avatar" author="Игорь Волков" size="s" hint-size="24px,24px"></dc-import>
+                  <dc-import name="Avatar" author="Марина Ковалёва" size="m" hint-size="32px,32px"></dc-import>
+                  <dc-import name="Avatar" ai="{{ true }}" size="l" hint-size="48px,48px"></dc-import>
+                  <dc-import name="Avatar" author="Пётр Ким" inverse="{{ true }}" size="m" hint-size="32px,32px"></dc-import>
+                </div>
+              
+        </dc-import>
+      </section>
+      <section id="skeleton" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Skeleton</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Skeleton.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Форма ожидания на месте будущего контента: показывает, что появится, а не сколько осталось. Если конца не знаем — спиннер. Возникает только когда загрузка длится дольше 320 мс, и живёт минимум 450 мс, чтобы не мигнуть.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); border-radius:var(--r-m); min-height:120px">
+            <dc-import name="Skeleton" shape="{{ pgSkeleton.shape }}" width="{{ pgSkeleton.width }}" hint-size="140px,24px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ skeletonCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 380px)); gap:var(--sp-4); align-items:start">
+          <div style="display:flex; align-items:center; gap:var(--sp-3); background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4)">
+            <dc-import name="Skeleton" shape="circle" width="28px" hint-size="28px,28px"></dc-import>
+            <div style="flex:1; display:flex; flex-direction:column; gap:var(--sp-2)">
+              <dc-import name="Skeleton" shape="line" width="60%" hint-size="60%,12px"></dc-import>
+              <dc-import name="Skeleton" shape="line" width="38%" height="10px" hint-size="38%,10px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="Island" rows="{{ islandLoading }}" hint-size="100%,160px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="tooltip" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Tooltip</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">ds.css</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Подпись к элементу, у которого нет своей надписи — иконке-кнопке. Задержка 450 мс, на таче скрыт. Редкий нюанс, а не способ дать пояснение: внутри островов не живёт (остров режет его overflow), у ⓘ не нужен. Браузерный title не используем.</div>
+        <div style="display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:center; padding-top:var(--sp-5)">
+          <dc-import name="Button" icon="gear" variant="secondary" size="s" tooltip="Настройки выгрузки" hint-size="36px,36px"></dc-import>
+          <dc-import name="Button" icon="ellipsis" variant="secondary" size="s" tooltip="Ещё действия" hint-size="36px,36px"></dc-import>
+          <dc-import name="CycleButton" options="{{ demoUnitOpts }}" tooltip="Единицы измерения" hint-size="44px,22px"></dc-import>
+          <span data-tooltip="Работает на любом элементе" style="font-size:var(--fs-m); color:var(--text-secondary); border-bottom:1px dashed var(--border-strong); cursor:default; padding-bottom:1px">просто текст с подсказкой</span>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ showMol }}" hint-placeholder-val="{{ false }}">
+      <section id="rowlabel" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">RowLabel</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">RowLabel.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Лейбл ряда и кнопка ⓘ. Подчинён значению, поэтому на ступень тише его. Знает только факт наличия подсказки — её текст и раскрытие принадлежат RowInfo.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <dc-import name="RowLabel" label="{{ pgRowLabel.label }}" subtitle="{{ pgRowLabel.subtitle }}" has-info="{{ pgRowLabel.hasInfo }}" open="{{ pgRowLabel.open }}" on-toggle="{{ rlToggle }}" hint-size="200px,24px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ rowLabelCtrls }}" hint-size="320px,180px"></dc-import>
+        </div>
+      </section>
+      <section id="rowinfo" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">RowInfo</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">RowInfo.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Раскрывашка подсказки ряда: открывается по ⓘ. Движение как у всех раскрывашек системы — grid-rows с пружиной и поворот иконки на 180°. Картинка-инструкция опциональна.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:32px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:160px">
+            <div style="width:340px; max-width:100%"><dc-import name="RowInfo" open="{{ pgRowInfo.open }}" text="{{ pgRowInfo.text }}" image="{{ pgRowInfo.imageText }}" hint-size="100%,80px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ rowInfoCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+      </section>
+      <section id="rowmsg" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">RowMsg</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">RowMsg.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Сообщение валидации под контролом. Серьёзность несёт level; вход длиннее выхода, прозрачность не участвует. Иконка стоит по центру одной строки и по верху — когда строк несколько.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:32px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:120px">
+            <div style="width:340px; max-width:100%"><dc-import name="RowMsg" text="{{ pgRowMsg.text }}" level="{{ pgRowMsg.level }}" hint-size="100%,40px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ rowMsgCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+      </section>
+      <section id="inputrow" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">InputRow</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">InputRow.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Ряд с полем ввода: лейбл, значение, необязательный циклер единиц, подсказка и сообщение валидации. Тонкая композиция атомов — валидация принадлежит полю, а не ряду и не острову.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:180px">
+            <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+              <dc-import name="InputRow" disabled="{{ pgInputRow.disabled }}" loading="{{ pgInputRow.loading }}" separator="{{ pgInputRow.separator }}" label="{{ pgInputRow.label }}" value="{{ pgInputRow.value }}" placeholder="{{ pgInputRow.placeholder }}" max-length="{{ pgInputRow.maxLength }}" options="{{ pgInputRow.optionsArr }}" msg="{{ pgInputRow.msg }}" msg-level="{{ pgInputRow.msgLevel }}" info="{{ pgInputRow.infoText }}" info-image="{{ pgInputRow.infoImageSrc }}" nums="{{ pgInputRow.nums }}" hint-size="100%,52px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ inputRowCtrls }}" hint-size="320px,380px"></dc-import>
+        </div>
+      </section>
+      <section id="choicerow" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">ChoiceRow</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">ChoiceRow.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Клик по ряду не занят действием — поэтому открывает info.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; flex-direction:column; gap:var(--sp-3); align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:160px">
+            <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+              <dc-import name="ChoiceRow" label="{{ pgChoiceRow.label }}" options="{{ demoAnchorOpts }}" value="{{ pgChoiceRow.value }}" on-change="{{ choiceRowChange }}" info="{{ pgChoiceRow.infoText }}" disabled="{{ pgChoiceRow.disabled }}" hint-size="100%,52px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ choiceRowCtrls }}" hint-size="320px,200px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+                <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+                  <dc-import name="ChoiceRow" label="Тип выхода" options="{{ demoTypeOpts }}" value="0" hint-size="100%,52px"></dc-import>
+                  <dc-import name="ChoiceRow" label="Якорь героя" options="{{ demoAnchorOpts }}" value="2" separator="{{ true }}" info="Якорь — точка, за которую герой держится при пересчёте формата." hint-size="100%,52px"></dc-import>
+                </div>
+              
+        </dc-import>
+      </section>
+      <section id="switchrow" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">SwitchRow</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">SwitchRow.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Клик по ряду переключает — поэтому info открывается только по ⓘ. Ошибки у тоггла не бывает: оба состояния валидны, но предупреждение о последствии выбора возможно.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:160px">
+            <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+              <dc-import name="SwitchRow" label="{{ pgSwitchRow.label }}" subtitle="{{ pgSwitchRow.subtitle }}" checked="{{ pgSwitchRow.checked }}" info="{{ pgSwitchRow.infoText }}" disabled="{{ pgSwitchRow.disabled }}" msg="{{ pgSwitchRow.msg }}" msg-level="{{ pgSwitchRow.msgLevel }}" hint-size="100%,52px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ switchRowCtrls }}" hint-size="320px,280px"></dc-import>
+        </div>
+      </section>
+      <section id="checkboxrow" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">CheckboxRow</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">CheckboxRow.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Отдельный ряд, а не режим SwitchRow: чекбокс — это выбор или согласие, часть формы. Снятая галочка — законное «нет», которое можно потребовать исправить, поэтому здесь есть полная валидация с ошибкой.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:160px">
+            <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+              <dc-import name="CheckboxRow" label="{{ pgCheckboxRow.label }}" subtitle="{{ pgCheckboxRow.subtitle }}" checked="{{ pgCheckboxRow.checked }}" info="{{ pgCheckboxRow.infoText }}" disabled="{{ pgCheckboxRow.disabled }}" msg="{{ pgCheckboxRow.msg }}" msg-level="{{ pgCheckboxRow.msgLevel }}" hint-size="100%,52px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ checkboxRowCtrls }}" hint-size="320px,280px"></dc-import>
+        </div>
+      </section>
+      <section id="actionrow" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">ActionRow</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">ActionRow.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Ряд-действие: кнопка справа, значения нет. Иерархию и тон решает сама кнопка, ряд за неё ничего не выбирает.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
+              <dc-import name="ActionRow" label="{{ pgActionRow.label }}" variant="{{ pgActionRow.variant }}" loading="{{ pgActionRow.loading }}" disabled="{{ pgActionRow.disabled }}" hint-size="100%,52px"></dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ actionRowCtrls }}" hint-size="320px,180px"></dc-import>
+        </div>
+      </section>
+      <section id="slider" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Slider</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Slider.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Живёт только вне острова.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:160px">
+            <div style="width:380px; max-width:100%"><dc-import name="Slider" label="{{ pgSlider.label }}" value="{{ pgSlider.value }}" min="{{ pgSlider.min }}" max="{{ pgSlider.max }}" step="{{ pgSlider.step }}" unit="{{ pgSlider.unit }}" options="{{ sliderOpts }}" snap-step="{{ pgSlider.snapStep }}" disabled="{{ pgSlider.disabled }}" hint-size="100%,52px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ sliderCtrls }}" hint-size="320px,300px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-direction:column; gap:var(--sp-15); max-width:380px">
+          <dc-import name="Slider" label="Охранное поле" value="24" min="0" max="64" step="1" unit="px" hint-size="100%,52px"></dc-import>
+          <dc-import name="Slider" label="Скругление CTA" value="12" min="0" max="32" step="1" unit="px" snap="4" hint-size="100%,52px"></dc-import>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="disclosure" data-screen-label="Disclosure" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading)">Disclosure</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Disclosure.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text)">Раскрывашка уровня секции: заголовок-кнопка и содержимое, растущее по высоте. Родня RowInfo, но со своим заголовком и вне острова. Движение — как у сообщения валидации: grid-rows, вход длиннее выхода, без прозрачности. eyebrow — рубрика по содержимому, plain — заголовок во всю ширину с шевроном у правого края.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:32px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:150px">
+            <div style="width:340px; max-width:100%">
+              <dc-import name="Disclosure" label="{{ pgDisc.label }}" count="{{ pgDisc.count }}" variant="{{ pgDisc.variant }}" separator="{{ pgDisc.separator }}" disabled="{{ pgDisc.disabled }}" hint-size="100%,28px">
+                <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+                  <div style="font-size:var(--fs-m); color:var(--text-body); line-height:var(--lh-text)">Содержимое приходит детьми — раскрывашка не знает, что внутри.</div>
+                  <dc-import name="Button" label="Действие внутри" variant="secondary" size="s" hint-size="150px,36px"></dc-import>
+                </div>
+              </dc-import>
+            </div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ discCtrls }}" hint-size="320px,200px"></dc-import>
+        </div>
+      </section>
+      <section id="segments" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Segments</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Segments.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Тонкая обёртка над OptionGroup — поведение пилюли живёт в одном месте.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <dc-import name="Segments" options="{{ segOptsLive }}" value="{{ pgSegments.value }}" on-change="{{ segChange }}" hint-size="280px,44px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ segmentsCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+      </section>
+      <section id="tabs" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Tabs</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Tabs.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">←→ и Home/End переключают вкладки.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <div style="width:100%; max-width:440px; overflow-x:auto; padding-bottom:var(--sp-15)"><dc-import name="Tabs" options="{{ tabOptsLive }}" value="{{ pgTabs.value }}" on-change="{{ tabChange }}" hint-size="100%,40px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ tabsCtrls }}" hint-size="320px,140px"></dc-import>
+        </div>
+      </section>
+      <section id="pincard" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">PinCard</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">PinCard.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Тред обсуждения у пина. Наведение даёт превью первого сообщения, раскрытый тред — ответ встроенным полем. Действия зависят от роли: нет колбэка — нет кнопки.</div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:200px">
+            <div style="width:400px; max-width:100%"><dc-import name="PinCard" messages="{{ pgPinCardMsgs }}" variant="{{ pgPinCardVariant }}" resolved="{{ pgPinCard.resolved }}" on-resolve="{{ pgPinCardResolve }}" on-send="{{ pgPinCardSend }}" reply-autofocus="{{ false }}" hint-size="100%,200px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ pinCardCtrls }}" hint-size="320px,280px"></dc-import>
+        </div>
+      </section>
+      <section id="pincomposer" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">PinComposer</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">PinComposer.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Enter — отправить, Esc — отмена, автофокус при открытии.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <div style="width:310px; max-width:100%"><dc-import name="PinComposer" placeholder="{{ pgPinComposer.placeholder }}" author="{{ pcAuthor }}" autofocus="{{ false }}" hint-size="100%,48px"></dc-import></div>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ pinComposerCtrls }}" hint-size="320px,120px"></dc-import>
+        </div>
+      </section>
+      <section id="toast" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Toast</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Toast.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Стек, позиционирование и очередь — ответственность экрана, не компонента.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)">
+          <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+            <div style="display:inline-flex; align-items:center; gap:var(--sp-15); font-size:var(--fs-m); font-weight:var(--fw-medium); color:var(--ok)"><g-icon name="check" size="15"></g-icon>Когда тост</div>
+            <ul style="margin:0; padding-inline-start:var(--sp-4); font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-secondary); line-height:var(--lh-loose)">
+              <li>Итог фонового/асинхронного действия: «12 форматов выгружены», «Ревизия собирается».</li>
+              <li>Событие вне текущего фокуса — сеть пропала, автосохранение прошло, что-то завершилось.</li>
+              <li>Сообщение эфемерно и не требует решения прямо сейчас; максимум одно действие (Открыть / Отменить).</li>
+              <li>Можно спокойно пропустить — потеря тоста ничего не ломает.</li>
+            </ul>
+          </div>
+          <div style="background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-2)">
+            <div style="display:inline-flex; align-items:center; gap:var(--sp-15); font-size:var(--fs-m); font-weight:var(--fw-medium); color:var(--danger)"><g-icon name="xmark" size="15"></g-icon>Когда НЕ тост</div>
+            <ul style="margin:0; padding-inline-start:var(--sp-4); font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-secondary); line-height:var(--lh-loose)">
+              <li>Ошибка ввода в поле → <a href="#rowmsg">RowMsg</a> у поля, рядом с причиной.</li>
+              <li>Постоянно пустая/несобравшаяся область → <a href="#emptystate">EmptyState</a> на месте контента.</li>
+              <li>Нужно решение до продолжения (удалить, перезаписать) → модалка с явным выбором.</li>
+              <li>Критическая блокировка всего экрана или долгий статус → баннер, а не исчезающий тост.</li>
+              <li>Больше одного действия или длинный текст — тосту тесно, ведите в панель/модалку.</li>
+            </ul>
+          </div>
+        </div>
+        <div style="font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-tertiary); line-height:var(--lh-text); max-width:var(--measure-text)">Правило громкости: <span style="color:var(--text-secondary)">ok/info</span> — polite (не перебивает), <span style="color:var(--text-secondary)">warn/danger</span> — assertive (role=alert, озвучивается сразу). На экране одновременно ≤ 8, остальные ждут в очереди — ничего не теряется.</div>
+        <div style="font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-tertiary); line-height:var(--lh-text); max-width:var(--measure-text)"><span>duration + onTimeout</span> — авто-скрытие с фоновой заливкой-таймером, hover/пресс — пауза · <span>action + onAction</span> — встроенная кнопка-действие · <span>onClose</span> — крестик; свайп в сторону тоже закрывает</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:140px">
+            <dc-import name="Toast" text="{{ pgToast.text }}" level="{{ pgToast.level }}" action-label="{{ pgToast.action }}" on-close="{{ pgToast.close }}" hint-size="300px,44px"></dc-import>
+          </div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ toastCtrls }}" hint-size="320px,180px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-2)">
+          <dc-import name="Toast" text="12 форматов готовы к выгрузке" level="ok" hint-size="280px,44px"></dc-import>
+          <dc-import name="Toast" text="Ревизия r15 собирается…" level="info" hint-size="240px,44px"></dc-import>
+          <dc-import name="Toast" text="erid не заполнен у 3 форматов" level="warn" action-label="Показать" hint-size="330px,44px"></dc-import>
+          <dc-import name="Toast" text="Block: вес 412 КБ — площадка отклонит" level="danger" action-label="Открыть" on-close="{{ demoClose }}" hint-size="400px,44px"></dc-import>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--sp-3)">
+          <dc-import name="Button" label="Показать тост" variant="secondary" size="s" on-click="{{ spawnToast }}" hint-size="130px,36px"></dc-import>
+          <span style="font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-tertiary)">живой стек — справа внизу</span>
+        </div>
+        <div style="position:fixed; right:16px; bottom:16px; left:16px; z-index:80; display:flex; flex-direction:column; align-items:flex-end; pointer-events:none">
+          <sc-for list="{{ toastList }}" as="t" hint-placeholder-count="1">
+            <span style="pointer-events:auto; display:{{ t.disp }}"><dc-import name="Toast" text="{{ t.text }}" level="{{ t.level }}" action-label="{{ t.action }}" leaving="{{ t.leaving }}" gap="8" duration="8000" on-timeout="{{ t.close }}" on-action="{{ t.act }}" on-close="{{ t.close }}" hint-size="280px,44px"></dc-import></span>
+          </sc-for>
+        </div>
+              
+        </dc-import>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ showOrg }}" hint-placeholder-val="{{ false }}">
+      <section id="island" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Island</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Island.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Чистый контейнер: геометрия углов, фон и сепараторы. Собирает ряды из конфига и не знает, что внутри них. Валидации у острова нет вовсе — она принадлежит ряду, у которого есть значение: режим «весь остров краснеет» удалён как вторая, оторванная от значений валидация. Slider и Disclosure в остров не входят: они живут отдельной стопкой под ним.</div>
+        <div style="font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-tertiary); line-height:var(--lh-text); max-width:var(--measure-text)"><span>rows: [{ type: text | segmented | toggle | checkbox | action }]</span> · слайдеры — отдельной стопкой под островом</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:32px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:200px">
+            <div style="width:340px; max-width:100%"><dc-import name="Island" rows="{{ islandRowsLive }}" hint-size="100%,160px"></dc-import></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:var(--sp-3); background:var(--bg-surface); border-radius:var(--r-m); padding:var(--sp-4)">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex-wrap:wrap">
+              <h4 style="margin:0; font-size:var(--fs-l); font-weight:var(--fw-medium); line-height:var(--lh-heading); color:var(--text-primary)">Конструктор рядов</h4>
+              <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap">
+                <sc-for list="{{ islandAdd }}" as="b" hint-placeholder-count="5">
+                  <dc-import name="Button" label="{{ b.label }}" icon="plus" variant="secondary" size="s" on-click="{{ b.add }}" hint-size="104px,36px"></dc-import>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
+              <sc-for list="{{ islandBuild }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex; flex-direction:column; gap:var(--sp-15); padding:var(--sp-2) 0; border-top:{{ r.sep }}">
+                  <div style="display:flex; align-items:center; gap:var(--sp-2)">
+                    <span style="width:88px; flex:none; font-size:var(--fs-s); color:var(--text-tertiary)">{{ r.typeLabel }}</span>
+                    <div style="flex:1 1 auto; min-width:0"><dc-import name="Input" value="{{ r.label }}" placeholder="Подпись ряда" on-input="{{ r.setLabel }}" hint-size="100%,36px"></dc-import></div>
+                    <dc-import name="Button" icon="chevron-up" variant="ghost" size="s" tooltip="Выше" disabled="{{ r.isFirst }}" on-click="{{ r.up }}" hint-size="36px,36px"></dc-import>
+                    <dc-import name="Button" icon="chevron-down" variant="ghost" size="s" tooltip="Ниже" disabled="{{ r.isLast }}" on-click="{{ r.down }}" hint-size="36px,36px"></dc-import>
+                    <dc-import name="Button" icon="trash-bin" variant="ghost" size="s" tone="danger" tooltip="Удалить ряд" on-click="{{ r.remove }}" hint-size="36px,36px"></dc-import>
+                  </div>
+                  <div style="padding-left:88px">
+                    <dc-import name="Disclosure" label="Настройки ряда" variant="plain" count="{{ r.setCount }}" open="{{ r.open }}" on-toggle="{{ r.toggleOpen }}" hint-size="100%,28px">
+                      <dc-import name="SbControls" style="width:100%" ctrls="{{ r.ctrls }}" hint-size="100%,120px"></dc-import>
+                    </dc-import>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ islandNoRows }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:var(--fs-s); color:var(--text-tertiary); padding:var(--sp-2) 0">Рядов нет — добавьте любой кнопкой сверху.</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 380px)); gap:var(--sp-4); align-items:start" data-island-demo="true">
+          <dc-import name="Island" rows="{{ islandA }}" hint-size="100%,210px"></dc-import>
+          <div style="display:flex; flex-direction:column; gap:var(--sp-15)">
+            <dc-import name="Island" rows="{{ islandB }}" hint-size="100%,210px"></dc-import>
+            <dc-import name="Slider" label="Кегль лигала" value="8" min="6" max="14" step="0.5" unit="pt" hint-size="100%,52px"></dc-import>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:var(--sp-15)">
+            <dc-import name="Island" rows="{{ islandC }}" hint-size="100%,160px"></dc-import>
+            <dc-import name="Island" rows="{{ islandD }}" hint-size="100%,110px"></dc-import>
+          </div>
+        </div>
+              
+        </dc-import>
+      </section>
+      <section id="emptystate" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">EmptyState</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">EmptyState.dc.html</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Заглушка на месте контента, когда показывать нечего. Занимает место списка, а не всплывает поверх: эфемерное событие — это тост, а не пустой экран. Действие всегда одно, поэтому вид кнопки и иконку компонент выбирает сам. Сбой сети — это variant=error, а не пустота.</div>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:var(--r-m); min-height:240px"><dc-import name="EmptyState" variant="{{ pgEmpty.variant }}" label="{{ pgEmpty.label }}" subtitle="{{ pgEmpty.subtitle }}" action-label="{{ pgEmpty.actionLabel }}" action-icon="{{ pgEmpty.actionIcon }}" hint-size="100%,240px"></dc-import></div>
+          <dc-import name="SbControls" style="width:100%" ctrls="{{ emptyStateCtrls }}" hint-size="320px,100px"></dc-import>
+        </div>
+        <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
+        <div style="font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-tertiary); line-height:var(--lh-text); max-width:var(--measure-text)">EmptyState — для <span style="color:var(--text-secondary)">постоянного состояния области</span> (пусто / не загрузилось). Временные события — офлайн, «сохранено», сбой действия — это <a href="#toast">Toast</a>, не экран.</div>
+              
+        </dc-import>
+      </section>
+      <section id="pincanvas" style="display:flex; flex-direction:column; scroll-margin-top:96px; gap:var(--sp-4)">
+        <div style="display:flex; align-items:baseline; gap:var(--sp-3); border-bottom:1px solid var(--border-subtle); padding-bottom:var(--sp-3)">
+          <h2 style="margin:0; font-weight:var(--fw-black); font-size:var(--fs-h2); letter-spacing:var(--ls-heading); margin-right:calc(-1 * var(--ls-heading))">Пины на канвасе</h2>
+          <span style="font-size:var(--fs-xs); color:var(--text-tertiary)">Pin + PinComposer + PinCard</span>
+        </div>
+        <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); line-height:var(--lh-text); color:var(--text-body); max-width:var(--measure-text); text-wrap:pretty">Сценарий, а не компонент: собран из Pin, PinComposer и PinCard. Клик по пустому месту ставит пин с открытым композером — карточка растёт из точки привязки, у правого края отражается влево. Отмена или пустая отправка удаляют пустой пин. Клик по пину открывает тред, наведение — превью первого сообщения. «Решено» гасит пин.</div>
+        
+        <div onClick="{{ canvasClick }}" style="position:relative; width:100%; max-width:720px; height:300px; background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:var(--r-l); cursor:crosshair">
+          <div style="position:absolute; left:20px; top:16px; color:var(--text-tertiary); font-size:var(--fs-s); font-weight:var(--fw-regular); pointer-events:none">кликните по пустому месту</div>
+          <sc-for list="{{ canvasPins }}" as="pp" hint-placeholder-count="1">
+            <span onClick="{{ pp.click }}" onMouseEnter="{{ pp.enter }}" onMouseLeave="{{ pp.leave }}" style="position:absolute; left:{{ pp.xPx }}; top:{{ pp.yPx }}; transform:translate(0,-100%); display:inline-flex; cursor:pointer; z-index:4">
+              <dc-import name="Pin" number="{{ pp.n }}" author="Марина Ковалёва" resolved="{{ pp.resolved }}" has-reply="{{ pp.hasReply }}" hint-size="28px,28px"></dc-import>
+            </span>
+            <sc-if value="{{ pp.show }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ pp.stop }}" onMouseEnter="{{ pp.enterCard }}" onMouseLeave="{{ pp.leaveCard }}" style="position:absolute; left:{{ pp.cardLeft }}; top:{{ pp.cardTop }}; width:310px; z-index:6; cursor:default; transform-origin:{{ pp.origin }}; animation:ds-pop-in .35s var(--ease-spring); opacity:{{ pp.op }}; transform:{{ pp.tr }}; transition:opacity .18s ease, transform .2s var(--ease-in)">
+                <sc-if value="{{ pp.composing }}" hint-placeholder-val="{{ true }}">
+                  <dc-import name="PinComposer" placeholder="Комментарий к объекту…" author="Марина Ковалёва" on-send="{{ pp.send }}" on-cancel="{{ pp.cancel }}" hint-size="100%,48px"></dc-import>
+                </sc-if>
+                <sc-if value="{{ pp.viewing }}" hint-placeholder-val="{{ false }}">
+                  <sc-if value="{{ pp.open }}" hint-placeholder-val="{{ false }}">
+                    <dc-import name="PinCard" messages="{{ pp.msgs }}" author="Марина Ковалёва" resolved="{{ pp.resolved }}" on-resolve="{{ pp.resolve }}" on-send="{{ pp.send }}" hint-size="100%,140px"></dc-import>
+                  </sc-if>
+                  <sc-if value="{{ pp.previewing }}" hint-placeholder-val="{{ false }}">
+                    <dc-import name="PinCard" messages="{{ pp.msgs }}" variant="preview" hint-size="100%,60px"></dc-import>
+                  </sc-if>
+                </sc-if>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--sp-3)">
+          <dc-import name="Button" label="{{ aiBtnLabel }}" icon="thunderbolt" variant="accent" size="s" disabled="{{ aiBtnDisabled }}" loading="{{ aiSending }}" on-click="{{ sendAllToAi }}" hint-size="190px,36px"></dc-import>
+        </div>
+              <dc-import name="SbControls" style="width:100%" ctrls="{{ canvasCtrls }}" hint-size="320px,160px"></dc-import>
+</section>
+      </sc-if>
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;, &quot;section&quot;: &quot;Тема&quot;}}">
+class Component extends DCLogic {
+  state = {
+    theme: null, level: 0, toasts: [], queue: [],
+    canvasPins: [], pinSeq: 0, aiSending: false, eridText: '2VtzqxkKfBd', urlText: 'hvostilapy', eridTouched: true, urlTouched: true, eridFocused: false, urlFocused: false, eridHold: false, urlHold: false,
+    pg: {
+      button: { label: 'Выгрузить', variant: 'primary', size: 'm', tone: 'default', icon: '', iconRight: '', tooltip: '', disabled: false, loading: false },
+      badge: { label: '300×250', variant: 'soft', tone: 'neutral', icon: '', nums: true },
+      checkbox: { label: 'Применить ко всем форматам', checked: true, bare: false, invalid: false, disabled: false },
+      toggle: { label: 'Живое превью', checked: true, bare: false, disabled: false },
+      input: { value: 'Осенний сейл', placeholder: 'Название кампании', icon: '', prefix: '', suffix: '', clearable: false, maxLength: 0, invalid: false, disabled: false, align: 'left', bare: false },
+      slider: { label: 'Охранное поле', value: 24, min: 0, max: 64, step: 1, unit: 'px', options: false, snapStep: 0, disabled: false },
+      rowlabel: { label: 'Запекать в растр', subtitle: '', hasInfo: true, open: false },
+      rowinfo: { open: true, text: 'Подсказка ряда: раскрывается по ⓘ, картинка-инструкция опциональна.', image: false },
+      rowmsg: { text: 'Токен — латиница и цифры, минимум 11 символов', level: 'danger' },
+      inputrow: { label: 'Отступ лигала', value: '10', placeholder: '', options: true, maxLength: 0, disabled: false, loading: false, separator: false, msgLevel: 'ok', msg: 'Токен — латиница и цифры, минимум 11 символов', info: false },
+      pincard: { text: 'Кегль просел — на мастере заголовок заметно крупнее.', reply: '', resolved: false, actions: true, preview: false },
+      checkboxrow: { label: 'Применить ко всем форматам', subtitle: '', checked: false, info: true, disabled: false, msgLevel: 'ok', msg: 'Подтвердите применение ко всем форматам' },
+      switchrow: { label: 'Запекать в растр', subtitle: '', checked: false, info: true, disabled: false, msg: 'Отметьте пункт, без него не выгрузим', msgLevel: 'ok' },
+      choicerow: { label: 'Якорь героя', value: 2, info: true, disabled: false },
+      actionrow: { label: 'Извлечь сцену', variant: 'primary', loading: false, disabled: false },
+      toastpg: { text: '12 форматов готовы к выгрузке', level: 'ok', action: '', closable: true },
+      pin: { number: 1, author: '', src: '', resolved: false, hasReply: false },
+      avatar: { author: 'Марина Ковалёва', src: '', ai: false, inverse: false, bare: false, size: 's' },
+      skeleton: { shape: 'line', width: '140px' },
+      disc: { label: 'Примеры', count: '', variant: 'eyebrow', separator: false, disabled: false },
+      segments: { options: 'Все, С пометками, Готовые, Архив', value: 0 },
+      tabs: { options: 'Все форматы 18, Требуют внимания 4, HTML5 11, Статика 7', counts: true, value: 0 },
+      pincomposer: { placeholder: 'Комментарий к объекту…', author: 'Марина Ковалёва', hasAuthor: true },
+      cyclebutton: { options: 'PX, REM', tooltip: 'Единица измерения', disabled: false },
+      optiongroup: { mode: 'text', options: 'Лево, Центр, Право', value: 0, disabled: false },
+      emptystatepg: { variant: 'empty', hasAction: true },
+    },
+    // конструктор острова: пользователь сам набирает состав рядов
+    islandOpen: {},
+    // Стартовый набор собирается ЧЕРЕЗ дефолты типа (islandSeed): ряд без полного набора
+    // полей вёл себя иначе, чем добавленный кнопкой, и панель показывала несуществующий
+    // уровень как выбранный.
+    islandRows: null,
+  };
+  // список опций в плейграундах вводится строкой через запятую — это и есть настоящий проп options
+  splitOpts(str) { return String(str ?? '').split(',').map(x => x.trim()).filter(Boolean); }
+  // Внутренние ссылки ведут на секции ДРУГИХ уровней, а уровни смонтированы по одному:
+  // без этого клик по «RowMsg» из раздела Badge не делал ничего. Переключаем уровень,
+  // ждём отрисовки секций и прокручиваем к цели (scrollTo, с поправкой на липкую шапку).
+  // Смещение под липкую шапку берём из её реальной высоты: литерал разъезжается,
+  // как только в шапке меняется набор или отступы, и заголовок уходит под неё.
+  headerGap() {
+    const h = document.querySelector('header');
+    return (h ? h.getBoundingClientRect().height : 0) + 20;
+  }
+  jumpTo(id, tries) {
+    const el = document.getElementById(id);
+    if (el) {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - this.headerGap(), behavior: reduce ? 'auto' : 'smooth' });
+      return;
+    }
+    if (tries > 0) requestAnimationFrame(() => this.jumpTo(id, tries - 1));
+  }
+  // Роль пишем словами, ЧИСЛА не пишем: их читает probeType из движка,
+  // иначе спека расходится с реальностью (так H1 долго врал про 36px).
+  TYPE_STYLES = [
+    { name: 'Display', role: 'Титул экрана — один на макет', fs: 'var(--fs-display)', fw: 'var(--fw-black)', lh: 'var(--lh-display)', ls: 'var(--ls-display)', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Сетка приёмки' },
+    { name: 'H1', role: 'Заголовок страницы', fs: 'var(--fs-h1)', fw: 'var(--fw-black)', lh: 'var(--lh-display)', ls: 'var(--ls-display)', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Осенний сейл — 18 форматов' },
+    { name: 'H2', role: 'Заголовок раздела', fs: 'var(--fs-h2)', fw: 'var(--fw-black)', lh: 'var(--lh-heading)', ls: 'var(--ls-heading)', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Шлюз нарезки' },
+    { name: 'H3', role: 'Заголовок блока', fs: 'var(--fs-h3)', fw: 'var(--fw-medium)', lh: 'var(--lh-heading)', ls: 'normal', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Правила бренда и площадки' },
+    { name: 'H4', role: 'Самый низкий уровень заголовка', fs: 'var(--fs-l)', fw: 'var(--fw-medium)', lh: 'var(--lh-heading)', ls: 'normal', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Пока нет форматов' },
+    { name: 'Body', role: 'База набора. Тише делает цвет, а не кегль', fs: 'var(--fs-m)', fw: 'var(--fw-regular)', lh: 'var(--lh-text)', ls: 'normal', caps: 'none', color: 'var(--text-primary)', measure: 'var(--measure-narrow)', sample: 'Дизайнер отдаёт мастер и выбирает площадки — получает пачку креативов, прошедших правила площадок и правила ремесла.' },
+    { name: 'Label', role: 'Подпись контрола: лейбл ряда, текст кнопки', fs: 'var(--fs-m)', fw: 'var(--fw-medium)', lh: 'var(--lh-ui)', ls: 'normal', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Запекать в растр' },
+    { name: 'Eyebrow', role: 'Рубрика и бейдж: капс + трекинг', fs: 'var(--fs-xs)', fw: 'var(--fw-medium)', lh: 'var(--lh-ui)', ls: 'var(--ls-eyebrow)', caps: 'uppercase', color: 'var(--text-tertiary)', measure: 'none', sample: 'Уровни яркости' },
+  ];
+  FONT_SCALE = ['--fs-xs', '--fs-s', '--fs-m', '--fs-l', '--fs-h3', '--fs-h2', '--fs-h1', '--fs-display'];
+  FONT_WEIGHTS = [['--fw-regular', 'Regular — весь обычный текст'], ['--fw-medium', 'Medium — заголовок или подпись контрола'], ['--fw-black', 'Black — только крупные заголовки']];
+  COLOR_GROUPS = [
+        { title: 'Фон', items: [
+          { name: 'Канвас', token: '--bg-canvas', css: 'var(--bg-canvas)' },
+          { name: 'База', token: '--bg-base', css: 'var(--bg-base)' },
+          { name: 'Поверхность', token: '--bg-surface', css: 'var(--bg-surface)' },
+          { name: 'Поднятое', token: '--bg-raised', css: 'var(--bg-raised)' },
+        ]},
+        { title: 'Текст', items: [
+          { name: 'Основной', token: '--text-primary', css: 'var(--text-primary)' },
+          { name: 'Вторичный', token: '--text-secondary', css: 'var(--text-secondary)' },
+          { name: 'Третичный', token: '--text-tertiary', css: 'var(--text-tertiary)' },
+          { name: 'Инверсия', token: '--inverse-bg', css: 'var(--inverse-bg)' },
+        ]},
+        { title: 'Акцент', items: [
+          { name: 'Акцент', token: '--accent', css: 'var(--accent)' },
+          { name: 'Акцент, фон', token: '--accent-dim', css: 'var(--accent-dim)' },
+        ]},
+        { title: 'AI', items: [
+          { name: 'Градиент AI', token: '--ai-grad', css: 'var(--ai-grad)', noValue: true },
+          { name: 'AI, сплошной', token: '--ai', css: 'var(--ai)' },
+        ]},
+        { title: 'Статусы', items: [
+          { name: 'Ок', token: '--ok', css: 'var(--ok)' },
+          { name: 'Внимание', token: '--warn', css: 'var(--warn)' },
+          { name: 'Блок', token: '--danger', css: 'var(--danger)' },
+          { name: 'Инфо', token: '--info', css: 'var(--info)' },
+          { name: 'Ок, фон', token: '--ok-dim', css: 'var(--ok-dim)' },
+          { name: 'Внимание, фон', token: '--warn-dim', css: 'var(--warn-dim)' },
+          { name: 'Блок, фон', token: '--danger-dim', css: 'var(--danger-dim)' },
+        ]},
+      ];
+  ISLAND_TYPES = { text: 'Ввод', segmented: 'Опции', toggle: 'Тоггл', checkbox: 'Чекбокс', action: 'Действие' };
+  ISLAND_DEFAULTS = {
+    text: { type: 'text', label: 'Новое поле', value: '', placeholder: 'Значение', info: '', infoImage: '', msg: '', msgLevel: 'warn', nums: false, cycleUnits: false, disabled: false },
+    segmented: { type: 'segmented', label: 'Выравнивание', options: ['Лево', 'Центр', 'Право'], value: 1, info: '', infoImage: '', disabled: false },
+    toggle: { type: 'toggle', label: 'Запекать в растр', subtitle: '', checked: true, msg: '', msgLevel: 'warn', info: '', infoImage: '', disabled: false },
+    checkbox: { type: 'checkbox', label: 'Применить ко всем форматам', subtitle: '', checked: false, msg: '', msgLevel: 'danger', info: '', infoImage: '', disabled: false },
+    action: { type: 'action', label: 'Извлечь сцену', variant: 'primary', loading: false, disabled: false },
+  };
+  ISLAND_SEED = [
+    { type: 'text', label: 'Название', value: 'Осенний сейл', placeholder: 'Название кампании' },
+    { type: 'text', label: 'erid', value: '2Vtzqx', nums: true, placeholder: 'Токен' },
+    { type: 'toggle', label: 'Запекать в растр', checked: true },
+  ];
+  islandSeed() { return this.ISLAND_SEED.map(r => ({ ...this.ISLAND_DEFAULTS[r.type], ...r })); }
+  ISLAND_OPT_SETS = [['Лево', 'Центр', 'Право'], ['Да', 'Нет'], ['S', 'M', 'L']];
+  // Настройки ряда — те же контролы, что в панели пропсов: конструктор ничего своего не рисует.
+  islandCtrlsFor(r, i) {
+    const P = (patch) => this.islandPatch(i, patch);
+    const txt = (name, key, info) => ({ name, isText: true, val: r[key] ?? '', info, setText: (v) => P({ [key]: v }) });
+    const bool = (name, key, info) => ({ name, isBool: true, on: !!r[key], info, set: (v) => P({ [key]: v }) });
+    const enu = (name, key, vals, info) => ({ name, isEnum: true, val: r[key], info,
+      opts: vals.map(v => ({ label: v, raw: v, pick: () => P({ [key]: v }) })) });
+    const common = [
+      txt('info', 'info', 'Текст подсказки ⓘ. Пусто — иконки нет.'),
+      bool('картинка в info', 'infoImage', 'Инструкция-картинка внутри раскрытой подсказки.'),
+      bool('disabled', 'disabled', 'Выключенный ряд гасит все свои атомы; ⓘ остаётся доступной.'),
+    ];
+    const byType = {
+      text: [
+        txt('value', 'value'),
+        txt('placeholder', 'placeholder'),
+        { name: 'maxLength', isNum: true, val: r.maxLength ?? '', info: 'Жёсткий предел ввода: дальше ввод просто не идёт, счётчика нет.', setText: (v) => P({ maxLength: v === '' ? undefined : Number(v) }) },
+        bool('единицы циклером', 'cycleUnits', 'Единицы становятся переключаемыми: px / rem / %.'),
+        bool('nums', 'nums', 'Табличные цифры: значение не дёргается при смене разрядов.'),
+        { name: 'msg', isText: true, val: r.msg ?? '', info: 'Сообщение валидации под полем. Пока пусто — уровня нет: серьёзность принадлежит сообщению.',
+          // появилось сообщение — уровень сразу становится настоящим, иначе панель показывала бы
+          // подсвеченную опцию, которой у ряда нет
+          setText: (v) => P(v && !r.msgLevel ? { msg: v, msgLevel: 'warn' } : { msg: v }) },
+        ...(r.msg ? [enu('msgLevel', 'msgLevel', ['warn', 'danger'], 'Серьёзность сообщения. Уровня ok у сообщения нет: нечего сообщать — нет и строки.')] : []),
+      ],
+      segmented: [
+        { name: 'набор опций', isEnum: true, val: (r.options ?? []).join('/'), info: 'Готовые наборы: три варианта, два, размеры.',
+          opts: this.ISLAND_OPT_SETS.map(set => ({ label: set.join('/'), raw: set.join('/'), pick: () => P({ options: set, value: 0 }) })) },
+      ],
+      toggle: [
+        bool('checked', 'checked'),
+        txt('subtitle', 'subtitle', 'Подпись под лейблом: подчинена ему, поэтому тише.'),
+        txt('msg', 'msg', 'У тоггла ошибки не бывает — только предупреждение о последствии выбора.'),
+      ],
+      checkbox: [
+        bool('checked', 'checked'),
+        txt('subtitle', 'subtitle'),
+        txt('msg', 'msg', 'Снятая галочка — законное «нет», его можно потребовать исправить.'),
+        ...(r.msg ? [enu('msgLevel', 'msgLevel', ['warn', 'danger'])] : []),
+      ],
+      action: [
+        enu('variant', 'variant', ['primary', 'secondary', 'ghost'], 'Иерархию выбирает кнопка, ряд за неё не решает.'),
+        bool('loading', 'loading', 'Клики игнорируются, ширина не прыгает.'),
+      ],
+    };
+    return [...(byType[r.type] ?? []), ...common];
+  }
+  islandAdd(type) { this.setState(s => ({ islandRows: [...(s.islandRows ?? []), { ...this.ISLAND_DEFAULTS[type] }] })); }
+  islandPatch(i, patch) { this.setState(s => ({ islandRows: (s.islandRows ?? []).map((r, j) => j === i ? { ...r, ...patch } : r) })); }
+  islandRemove(i) { this.setState(s => ({ islandRows: (s.islandRows ?? []).filter((_, j) => j !== i) })); }
+  islandMove(i, d) { this.setState(s => { const a = [...(s.islandRows ?? [])], j = i + d; if (j < 0 || j >= a.length) return null; [a[i], a[j]] = [a[j], a[i]]; return { islandRows: a }; }); }
+  componentDidMount() { this.setState({ islandRows: this.islandSeed() }); this.applyTheme(); this.probeColors(); this.probeType(); this.probeSizes(); }
+  SIZE_TOKENS = ['--sp-05','--sp-1','--sp-15','--sp-2','--sp-25','--sp-3','--sp-35','--sp-4','--sp-5','--sp-6','--sp-7','--sp-8','--r-s','--r-m','--r-l','--r-full','--control-h-xs','--control-h-s','--control-h-m','--control-h-l','--row-h','--touch-target','--dot-unread'];
+  // Размеры читаем так же, как цвет и набор: число в специмене обязано быть правдой,
+  // иначе шкала в витрине разъезжается с tokens.css и дизайнер копирует несуществующее.
+  probeSizes(tries) {
+    const t = tries ?? 8;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute; opacity:0; pointer-events:none';
+    document.body.appendChild(probe);
+    const px = (tok) => { probe.style.width = ''; probe.style.width = 'var(' + tok + ')'; return parseFloat(getComputedStyle(probe).width) || 0; };
+    const sizes = {}; this.SIZE_TOKENS.forEach(tok => { sizes[tok] = px(tok); });
+    probe.remove();
+    // готовность — «ступени различны», а не «числа есть»: до применения стилей всё нули
+    const ready = (sizes['--sp-6'] ?? 0) > (sizes['--sp-05'] ?? 0);
+    if (!ready && t > 0) { clearTimeout(this._sizeT); this._sizeT = setTimeout(() => this.probeSizes(t - 1), 70); return; }
+    this.setState({ sizes });
+  }
+  // Реальные значения токенов в текущей теме: специмен обязан показывать число,
+  // которое дизайнер скопирует. Читаем через getComputedStyle на пробнике —
+  // так значение всегда правда, а не переписанный вручную дубль.
+  // Метрики набора читаем так же, как цвет: числа в специмене обязаны быть правдой.
+  probeType(tries) {
+    const t = tries ?? 8;
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute; opacity:0; pointer-events:none; white-space:nowrap';
+    document.body.appendChild(probe);
+    const px = (v) => { probe.style.fontSize = ''; probe.style.fontSize = v; return parseFloat(getComputedStyle(probe).fontSize) || 0; };
+    const scale = {}; this.FONT_SCALE.forEach(tok => { scale[tok] = px('var(' + tok + ')'); });
+    const weights = {}; this.FONT_WEIGHTS.forEach(([tok]) => { probe.style.fontWeight = ''; probe.style.fontWeight = 'var(' + tok + ')'; weights[tok] = getComputedStyle(probe).fontWeight; });
+    const metrics = {};
+    this.TYPE_STYLES.forEach(st => {
+      probe.style.cssText = 'position:absolute; opacity:0; pointer-events:none; font-size:' + st.fs + '; font-weight:' + st.fw + '; line-height:' + st.lh;
+      const cs = getComputedStyle(probe);
+      const fsv = parseFloat(cs.fontSize) || 0, lhv = parseFloat(cs.lineHeight) || 0;
+      metrics[st.name] = fsv ? Math.round(fsv) + ' / ' + (lhv ? (lhv / fsv).toFixed(2).replace(/0$/, '') : '—') : '';
+    });
+    probe.remove();
+    // готовность — не «числа есть», а «ступени различны»: до применения стилей ВСЁ равно 16px,
+    // и проверка v > 0 пропускала мусор в специмен
+    const ready = (scale['--fs-display'] ?? 0) > (scale['--fs-xs'] ?? 0);
+    if (!ready && t > 0) { clearTimeout(this._typeT); this._typeT = setTimeout(() => this.probeType(t - 1), 70); return; }
+    this.setState({ fontScale: scale, fontWeights: weights, typeMetrics: metrics });
+  }
+  probeColors(tries) {
+    // Стили из helmet грузятся асинхронно: до их применения var() не разрешается,
+    // и цвет падает в чёрный. Пробуем ещё несколько раз, пока значения не появятся.
+    const t = tries ?? 8;
+    const tokens = [];
+    (this.COLOR_GROUPS ?? []).forEach(g => g.items.forEach(it => tokens.push(it.token)));
+    if (!tokens.length) return;
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute; opacity:0; pointer-events:none';
+    document.body.appendChild(probe);
+    const map = {};
+    tokens.forEach(t => {
+      probe.style.color = '';
+      probe.style.color = 'var(' + t + ')';
+      const v = getComputedStyle(probe).color;
+      const nums = (v.match(/[\d.]+/g) ?? []).map(Number);
+      if (!v || nums.length < 3) { map[t] = ''; return; }
+      const hex = '#' + nums.slice(0, 3).map(n => Math.round(n).toString(16).padStart(2, '0')).join('');
+      const a = nums[3];
+      map[t] = (a === undefined || a >= 1) ? hex : hex + ' / ' + String(a).replace(/^0/, '');
+    });
+    probe.remove();
+    // сторож обязан знать ТЕКУЩИЙ формат: раньше он ждал '0, 0, 0', а map уже хранит hex —
+    // повтор не запускался, и до-стилевой чёрный коммитился навсегда
+    const allBlack = Object.values(map).every(v => v === '#000000' || v === '');
+    if (allBlack && t > 0) { clearTimeout(this._probeT); this._probeT = setTimeout(() => this.probeColors(t - 1), 70); return; }
+    this.setState({ colorValues: map });
+  }
+  // Смена уровня — это приход нового содержания: секции входят каскадом (stagger 45 мс),
+  // а не возникают разом. Анимируем через WAAPI, чтобы не держать состояние в разметке
+  // и не мешать React'у переиспользовать узлы.
+  enterSections() {
+    if (!this._main || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    [...this._main.children].forEach((el, i) => {
+      el.animate(
+        [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 320, delay: Math.min(i, 6) * 45, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }
+      );
+    });
+  }
+  componentDidUpdate(prev, prevState) {
+    this.applyTheme();
+    if (prevState && prevState.level !== this.state.level) { window.scrollTo({ top: 0 }); this.enterSections(); }
+    const t = this.state.theme ?? this.props.theme ?? 'dark';
+    if (this._probedTheme !== t) { this._probedTheme = t; this.probeColors(); }
+  }
+  applyTheme() {
+    const doc = document.documentElement, next = this.state.theme ?? this.props.theme ?? 'dark';
+    const changing = doc.getAttribute('data-theme') && doc.getAttribute('data-theme') !== next;
+    // View Transitions дают плавный GPU-кроссфейд всей страницы (ставит toggleTheme); data-theme-anim — фолбэк там, где его нет
+    if (changing && !document.startViewTransition) {
+      doc.setAttribute('data-theme-anim', '');
+      clearTimeout(this._themeAnimT);
+      this._themeAnimT = setTimeout(() => doc.removeAttribute('data-theme-anim'), 360);
+    }
+    doc.setAttribute('data-theme', next);
+  }
+  spawnToast() {
+    this._toastN = (this._toastN ?? 0) + 1;
+    const presets = [
+      { text: '12 форматов готовы к выгрузке', level: 'ok' },
+      { text: 'Block: вес 412 КБ — площадка отклонит', level: 'danger', action: 'Открыть' },
+      { text: 'Ревизия r15 собирается…', level: 'info' },
+      { text: 'erid не заполнен у 3 форматов', level: 'warn', action: 'Показать' },
+    ];
+    const id = this._toastN;
+    this.pushToast({ id, ...presets[(id - 1) % presets.length] });
+  }
+  // экран показывает до 5 тостов одновременно; остальные ЖДУТ в очереди — важное не теряется
+  pushToast(t) {
+    if (this.state.toasts.filter(x => !x.leaving && !x.gone).length >= 8) { this.setState(s => ({ queue: [...s.queue, t] })); return; }
+    this.setState(s => ({ toasts: [...s.toasts, t] })); // вход/выход по высоте встроены в Toast
+  }
+  // выход: тост схлопывается grid-rows + гаснет, потом убирается из списка — стек съезжает плавно
+  dismissToast(id) {
+    this.setState(s => ({ toasts: s.toasts.map(x => x.id === id ? { ...x, leaving: true } : x) }));
+    setTimeout(() => {
+      // из массива не удаляем, пока стек жив: удаление сдвигает индексы sc-for, ремоунт соседей переигрывал анимацию входа
+      this.setState(s => {
+        const toasts = s.toasts.map(x => x.id === id ? { ...x, gone: true } : x);
+        return { toasts: toasts.every(x => x.gone) && !s.queue.length ? [] : toasts };
+      });
+      const q = this.state.queue;
+      if (q.length) { this.setState(s => ({ queue: s.queue.slice(1) })); this.pushToast(q[0]); }
+    }, 320);
+  }
+  setPin(id, patch) { this.setState(s => ({ canvasPins: s.canvasPins.map(p2 => p2.id === id ? { ...p2, ...patch } : p2) })); }
+  // закрытие с анимацией; пин без сообщений при закрытии удаляется совсем
+  hidePin(id, resolve) {
+    this.setState(s => ({ canvasPins: s.canvasPins.map(p2 => p2.id === id ? { ...p2, leaving: true, resolved: resolve || p2.resolved } : p2) }));
+    setTimeout(() => this.setState(s => ({
+      canvasPins: s.canvasPins
+        .filter(p2 => !(p2.id === id && !((p2.msgs ?? []).length)))
+        .map(p2 => p2.id === id ? { ...p2, open: false, leaving: false, replying: false, hovered: false, cardHover: false } : p2),
+    })), 190);
+  }
+  closeOpenPins() {
+    let had = false;
+    this.state.canvasPins.forEach(p2 => { if (p2.open) { had = true; this.hidePin(p2.id, false); } });
+    return had;
+  }
+  // запись значения пропа в состояние плейграунда (тот же путь, что у панели)
+  setPg(comp, key, v) { this.setState(s => ({ pg: { ...s.pg, [comp]: { ...s.pg[comp], [key]: v } } })); }
+  mk(comp, defs) {
+    const pg = this.state.pg;
+    const sz = this.state.sizes ?? {};
+    return defs.map(([key, kind, opts, info]) => {
+      // короткая форма для не-enum: ['key', 'bool', 'Описание.'] — info третьим элементом
+      if (typeof opts === 'string' && info === undefined) { info = opts; opts = null; }
+      const val = pg[comp][key];
+      const set = (v) => this.setState(s => ({ pg: { ...s.pg, [comp]: { ...s.pg[comp], [key]: v } } }));
+      return {
+        name: key, info: info ?? '',
+        isText: kind === 'text', isNum: kind === 'num', isBool: kind === 'bool', isEnum: kind === 'enum', isSelect: kind === 'select',
+        val: String(val ?? ''), on: !!val,
+        // ряды отдают уже готовое значение (не событие) — Island'у события не нужны
+        setText: (v) => set(kind === 'num' ? (parseFloat(String(v).replace(',', '.')) || 0) : v),
+        set: (v) => set(v),
+        // raw хранит настоящее значение опции, label — как её показать («—» для пустой)
+        opts: (opts ?? []).map(o => ({ raw: o, label: o === '' ? '—' : o, pick: () => set(o) })),
+      };
+    });
+  }
+  LEVELS = [
+    { name: 'Примитивы', secs: [['tokenlayers', 'Токены и темы'], ['color', 'Цвет'], ['type', 'Типографика'], ['space', 'Отступы'], ['radius', 'Радиусы'], ['shadow', 'Тени'], ['controlh', 'Контролы'], ['motion', 'Движение'], ['icons', 'Иконки'], ['a11y', 'Доступность'], ['vocab', 'Словарь'], ['uxwriting', 'UX-writing'], ['statusmatrix', 'Статусы']] },
+    { name: 'Атомы', secs: [['button', 'Button'], ['inputatom', 'Input'], ['checkbox', 'Checkbox'], ['toggle', 'Toggle'], ['cyclebutton', 'CycleButton'], ['optiongroup', 'OptionGroup'], ['badge', 'Badge'], ['pin', 'Pin'], ['avatar', 'Avatar'], ['skeleton', 'Skeleton'], ['tooltip', 'Tooltip']] },
+    { name: 'Молекулы', secs: [['rowlabel', 'RowLabel'], ['rowinfo', 'RowInfo'], ['rowmsg', 'RowMsg'], ['inputrow', 'InputRow'], ['choicerow', 'ChoiceRow'], ['switchrow', 'SwitchRow'], ['checkboxrow', 'CheckboxRow'], ['actionrow', 'ActionRow'], ['slider', 'Slider'], ['disclosure', 'Disclosure'], ['segments', 'Segments'], ['tabs', 'Tabs'], ['pincard', 'PinCard'], ['pincomposer', 'PinComposer'], ['toast', 'Toast']] },
+    { name: 'Организмы', secs: [['island', 'Island'], ['emptystate', 'EmptyState'], ['pincanvas', 'Пины на канвасе']] },
+  ];
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'dark';
+    const pg = this.state.pg;
+    const sz = this.state.sizes ?? {};
+    const level = this.state.level;
+    const ICONS = ['', 'plus', 'check', 'gear', 'ellipsis', 'chevron-down', 'arrow-down-to-line', 'arrows-rotate-right', 'pause-fill'];
+    // демо-валидация: бизнес-логика живёт у родителя, ряды и остров только рисуют
+    const erid = this.state.eridText, url = this.state.urlText;
+    // punish late, reward early: новая ошибка не появляется во время ввода; но если поле УЖЕ стояло с ошибкой
+    // при входе в него (hold) — ошибка остаётся видимой и гаснет, как только значение стало валидным
+    const eridRaw = !erid.trim() ? 'warn' : /^[A-Za-z0-9]{11,}$/.test(erid.trim()) ? 'ok' : 'danger';
+    const eridLevel = this.state.eridFocused
+      ? ((this.state.eridHold && eridRaw !== 'ok') ? eridRaw : 'ok')
+      : (this.state.eridTouched ? eridRaw : 'ok');
+    const urlRaw = (!!url.trim() && !/^\S+\.\S{2,}/.test(url.trim())) ? 'danger' : 'ok';
+    const urlBad = this.state.urlFocused
+      ? (this.state.urlHold && urlRaw === 'danger')
+      : (this.state.urlTouched && urlRaw === 'danger');
+    const aiN = this.state.canvasPins.filter(p2 => (p2.msgs ?? []).length && !p2.sent && !p2.resolved).length;
+    return {
+      themeIcon: theme === 'dark' ? 'sun' : 'moon',
+      themeLabel: theme === 'dark' ? 'Светлая' : 'Тёмная',
+      toggleTheme: () => {
+        const next = theme === 'dark' ? 'light' : 'dark';
+        const swap = () => this.setState({ theme: next });
+        // кроссфейд через View Transitions; атрибут меняем синхронно в коллбэке, чтобы снимок захватил новую тему
+        if (document.startViewTransition && !(window.dsReducedMotion && window.dsReducedMotion())) {
+          const vt = document.startViewTransition(() => { document.documentElement.setAttribute('data-theme', next); swap(); });
+          vt.ready.catch(() => {}); // прерванный/пропущенный переход отклоняет .ready abort'ом — ожидаемо, глушим
+        } else swap();
+      },
+      lvlIndex: level,
+      lvlItems: this.LEVELS.map(l => l.name),
+      setLevel: (i) => this.setState({ level: i }),
+      lvlName: this.LEVELS[level].name,
+      showPrim: level === 0, showAtoms: level === 1, showMol: level === 2, showOrg: level === 3,
+      mainRef: (el) => { this._main = el; },
+      navItems: this.LEVELS[level].secs.map(([id, label], i) => ({ href: '#' + id, label, n: String(i + 1).padStart(2, '0'), go: (e) => { e.preventDefault(); this.jumpTo(id, 0); } })),
+      a11yRows: [
+        ['Toggle / Checkbox', 'role=switch/checkbox + aria-checked; aria-label без видимого лейбла; в bare роль скрыта', 'Tab, Space/Enter'],
+        ['SwitchRow / CheckboxRow', 'ряд несёт role + aria-checked; вложенный атом скрыт от SR', 'Tab, Space/Enter'],
+        ['Slider', 'role=slider + aria-valuemin/max/now/valuetext + aria-label', '←→↑↓ шаг · Shift — крупный'],
+        ['Tabs', 'role=tablist / tab + aria-selected, roving tabindex', '←→ Home/End'],
+        ['OptionGroup / Segments', 'role=radiogroup / radio + aria-checked, roving tabindex', '←→↑↓'],
+        ['RowLabel ⓘ / SbControls ⓘ', 'кнопка-disclosure: aria-expanded + aria-label', 'Enter/Space'],
+        ['Toast', 'role=status (polite); danger/warn → role=alert (assertive)', '—'],
+        ['g-icon', 'по умолчанию aria-hidden; со label → role=img + aria-label', '—'],
+        ['PinCard (тред)', 'поповер: Esc закрывает, клик мимо закрывает, фокус возвращается', 'Esc'],
+        ['forced-colors (High Contrast)', 'система вырезает box-shadow и градиенты: фокус-кольцо → outline Highlight, состояния → Highlight/ButtonBorder/GrayText, точка Status и градиент AI сохраняются через forced-color-adjust', '—'],
+      ].map((r, i) => ({ comp: r[0], aria: r[1], keys: r[2], sep: i === 0 ? 'none' : '0.5px solid var(--border-subtle)' })),
+      tokenLayers: [
+        { n: '1', swatch: 'var(--c-gray-900)', name: 'Примитивы · --c-* / --k-*', desc: 'Сырая палитра. Смысл: «какой это цвет». В компоненты напрямую не попадают.', code: '--c-gray-900:#151517;   --k-light:244 244 242;' },
+        { n: '2', swatch: 'var(--bg-surface)', name: 'Алиасы · --bg-* / --text-* / --accent', desc: 'Семантика: «для чего цвет». Единственный слой, который используют компоненты.', code: '--bg-surface: var(--c-gray-900);   --text-secondary: rgb(var(--ink) / .64);' },
+        { n: '3', swatch: 'var(--bg-base)', name: 'Тема · [data-theme]', desc: 'Перемапливает алиасы на другие примитивы. Имя алиаса стабильно — меняется значение.', code: '[data-theme="light"] { --ink: var(--k-dark); --bg-surface: var(--c-white); }' },
+      ],
+      statusRows: [
+        ['Button', 'Атом', 1], ['Input', 'Атом', 1], ['Checkbox', 'Атом', 1], ['Toggle', 'Атом', 1],
+        ['CycleButton', 'Атом', 1], ['OptionGroup', 'Атом', 1], ['Badge', 'Атом', 1],
+        ['Pin', 'Атом', 1], ['Avatar', 'Атом', 1], ['Skeleton', 'Атом', 1],
+        ['RowLabel', 'Молекула', 1], ['RowInfo', 'Молекула', 1], ['RowMsg', 'Молекула', 1],
+        ['InputRow', 'Молекула', 1], ['ChoiceRow', 'Молекула', 1], ['SwitchRow', 'Молекула', 1], ['CheckboxRow', 'Молекула', 0], ['ActionRow', 'Молекула', 1],
+        ['Slider', 'Молекула', 1], ['Disclosure', 'Молекула', 0], ['Segments', 'Молекула', 1], ['Tabs', 'Молекула', 1],
+        ['PinCard', 'Молекула', 0], ['PinComposer', 'Молекула', 0], ['Toast', 'Молекула', 1],
+        ['Island', 'Организм', 1], ['EmptyState', 'Организм', 0],
+      ].map((r, i) => ({ name: r[0], level: r[1], status: r[2] ? 'stable' : 'beta', dot: r[2] ? 'var(--ok)' : 'var(--warn)', sep: i === 0 ? 'none' : '0.5px solid var(--border-subtle)' })),
+      uxRules: [
+        { title: 'Тон', text: 'По-русски, на «вы» без слова «вы». Спокойно и по делу, без восклицаний и эмодзи. Термины предметной области — как есть.' },
+        { title: 'Лейблы', text: 'Существительное, регистр предложения. Без точки и двоеточия. Не Title Case и не КАПС (капс — только у бейджей).' },
+        { title: 'Кнопки', text: 'Глагол действия, одно-два слова. Пояснение — в тултипе (соло-иконка) или ⓘ ряда, не в самой кнопке.' },
+        { title: 'Плейсхолдеры', text: 'Показывают пример или формат, а не повторяют лейбл. Не несут критичный смысл — он в лейбле или ⓘ.' },
+        { title: 'Сообщения (RowMsg)', text: 'Что не так и как починить. Без «Ошибка:». Появляются после blur, гаснут как только значение валидно.' },
+        { title: 'Тосты', text: 'Результат одной фразой. action — глагол одним словом. danger/warn формулируем как последствие.' },
+        { title: 'EmptyState', text: 'Label говорит факт состояния, subtitle — что сделать дальше. У вида error действие всегда «Повторить».' },
+        { title: 'Числа', text: 'Единица — отдельным элементом (unit / suffix), не вклеиваем в число. Табличные цифры — только по хуку data-nums.' },
+      ],
+      pgButton: pg.button, pgBadge: pg.badge, pgCheckbox: pg.checkbox,
+      pgToggle: pg.toggle, pgInput: pg.input, pgSlider: pg.slider, pgPinCard: pg.pincard,
+      pgPinCardVariant: pg.pincard.preview ? 'preview' : 'thread',
+      pgPinCardMsgs: [{ text: pg.pincard.text, name: 'Марина Ковалёва' }, ...(pg.pincard.reply ? [{ ai: true, text: pg.pincard.reply }] : [])],
+      pgPinCardSend: pg.pincard.actions ? (() => {}) : null,
+      pgPinCardResolve: pg.pincard.actions ? (() => {}) : null,
+      pgRowLabel: pg.rowlabel,
+      pgRowInfo: { ...pg.rowinfo, imageText: pg.rowinfo.image ? 'картинка-инструкция' : '' },
+      pgRowMsg: pg.rowmsg,
+      rlToggle: () => this.setState(s => ({ pg: { ...s.pg, rowlabel: { ...s.pg.rowlabel, open: !s.pg.rowlabel.open } } })),
+      rowLabelCtrls: this.mk('rowlabel', [['label', 'text'], ['subtitle', 'text'], ['hasInfo', 'bool', 'Только факт наличия ⓘ — сам текст подсказки живёт у ряда.'], ['open', 'bool', 'Состоянием раскрытия владеет родитель, RowLabel лишь рисует поворот ⓘ.']]),
+      rowInfoCtrls: this.mk('rowinfo', [['open', 'bool'], ['text', 'text'], ['image', 'bool', 'Плейсхолдер картинки-инструкции над текстом.']]),
+      rowMsgCtrls: this.mk('rowmsg', [['text', 'text'], ['level', 'enum', ['ok', 'warn', 'danger']]]),
+      pgInputRow: {
+        ...pg.inputrow,
+        optionsArr: pg.inputrow.options ? ['PX', 'REM'] : null,
+        infoText: pg.inputrow.info ? 'Подсказка ряда: раскрывается по ⓘ, иконка вращается на 180°, картинка-инструкция опциональна.' : '',
+        infoImageSrc: (pg.inputrow.info && pg.inputrow.infoImage) ? 'Схема размещения баннера' : '',
+        nums: !!pg.inputrow.nums,
+      },
+      inputRowCtrls: this.mk('inputrow', [
+        ['label', 'text'], ['value', 'text'], ['placeholder', 'text'],
+        ['options', 'bool', 'Кнопка-циклер значений справа (PX/REM/%) — любой набор, не только единицы.'],
+        ['disabled', 'bool'],
+        ['loading', 'bool', 'Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу.'],
+        ['msgLevel', 'enum', ['ok', 'warn', 'danger']], ['msg', 'text'],
+        ['info', 'bool', 'Раскрывашка ⓘ у лейбла: текст + опциональная картинка-инструкция.'],
+        ['infoImage', 'bool', 'Картинка-инструкция внутри раскрывашки (работает вместе с info).'],
+        ['nums', 'bool', 'Табличные цифры для числовых/erid-значений (хук data-nums) — моношрифта в ДС нет.'],
+        ['maxLength', 'num', 'Жёсткий предел длины: лишние символы не вводятся; 0 — без предела.'],
+        ['separator', 'bool', 'Сепаратор сверху; в острове расставляется автоматически.'],
+      ]),
+      demoTypeOpts: ['HTML5', 'Статика'],
+      demoUnitOpts: ['PX', 'REM'],
+      demoCycleOpts: ['PX', 'REM', '%'],
+      demoScaleOpts: ['1x', '2x', '3x'],
+      demoAnchorOpts: [
+        { icon: 'object-align-left', title: 'лево' }, { icon: 'object-align-center-horizontal', title: 'центр' },
+        { icon: 'object-align-right', title: 'право' }, { icon: 'object-align-bottom', title: 'низ' },
+      ],
+      buttonCtrls: this.mk('button', [
+        ['label', 'text'], ['variant', 'enum', ['primary', 'secondary', 'ghost', 'accent']],
+        ['size', 'enum', ['xs', 's', 'm', 'l']], ['tone', 'enum', ['default', 'ok', 'danger'], 'Семантическая перекраска любого варианта в цвет тона; отдельного варианта danger нет — это тон.'],
+        ['icon', 'select', ICONS], ['iconRight', 'select', ICONS],
+        ['tooltip', 'text', 'Тултип — обязателен для кнопки-иконки без подписи; для соло-иконки даёт и aria-label.'],
+        ['disabled', 'bool'], ['loading', 'bool', 'Спиннер появляется после 320 мс и живёт минимум 450 мс; клики блокируются сразу; ширина не прыгает.'],
+      ]),
+      badgeCtrls: this.mk('badge', [['label', 'text'], ['icon', 'enum', ['', 'circle-check-fill', 'triangle-exclamation-fill', 'circle-exclamation-fill', 'lock', 'clock']], ['nums', 'bool', 'Табличные цифры — для размеров, весов, токенов.'], ['variant', 'enum', ['solid', 'soft', 'quiet'], 'Вес подачи: заливка / тонировка / только текст.'], ['tone', 'enum', ['neutral', 'ok', 'warn', 'danger', 'info'], 'Семантика; работает с ЛЮБЫМ вариантом.']]),
+      checkboxCtrls: this.mk('checkbox', [['label', 'text'], ['checked', 'bool'], ['invalid', 'bool', 'Рамка краснеет тем же --danger, что сообщение ряда.'], ['disabled', 'bool'], ['bare', 'bool', 'Чистый визуал без собственного состояния — для рядов, кликом управляет родитель.']]),
+      toggleCtrls: this.mk('toggle', [['label', 'text'], ['checked', 'bool'], ['disabled', 'bool'], ['bare', 'bool', 'Чистый визуал без собственного состояния — для рядов, кликом управляет родитель.']]),
+      inputCtrls: this.mk('input', [
+        ['value', 'text'], ['placeholder', 'text'],
+        ['icon', 'select', ICONS],
+        ['prefix', 'text'], ['suffix', 'text'],
+        ['clearable', 'bool', 'Крестик очистки; фокус остаётся в поле.'],
+        ['maxLength', 'num', 'Лимит символов; в фокусе показывается счётчик.'],
+        ['invalid', 'bool'], ['disabled', 'bool'],
+        ['align', 'enum', ['left', 'right']],
+        ['bare', 'bool', 'Голый ввод без своей поверхности — для рядов острова, обвязкой владеет ряд.'],
+      ]),
+      sliderOpts: pg.slider.options ? ['px', 'pt', '%'] : null,
+      sliderCtrls: this.mk('slider', [['label', 'text'], ['value', 'num'], ['min', 'num'], ['max', 'num'], ['step', 'num'], ['unit', 'text'], ['options', 'bool', 'Единицы становятся переключаемыми: вместо слова — циклер.'], ['snapStep', 'num', 'Шаг рисок-магнитов; 0 — выключено.'], ['disabled', 'bool', 'Не тянется, не принимает клавиши и ввод, не берёт фокус.']]),
+      aiBtnLabel: aiN ? 'Отправить в AI · ' + aiN : 'Отправить в AI',
+      aiBtnDisabled: aiN === 0 && !this.state.aiSending,
+      aiSending: !!this.state.aiSending,
+      sendAllToAi: () => {
+        if (!aiN) return;
+        this.setState({ aiSending: true });
+        this._toastN = (this._toastN ?? 0) + 1;
+        this.pushToast({ id: this._toastN, text: 'Отправил комментарии в AI: ' + aiN, level: 'info' });
+        const replies = ['Поправил кегль заголовка до 28pt на этом формате — гляньте ревизию r15.', 'Сдвинул лигал на 12px от края, вес не изменился.', 'Пересобрал формат по якорю «право» — герой больше не режется.', 'Осветлил подложку CTA на 6% — контраст прошёл аудит.'];
+        setTimeout(() => {
+          this.setState(s => ({ aiSending: false, canvasPins: s.canvasPins.map((p2, i) => ((p2.msgs ?? []).length && !p2.sent && !p2.resolved) ? { ...p2, sent: true, seen: false, msgs: [...p2.msgs, { ai: true, text: replies[i % replies.length] }] } : p2) }));
+          this._toastN = (this._toastN ?? 0) + 1;
+          this.pushToast({ id: this._toastN, text: 'AI ответил в тредах пинов', level: 'ok' });
+        }, 1800);
+      },
+      canvasClick: (e) => {
+        // клик мимо: если что-то открыто — ТОЛЬКО закрываем (пустой композер исчезает), новый пин не ставим
+        if (this.closeOpenPins()) return;
+        const box = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - box.left, y = e.clientY - box.top;
+        this.setState(s => {
+          const id = (s.pinSeq ?? 0) + 1;
+          return { pinSeq: id, canvasPins: [...s.canvasPins, { id, n: s.canvasPins.length + 1, x, y, msgs: [], open: true, resolved: false, sent: false, replying: false, flip: x > box.width - 350 }] };
+        });
+      },
+      // слой пинов и видимость решённых — управляются панелью сценария
+      canvasPins: (this.state.canvasShowPins === false ? [] : this.state.canvasPins.filter(pp => this.state.canvasShowResolved !== false || !pp.resolved)).map(pp => {
+        const msgs = pp.msgs ?? [];
+        const lastAi = msgs.length > 0 && !!msgs[msgs.length - 1].ai;
+        return {
+        ...pp,
+        msgs,
+        xPx: pp.x + 'px', yPx: pp.y + 'px',
+        cardLeft: (pp.flip ? pp.x - 330 : pp.x + 36) + 'px',
+        cardTop: Math.max(10, pp.y - 44) + 'px',
+        show: pp.open || ((pp.hovered || pp.cardHover) && msgs.length > 0 && !pp.leaving),
+        hasReply: lastAi && !pp.open && !pp.seen && !pp.resolved, // синяя точка = непрочитанный ответ AI; гаснет после открытия треда
+        enter: () => { if ((pp.msgs ?? []).length) { clearTimeout((this._hovT ??= {})[pp.id]); this.setPin(pp.id, { hovered: true }); } },
+        leave: () => { (this._hovT ??= {})[pp.id] = setTimeout(() => this.setPin(pp.id, { hovered: false }), 160); },
+        enterCard: () => { clearTimeout((this._hovT ??= {})[pp.id]); this.setPin(pp.id, { cardHover: true }); },
+        leaveCard: () => { (this._hovT ??= {})[pp.id] = setTimeout(() => this.setPin(pp.id, { cardHover: false }), 120); },
+        composing: msgs.length === 0,
+        viewing: msgs.length > 0,
+        previewing: !pp.open,
+        op: pp.leaving ? '0' : '1',
+        tr: pp.leaving ? 'scale(.95) translateY(4px)' : 'none',
+        origin: pp.flip ? 'top right' : 'top left',
+        click: (e) => {
+          e.stopPropagation();
+          if (pp.open) { this.hidePin(pp.id, false); return; } // повторный клик честно закрывает
+          this.closeOpenPins();
+          this.setPin(pp.id, { open: true, hovered: false, leaving: false, seen: true });
+        },
+        send: (txt) => {
+          const t2 = (txt || '').trim();
+          const first = !msgs.length;
+          if (!t2) { if (first) this.hidePin(pp.id, false); return; }
+          if (first) {
+            // первый коммент: пин сворачивается сразу (open:false), карточка не мелькает — не гоняем через leaving-анимацию, иначе на 190мс проступает полный PinCard
+            this.setPin(pp.id, { msgs: [...msgs, { text: t2, name: 'Марина Ковалёва' }], sent: false, resolved: false, open: false, hovered: false, cardHover: false, leaving: false });
+          } else {
+            this.setPin(pp.id, { msgs: [...msgs, { text: t2, name: 'Марина Ковалёва' }], sent: false, resolved: false });
+          }
+        },
+        cancel: () => this.hidePin(pp.id, false),
+        resolve: (next) => { if (next) this.hidePin(pp.id, true); else this.setPin(pp.id, { resolved: false }); },
+        stop: (e) => e.stopPropagation(),
+      }; }),
+      pgSwitchRow: { ...pg.switchrow, infoText: pg.switchrow.info ? 'Дисплейный текст можно запекать в растр — это экономит вес. Лигал всегда остаётся живым DOM.' : '' },
+      switchRowCtrls: this.mk('switchrow', [['label', 'text'], ['subtitle', 'text'], ['checked', 'bool'], ['info', 'bool'], ['disabled', 'bool'], ['msg', 'text', 'Предупреждение о последствии выбора.'], ['msgLevel', 'enum', ['ok', 'warn'], 'Ошибки у тоггла нет: оба состояния валидны, требовать исправить нечего.']]),
+      pgCheckboxRow: { ...pg.checkboxrow, infoText: pg.checkboxrow.info ? 'Настройка применится ко всем форматам кампании сразу. Отдельные форматы можно будет переопределить позже.' : '' },
+      checkboxRowCtrls: this.mk('checkboxrow', [['label', 'text'], ['subtitle', 'text'], ['checked', 'bool'], ['info', 'bool'], ['disabled', 'bool'], ['msg', 'text', 'Сообщение валидации.'], ['msgLevel', 'enum', ['warn', 'danger'], 'Снятая галочка — законное «нет», её можно потребовать исправить.']]),
+      pgChoiceRow: { ...pg.choicerow, infoText: pg.choicerow.info ? 'Якорь — точка, за которую герой держится при пересчёте формата.' : '' },
+      choiceRowChange: (i) => this.setPg('choicerow', 'value', i),
+      choiceRowCtrls: this.mk('choicerow', [['label', 'text'], ['value', 'num'], ['info', 'bool'], ['disabled', 'bool']]),
+      pgActionRow: pg.actionrow,
+      actionRowCtrls: this.mk('actionrow', [['label', 'text'], ['variant', 'enum', ['primary', 'secondary', 'ghost', 'accent']], ['loading', 'bool'], ['disabled', 'bool']]),
+      pgToast: { ...pg.toastpg, close: pg.toastpg.closable ? (() => {}) : null },
+      toastCtrls: this.mk('toastpg', [['text', 'text'], ['level', 'enum', ['info', 'ok', 'warn', 'danger']], ['action', 'text', 'Подпись кнопки действия (проп actionLabel).'], ['closable', 'bool']]),
+      pgPin: pg.pin,
+      pinCtrls: this.mk('pin', [['number', 'num', 'Показывается, когда нет ни фото, ни автора.'], ['author', 'text', 'Инициалы вместо номера.'], ['src', 'text', 'Фото заполняет каплю целиком.'], ['resolved', 'bool', 'Решённый пин гаснет.'], ['hasReply', 'bool', 'Точка непрочитанного ответа.']]),
+      pgAvatar: pg.avatar,
+      avatarCtrls: this.mk('avatar', [['author', 'text', 'Инициалы берутся из первых букв имени; проп называется author — name у импортов зарезервирован.'], ['src', 'text', 'Url фотографии — заполняет круг целиком.'], ['ai', 'bool', 'Аватар AI — всегда фирменный градиент.'], ['inverse', 'bool', 'На инверсной подложке: круг тёмный, инициалы светлые.'], ['bare', 'bool', 'Без своей рамки — когда обводкой владеет родитель.'], ['size', 'enum', ['s', 'm', 'l', 'xl'], 'Фиксированный набор размеров: 24 / 32 / 48 / 64.']]),
+      pgSkeleton: pg.skeleton,
+      skeletonCtrls: this.mk('skeleton', [['shape', 'enum', ['line', 'rect', 'circle']], ['width', 'text']]),
+      cbOptsLive: this.splitOpts(pg.cyclebutton.options),
+      pgCycleButton: pg.cyclebutton,
+      cycleButtonCtrls: this.mk('cyclebutton', [['options', 'text', 'Значения цикла через запятую — сколько угодно.'], ['tooltip', 'text', 'У выключенной кнопки тултип не показывается.'], ['disabled', 'bool', 'Ни ховера, ни курсора-руки, ни тултипа.']]),
+      // один и тот же список работает в обоих режимах: в text — подписи, в icons — имена иконок
+      // У компонента ОДИН проп options: строка — подпись, объект {icon} — иконка.
+      // Режим лишь трактует один и тот же список, второго пропа под иконки в API нет.
+      ogOptsLive: pg.optiongroup.mode === 'icons'
+        ? this.splitOpts(pg.optiongroup.options).map(n => ({ icon: n, title: n }))
+        : this.splitOpts(pg.optiongroup.options),
+      pgOptionGroup: pg.optiongroup,
+      ogChange: (i) => this.setState(s => ({ pg: { ...s.pg, optiongroup: { ...s.pg.optiongroup, value: i } } })),
+      optionGroupCtrls: this.mk('optiongroup', [['mode', 'enum', ['text', 'icons'], 'Как читать список: подписи или имена иконок — своего пропа у режима нет.'], ['options', 'text', 'Один и тот же список: в режиме text — подписи, в режиме icons — имена иконок (имя идёт и в тултип).'], ['value', 'num', 'Индекс выбранной опции.'], ['disabled', 'bool']]),
+      durBands: [
+        ['ховер и мелкий отклик', '120–180 мс'],
+        ['локальное раскрытие', '200–300 мс'],
+        ['крупные панели', '300–400 мс'],
+      ].map(([label, value], i) => ({ label, value, sep: i ? '0.5px solid var(--border-subtle)' : 'none' })),
+      pgDisc: pg.disc,
+      discCtrls: this.mk('disc', [['label', 'text'], ['count', 'text', 'Число рядом с подписью — набрано служебным тоном, как счётчики в Tabs.'], ['variant', 'enum', ['eyebrow', 'plain'], 'Eyebrow — капс-рубрика по содержимому; plain — заголовок во всю ширину, шеврон у правого края.'], ['separator', 'bool', 'Волосяная линия сверху — когда раскрывашки идут стопкой.'], ['disabled', 'bool']]),
+      canvasCtrls: [
+        { name: 'показывать пины', isBool: true, on: this.state.canvasShowPins, info: 'Слой пинов целиком — экран решает, показывать ли его.', set: (v) => this.setState({ canvasShowPins: v }) },
+        { name: 'решённые видны', isBool: true, on: this.state.canvasShowResolved, info: 'Решённый пин гаснет, но не исчезает — иначе теряется контекст обсуждения.', set: (v) => this.setState({ canvasShowResolved: v }) },
+        { name: 'очистить канвас', isAction: true, label: 'Убрать все пины', info: 'Сбрасывает сценарий в исходное состояние.', act: () => this.setState({ canvasPins: [], pinSeq: 0, canvasOpen: null }) },
+      ],
+      islandNoRows: Array.isArray(this.state.islandRows) && this.state.islandRows.length === 0,
+      islandAdd: [['text','Ввод'],['segmented','Опции'],['toggle','Тоггл'],['checkbox','Чекбокс'],['action','Действие']]
+        .map(([key, label]) => ({ label, add: () => this.islandAdd(key) })),
+      islandBuild: (this.state.islandRows ?? []).map((r, i, arr) => ({
+        typeLabel: this.ISLAND_TYPES[r.type] ?? r.type, label: r.label ?? '',
+        isFirst: i === 0, isLast: i === arr.length - 1,
+        sep: i === 0 ? 'none' : '0.5px solid var(--border-subtle)',
+        setLabel: (v) => this.islandPatch(i, { label: v }),
+        up: () => this.islandMove(i, -1), down: () => this.islandMove(i, 1),
+        remove: () => this.islandRemove(i),
+        ctrls: this.islandCtrlsFor(r, i),
+        // счётчик показывает, сколько настроек уже задано — видно, не открывая
+        setCount: ['info', 'msg', 'subtitle', 'placeholder', 'value', 'maxLength'].filter(k => r[k]).length
+          + ['infoImage', 'nums', 'cycleUnits', 'disabled', 'loading'].filter(k => r[k]).length,
+        open: !!this.state.islandOpen[i],
+        toggleOpen: () => this.setState(st => ({ islandOpen: { ...st.islandOpen, [i]: !st.islandOpen[i] } })),
+      })),
+      // живые ряды: состав из конструктора + обработчики, чтобы остров реально работал
+      islandRowsLive: (this.state.islandRows ?? []).map((r, i) => {
+        const out = { ...r };
+        if (r.cycleUnits) out.options = ['px', 'rem', '%'];
+        // Ошибка принадлежит РЯДУ, а не типу контрола: чекбокс и группа опций
+        // тоже бывают невалидны («выберите формат», «согласитесь с условиями»).
+        // Раньше msg выставлялся только текстовым рядам — поэтому остров не краснел целиком.
+        // Ошибка возможна только там, где значение можно НЕ дать или дать неверно:
+        // текстовый ввод и чекбокс. У тоггла оба состояния валидны, у группы опций
+        // всегда есть выбранное — «ошибки» там не бывает.
+        if (r.type === 'text') {
+          out.onInput = (v) => this.islandPatch(i, { value: v });
+        } else if (r.type === 'segmented' || r.type === 'icons') {
+          out.onChange = (v) => this.islandPatch(i, { value: v });
+        } else if (r.type === 'toggle' || r.type === 'checkbox') {
+          out.onChange = (v) => this.islandPatch(i, { checked: v });
+        }
+        return out;
+      }),
+      pgEmpty: { ...pg.emptystatepg,
+        label: pg.emptystatepg.variant === 'error' ? 'Не удалось загрузить' : 'Пока нет форматов',
+        subtitle: pg.emptystatepg.variant === 'error' ? 'Сбой при сборке ревизии. Попробуйте ещё раз.' : 'Добавьте первый баннер — он появится здесь вместе с раскладкой.',
+        actionLabel: pg.emptystatepg.hasAction ? (pg.emptystatepg.variant === 'error' ? 'Повторить' : 'Добавить баннер') : '',
+        actionIcon: pg.emptystatepg.variant === 'error' ? 'arrows-rotate-right' : 'plus' },
+      emptyStateCtrls: this.mk('emptystatepg', [['variant', 'enum', ['empty', 'error']], ['hasAction', 'bool', 'Кнопка действия под текстом.']]),
+      // options — настоящий проп компонента: правим сам список, а не абстрактное «число»
+      segOptsLive: this.splitOpts(pg.segments.options),
+      pgSegments: pg.segments,
+      segChange: (i) => this.setState(s => ({ pg: { ...s.pg, segments: { ...s.pg.segments, value: i } } })),
+      segmentsCtrls: this.mk('segments', [['options', 'text', 'Список через запятую — сколько угодно опций; пилюля перемеряется под новый набор.'], ['value', 'num', 'Индекс выбранной опции.']]),
+      // подпись вкладки: хвостовое число трактуем как счётчик — список задаёт пользователь целиком
+      tabOptsLive: this.splitOpts(pg.tabs.options).map((raw) => {
+        const m = /^(.*?)\s+(\d+)$/.exec(raw);
+        const label = m ? m[1] : raw, count = m ? m[2] : '';
+        return [label, pg.tabs.counts ? count : ''];
+      }),
+      pgTabs: pg.tabs,
+      tabChange: (i) => this.setState(s => ({ pg: { ...s.pg, tabs: { ...s.pg.tabs, value: i } } })),
+      tabsCtrls: this.mk('tabs', [['options', 'text', 'Список через запятую; последнее число в подписи становится счётчиком.'], ['counts', 'bool', 'Показывать числовые счётчики.'], ['value', 'num', 'Индекс активной вкладки.']]),
+      pgPinComposer: pg.pincomposer,
+      pcAuthor: pg.pincomposer.hasAuthor ? pg.pincomposer.author : '',
+      pinComposerCtrls: this.mk('pincomposer', [['placeholder', 'text'], ['author', 'text'], ['hasAuthor', 'bool', 'Аватар автора слева от поля.']]),
+      pinCardCtrls: this.mk('pincard', [['text', 'text'], ['reply', 'text', 'Ответ AI в треде — блок с бейджем AI под комментарием.'], ['resolved', 'bool', 'Комментарий решён — карточка гаснет.'], ['actions', 'bool', 'Действия (чек «Решено», поле ответа) опциональны и зависят от роли.'], ['preview', 'bool', 'Ховер-превью: только текст первого сообщения, кламп 3 строки.']]),
+      spawnToast: () => this.spawnToast(),
+      demoClose: () => {},
+      toastList: this.state.toasts.map(t => ({
+        ...t, action: t.action ?? '', act: () => this.dismissToast(t.id),
+        disp: t.gone ? 'none' : 'block',
+        leaving: !!t.leaving,
+        close: () => this.dismissToast(t.id),
+      })),
+      islandA: [
+        { type: 'segmented', label: 'Тип выхода', options: ['HTML5', 'Статика'], value: 0 },
+        { type: 'icons', label: 'Якорь героя', value: 2, info: 'Якорь — точка, за которую герой держится при пересчёте формата: при смене аспекта он прижимается к выбранному краю.', infoImage: 'инструкция: как якорь держит героя', options: [
+          { icon: 'object-align-left', title: 'лево' }, { icon: 'object-align-center-horizontal', title: 'центр' },
+          { icon: 'object-align-right', title: 'право' }, { icon: 'object-align-bottom', title: 'низ' },
+        ]},
+        { type: 'toggle', label: 'Запекать в растр', checked: false, info: 'Дисплейный текст (заголовки, декор) можно запекать в растр как осознанный выбор по слою — это экономит вес. Лигал всегда остаётся живым DOM.' },
+      ],
+      islandB: [
+        { type: 'text', label: 'Текст CTA', value: 'За кормом' },
+        { type: 'text', label: 'Отступ лигала', value: '10', nums: true, options: ['px', 'rem'] },
+        { type: 'checkbox', label: 'Показывать пины', subtitle: 'Черновики видны только вам, пока не отправлены', checked: true },
+      ],
+      islandLoading: [
+        { type: 'text', label: 'Секция Figma', value: 'figma.com/design/hLXqSkVGmvNIYT?node-id=204-1177' },
+        { type: 'text', label: 'Кампания', loading: true },
+        { type: 'action', label: 'Извлечение сцены…', loading: true },
+      ],
+      islandC: [
+        { type: 'text', label: 'Секция Figma', value: 'figma.com/design/hLXqSkVGmvNIYT?node-id=204-1177' },
+        { type: 'text', label: 'Кампания', value: 'Осенний сейл' },
+        { type: 'action', label: 'Извлечь сцену' },
+      ],
+      islandD: [
+        { type: 'text', label: 'erid', value: erid, placeholder: 'токен маркировки',
+          msgLevel: eridLevel === 'ok' ? 'ok' : eridLevel,
+          msg: eridLevel === 'warn' ? 'Без erid формат получит пометку «требует внимания» на приёмке' : eridLevel === 'danger' ? 'Токен — латиница и цифры, минимум 11 символов' : '',
+          onInput: (v) => this.setState({ eridText: v }), onFocus: () => this.setState({ eridFocused: true, eridHold: this.state.eridTouched && eridRaw !== 'ok' }), onBlur: () => this.setState({ eridTouched: true, eridFocused: false }) },
+        { type: 'text', label: 'Целевой URL', value: url, placeholder: 'hvost-i-lapy.ru/sale',
+          msgLevel: urlBad ? 'danger' : 'ok',
+          msg: urlBad ? 'Похоже, это не ссылка — нужен полный адрес с доменом' : '',
+          onInput: (v) => this.setState({ urlText: v }), onFocus: () => this.setState({ urlFocused: true, urlHold: this.state.urlTouched && urlRaw === 'danger' }), onBlur: () => this.setState({ urlTouched: true, urlFocused: false }) },
+      ],
+      textLevels: [
+        { token: '--text-primary', css: 'var(--text-primary)', role: 'Содержание: наборный текст, значение поля, заголовок.', sep: 'none' },
+        { token: '--text-body', css: 'var(--text-body)', role: 'Набор: абзац, который нужно прочесть. Тише заголовка, ярче подписи.', sep: '0.5px solid var(--border-subtle)' },
+        { token: '--text-secondary', css: 'var(--text-secondary)', role: 'Подчинение: лейбл ряда при значении, subtitle под лейблом, текст подсказки.', sep: '0.5px solid var(--border-subtle)' },
+        { token: '--text-tertiary', css: 'var(--text-tertiary)', role: 'Служебное: плейсхолдер, единицы, счётчики, имена токенов.', sep: '0.5px solid var(--border-subtle)' },
+        { token: '--text-disabled', css: 'var(--text-disabled)', role: 'Выключенное. Потолок для всего, что лежит внутри disabled.', sep: '0.5px solid var(--border-subtle)' },
+      ],
+      colorGroups: this.COLOR_GROUPS.map(g => ({ title: g.title, items: g.items.map(it => ({ ...it, value: (this.state.colorValues ?? {})[it.token] ?? '' })) })),
+      fontScaleRows: this.FONT_SCALE.map((tok, n) => ({ token: tok, css: 'var(' + tok + ')', px: ((this.state.fontScale ?? {})[tok] ? (this.state.fontScale)[tok] + ' px' : ''), sep: n ? '0.5px solid var(--border-subtle)' : 'none' })),
+      fontWeightRows: this.FONT_WEIGHTS.map(([tok, role], n) => ({ token: tok, role, css: 'var(' + tok + ')', value: (this.state.fontWeights ?? {})[tok] ?? '', sep: n ? '0.5px solid var(--border-subtle)' : 'none' })),
+      numRows: ['728 × 90', '148 КБ', '11.5 pt', '2Vtzqx'],
+      typeSamples: this.TYPE_STYLES.map(t => ({ ...t, metrics: (this.state.typeMetrics ?? {})[t.name] ?? '' })),
+      // отступы/радиусы/высоты: значение приходит из пробы, в разметке его нет
+      spacings: ['--sp-05','--sp-1','--sp-15','--sp-2','--sp-25','--sp-3','--sp-35','--sp-4','--sp-5','--sp-6','--sp-7','--sp-8']
+        .map(tok => ({ token: tok, px: sz[tok] ? sz[tok] + ' px' : '—', bar: (sz[tok] || 0) + 'px' })),
+      radii: ['--r-s','--r-m','--r-l','--r-full']
+        .map(tok => ({ token: tok, css: 'var(' + tok + ')', px: sz[tok] ? (sz[tok] > 100 ? '∞' : sz[tok] + ' px') : '—' })),
+      controlHeights: ['--control-h-xs','--control-h-s','--control-h-m','--control-h-l']
+        .map(tok => ({ token: tok, css: 'var(' + tok + ')', px: sz[tok] ? sz[tok] + ' px' : '—' })),
+      rowH: sz['--row-h'] ? sz['--row-h'] + ' px' : '—',
+      touchH: sz['--touch-target'] ? sz['--touch-target'] + ' px' : '—',
+      shadowTokens: [
+        { token: '--shadow-sm', css: 'var(--shadow-sm)' },
+        { token: '--shadow-md', css: 'var(--shadow-md)' },
+        { token: '--shadow-lg', css: 'var(--shadow-lg)' },
+      ],
+      iconNames: ['magnifier','plus','xmark','check','gear','sliders','bell','chevron-down','chevron-right','chevron-left','arrow-left','arrow-right','arrows-rotate-right','layers','layers-3-diagonal','eye','eye-slash','lock','trash-bin','pencil','comment','comment-plus','comment-dot','circle-check','circle-check-fill','circle-exclamation','circle-exclamation-fill','circle-info','triangle-exclamation','triangle-exclamation-fill','play','play-fill','pause','pause-fill','grip','folder','font','font-case','picture','hand','copy','link','arrow-down-to-line','arrow-up-from-line','square-dashed','target-dart','thunderbolt','clock','ellipsis','moon','sun'],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

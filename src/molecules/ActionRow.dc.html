@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<div data-row="true" data-disabled="{{ disabledAttr }}" style="display:flex; align-items:center; justify-content:center; min-height:var(--row-h); padding:0 var(--sp-3)">
+  <dc-import name="Button" label="{{ label }}" size="s" variant="{{ variant }}" loading="{{ loading }}" disabled="{{ disabled }}" on-click="{{ click }}" hint-size="140px,36px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 70},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Извлечь сцену&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;variant&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;primary&quot;, &quot;secondary&quot;, &quot;ghost&quot;, &quot;accent&quot;], &quot;default&quot;: &quot;primary&quot;, &quot;tsType&quot;: &quot;'primary'|'secondary'|'ghost'|'accent'&quot;},
+&quot;loading&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onClick&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return {
+      disabledAttr: p.disabled ? 'true' : 'false',
+      label: p.label ?? '',
+      variant: p.variant ?? 'primary',
+      loading: !!p.loading,
+      disabled: !!p.disabled,
+      click: p.onClick ?? (() => {}),
+    };
+  }
+}
+</script>
+</body>
+</html>

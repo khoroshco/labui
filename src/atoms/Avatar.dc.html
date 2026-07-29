@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+</helmet>
+<span data-ai-grad="{{ aiAttr }}" role="img" aria-label="{{ aria }}" style="display:inline-flex; align-items:center; justify-content:center; width:{{ sz }}; height:{{ sz }}; border-radius:50%; background:{{ bg }}; color:{{ fg }}; border:{{ border }}; overflow:hidden; flex:none; user-select:none">
+  <sc-if value="{{ showImg }}" hint-placeholder-val="{{ false }}"><img src="{{ src }}" alt="" onError="{{ imgFail }}" style="width:100%; height:100%; object-fit:cover; display:block"></sc-if>
+  <sc-if value="{{ showInitials }}" hint-placeholder-val="{{ true }}"><span style="position:relative; top:{{ shift }}; font-size:{{ fs }}; font-weight:var(--fw-medium); letter-spacing:{{ ls }}; margin-right:{{ lsFix }}">{{ initials }}</span></sc-if>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 120, &quot;height&quot;: 80},
+&quot;author&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Марина Ковалёва&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;src&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;size&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;s&quot;, &quot;m&quot;, &quot;l&quot;, &quot;xl&quot;], &quot;default&quot;: &quot;s&quot;, &quot;tsType&quot;: &quot;'s'|'m'|'l'|'xl'&quot;},
+&quot;ai&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;inverse&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;bare&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;}}">
+class Component extends DCLogic {
+  // Аватар: фото (src заполняет круг) → инициалы из author → AI (фирменный градиент).
+  // Проп называется author, НЕ name: name у dc-import зарезервирован под имя компонента.
+  state = { broken: false };
+  componentDidUpdate(prev) { if (prev.src !== this.props.src && this.state.broken) this.setState({ broken: false }); }
+  renderVals() {
+    const p = this.props, ai = !!p.ai, src = p.src ?? '';
+    // кегль инициалов — из шкалы, а не произвольная доля размера
+    const S = { s: { px: 24, fs: 'var(--fs-xs)' }, m: { px: 32, fs: 'var(--fs-s)' }, l: { px: 48, fs: 'var(--fs-h3)' }, xl: { px: 64, fs: 'var(--fs-h2)' } };
+    const conf = S[p.size] ?? S.m;
+    const author = (p.author ?? '').trim();
+    const inverse = !!p.inverse, bare = !!p.bare;
+    // В 24px две капсовые буквы с трекингом не помещаются и читаются как пятно.
+    // Уменьшать кегль ниже 11px нельзя — это дно шкалы; поэтому маленький аватар
+    // показывает ОДНУ букву и без трекинга (компенсировать хвост тоже нечего).
+    const oneLetter = (p.size ?? 'm') === 's';
+    // битая ссылка не оставляет пустой круг — падаем на инициалы
+    const useImg = !!src && !this.state.broken;
+    return {
+      sz: conf.px + 'px', fs: conf.fs,
+      // оптический центр: капс-инициалы чуть ниже геометрического центра, сдвиг растёт с размером
+      shift: Math.max(0.5, Math.round(conf.px * 0.03 * 2) / 2) + 'px',
+      src, showImg: useImg, showInitials: !useImg,
+      imgFail: () => this.setState({ broken: true }),
+      initials: ai ? 'AI' : (author.split(/\s+/).slice(0, oneLetter ? 1 : 2).map(w => (w[0] ?? '')).join('').toUpperCase() || '—'),
+      // трекинг только там, где букв две; иначе он просто сдвигает единственную букву влево
+      ls: oneLetter ? 'normal' : 'var(--ls-pill)',
+      lsFix: oneLetter ? '0' : 'calc(-1 * var(--ls-pill))',
+      aria: ai ? 'AI' : (author || 'Аватар'),
+      // inverse — аватар лежит на инверсной/акцентной подложке: круг тёмный, значит текст на нём СВЕТЛЫЙ.
+      // Раньше здесь стоял --on-accent (почти чёрный, он для жёлтой заливки) — инициалы пропадали.
+      bg: ai ? 'var(--ai-grad)' : inverse ? 'var(--inverse-bg)' : 'var(--bg-active)',
+      aiAttr: ai ? 'true' : undefined,
+      fg: ai ? 'var(--on-ai)' : inverse ? 'var(--inverse-text)' : 'var(--text-primary)',
+      // bare — рамкой владеет родитель (капля пина), своей у аватара нет: иначе обводка в обводке
+      border: (bare || ai || inverse) ? 'none' : '1px solid var(--border-strong)',
+    };
+  }
+}
+</script>
+</body>
+</html>

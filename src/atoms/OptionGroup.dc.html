@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+<div ref="{{ boxRef }}" role="radiogroup" aria-label="{{ groupLabel }}" onKeyDown="{{ keyNav }}" style="display:inline-flex; gap:var(--sp-05); position:relative">
+  <span data-pill="true" style="position:absolute; top:0; bottom:0; left:{{ pillLeft }}; width:{{ pillW }}; border-radius:{{ pillR }}; background:{{ pillBg }}; opacity:{{ pillOp }}; transition:left .35s var(--ease-spring), width .35s var(--ease-spring); pointer-events:none"></span>
+  <sc-for list="{{ opts }}" as="o" hint-placeholder-count="3">
+    <button data-opt="true" data-hit="xs" data-inverse="{{ inverseAttr }}" disabled="{{ isDisabled }}" role="radio" aria-checked="{{ o.checked }}" aria-label="{{ o.aria }}" tabindex="{{ o.tabIdx }}" data-tooltip="{{ o.title }}" onClick="{{ o.pick }}" style="position:relative; display:inline-flex; align-items:center; justify-content:center; height:var(--control-h-s); min-width:var(--control-h-s); padding:{{ o.pad }}; border:none; border-radius:{{ btnR }}; background:{{ o.bg }}; color:{{ o.color }}; font-family:var(--font-ui); font-weight:{{ fw }}; font-size:var(--fs-m); line-height:var(--lh-ui); cursor:{{ cur }}">
+      <sc-if value="{{ o.isIcon }}" hint-placeholder-val="{{ false }}"><g-icon name="{{ o.icon }}" size="16"></g-icon></sc-if>
+      <sc-if value="{{ o.isText }}" hint-placeholder-val="{{ true }}"><span style="position:relative; top:1px">{{ o.label }}</span></sc-if>
+    </button>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 220, &quot;height&quot;: 60},
+&quot;pill&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;inverse&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(string | {icon: string, title?: string, label?: string})[]&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;ariaLabel&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;}, &quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(index: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { sel: null, pill: null };
+  // скользящая подложка: активная опция не телепортируется, пилюля едет к ней (общий dsTrackActive)
+  // ds-helpers.js грузится из helmet асинхронно — ждём dsTrackActive и не роняем маунт
+  componentDidMount() { this._initTrack(); }
+  _initTrack() {
+    if (this._track) return;
+    if (!window.dsTrackActive) { this._trackWait = setTimeout(() => this._initTrack(), 30); return; }
+    this._track = window.dsTrackActive({ box: () => this._box, index: () => this.cur(), onRect: (r) => { const c = this.state.pill; if (r && (!c || c.left !== r.left || c.w !== r.w)) this.setState({ pill: r }); } });
+    this._track.mount();
+  }
+  componentDidUpdate() { this._track && this._track.update(); }
+  componentWillUnmount() { clearTimeout(this._trackWait); this._track && this._track.unmount(); }
+  cur() {
+    const p = this.props, n = (p.options ?? []).length;
+    // управляемый режим: значение приходит снаружи, своё состояние не спрашиваем
+    const controlled = typeof p.onChange === 'function';
+    const raw = controlled ? Number(p.value ?? 0) : (this.state.sel ?? Number(p.value ?? 0));
+    return n ? Math.max(0, Math.min(raw, n - 1)) : 0;
+  }
+  renderVals() {
+    const p = this.props, noop = () => {};
+    const sel = this.cur(), pm = this.state.pill;
+    const pill = !!p.pill, inverse = !!p.inverse, disabled = !!p.disabled;
+    return {
+      boxRef: (el) => { this._box = el; },
+      groupLabel: p.ariaLabel ?? undefined,
+      // стрелки ←→↑↓ переключают опцию (WAI-ARIA radiogroup)
+      keyNav: disabled ? (() => {}) : (e) => {
+        const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        const n = (p.options ?? []).length; if (!n) return;
+        const next = (sel + dir + n) % n;
+        this.setState({ sel: next }); (p.onChange ?? noop)(next);
+        const btns = this._box && this._box.querySelectorAll('button'); if (btns && btns[next]) btns[next].focus();
+      },
+      // нативный disabled: убирает из таба, озвучивает состояние и снимает ховер/пресс
+      // (раньше выключенная группа гасила только цвета, но продавливалась и подсвечивалась)
+      isDisabled: disabled, inverseAttr: inverse ? 'true' : undefined,
+      pillLeft: (pm ? pm.left : 0) + 'px', pillW: (pm ? pm.w : 36) + 'px', pillOp: pm ? '1' : '0',
+      pillR: pill ? 'var(--r-full)' : '8px', btnR: pill ? 'var(--r-full)' : '8px',
+      pillBg: inverse ? 'var(--inverse-bg)' : 'var(--bg-active)',
+      fw: pill ? 'var(--fw-medium)' : 'var(--fw-regular)',   // литеральных весов в компонентах не пишем
+      cur: disabled ? 'not-allowed' : 'pointer',
+      opts: (p.options ?? []).map((o, j) => {
+        const icon = typeof o === 'object' ? (o.icon ?? '') : '';
+        return {
+          icon, isIcon: !!icon, isText: !icon,
+          label: typeof o === 'string' ? o : (o.label ?? ''),
+          title: typeof o === 'object' ? (o.title ?? '') : '',
+          checked: j === sel ? 'true' : 'false', tabIdx: j === sel ? '0' : '-1',
+          aria: icon ? (typeof o === 'object' ? (o.title || o.label || icon) : icon) : undefined,
+          pad: icon ? '0' : (pill ? '0 var(--sp-4)' : '0 var(--sp-3)'),
+          bg: (j === sel && !pm) ? (inverse ? 'var(--inverse-bg)' : 'var(--bg-active)') : 'transparent',
+          color: disabled ? 'var(--text-disabled)' : j === sel ? (inverse ? 'var(--inverse-text)' : 'var(--text-primary)') : (inverse ? 'var(--text-secondary)' : 'var(--text-tertiary)'),
+          pick: (e) => { e.stopPropagation(); if (p.disabled) return; if (typeof p.onChange !== 'function') this.setState({ sel: j }); else p.onChange(j); },
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+<div ref="{{ boxRef }}" role="tablist" onKeyDown="{{ keyNav }}" style="display:flex; gap:var(--sp-5); border-bottom:1px solid var(--border-subtle); position:relative">
+  <span style="position:absolute; bottom:-1px; height:2px; left:{{ barLeft }}; width:{{ barW }}; background:var(--text-primary); opacity:{{ barOp }}; transition:left .35s var(--ease-spring), width .35s var(--ease-spring); pointer-events:none"></span>
+  <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+    <button data-hit="l" data-tab="true" role="tab" aria-selected="{{ tab.selected }}" tabindex="{{ tab.tabIdx }}" onClick="{{ tab.pick }}" style="padding:0 0 var(--sp-3); background:none; border:none; border-bottom:2px solid {{ tab.underline }}; color:{{ tab.color }}; font-family:var(--font-ui); font-weight:var(--fw-medium); font-size:var(--fs-m); line-height:var(--lh-ui); cursor:pointer; margin-bottom:-1px" style-hover="color:var(--text-primary)"><span style="display:inline-flex; align-items:baseline; gap:var(--sp-15); white-space:nowrap">{{ tab.label }}<sc-if value="{{ tab.hasCount }}" hint-placeholder-val="{{ false }}"><span style="color:var(--text-tertiary); font-size:var(--fs-xs); line-height:var(--lh-ui)">{{ tab.count }}</span></sc-if></span></button>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 420, &quot;height&quot;: 56},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;[string, string][]&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(i: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { active: null, bar: null };
+  // подчёркивание едет к активному табу (общий dsTrackActive, как пилюля в OptionGroup), не телепортируется
+  componentDidMount() { this._initTrack(); }
+  _initTrack() {
+    if (this._track) return;
+    if (!window.dsTrackActive) { this._trackWait = setTimeout(() => this._initTrack(), 30); return; } // ждём асинхронный ds-helpers.js
+    this._track = window.dsTrackActive({ box: () => this._box, index: () => this.cur(), onRect: (r) => { const c = this.state.bar; if (r && (!c || c.left !== r.left || c.w !== r.w)) this.setState({ bar: r }); } });
+    this._track.mount();
+  }
+  componentDidUpdate() { this._track && this._track.update(); }
+  componentWillUnmount() { clearTimeout(this._trackWait); this._track && this._track.unmount(); }
+  cur() {
+    const p = this.props, n = (p.options ?? []).length;
+    const controlled = typeof p.onChange === 'function';
+    const raw = controlled ? Number(p.value ?? 0) : (this.state.active ?? Number(p.value ?? 0));
+    return n ? Math.max(0, Math.min(raw, n - 1)) : 0;
+  }
+  renderVals() {
+    const items = this.props.options ?? [['Все форматы', '18'], ['Требуют внимания', '4']];
+    const active = this.cur(), bar = this.state.bar;
+    return {
+      boxRef: (el) => { this._box = el; },
+      // стрелки ←→ переключают вкладки (WAI-ARIA tablist), перенося фокус на новую
+      keyNav: (e) => {
+        const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : (e.key === 'Home' ? 'home' : e.key === 'End' ? 'end' : 0);
+        if (!dir) return;
+        e.preventDefault();
+        const n = items.length;
+        let next = dir === 'home' ? 0 : dir === 'end' ? n - 1 : (active + dir + n) % n;
+        this.setState({ active: next }); (this.props.onChange ?? (() => {}))(next);
+        const btns = this._box && this._box.querySelectorAll('button'); if (btns && btns[next]) btns[next].focus();
+      },
+      barLeft: (bar ? bar.left : 0) + 'px', barW: (bar ? bar.w : 0) + 'px', barOp: bar ? '1' : '0',
+      tabs: items.map((it, i) => {
+        const [label, count] = Array.isArray(it) ? it : [it, ''];
+        return {
+          label, count, hasCount: !!count,
+          selected: i === active ? 'true' : 'false', tabIdx: i === active ? '0' : '-1',
+          underline: (i === active && !bar) ? 'var(--text-primary)' : 'transparent',
+          color: i === active ? 'var(--text-primary)' : 'var(--text-secondary)',
+          pick: () => { const p = this.props; if (typeof p.onChange !== 'function') this.setState({ active: i }); else p.onChange(i); },
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

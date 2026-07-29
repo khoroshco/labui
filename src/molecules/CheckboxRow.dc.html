@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+  <!-- Корень ряда — div, а НЕ label. Внутри лежат свои label-контролы (Toggle, Checkbox,
+       Input), а вложенные label запрещены: браузер на клик внутри порождал второе,
+       активационное событие от имени внешнего label — с другим target, мимо гейта ⓘ.
+       Отсюда был баг «клик по ⓘ открывает подсказку И флипает тоггл». Ряд и так сам
+       себе контрол: role, aria-checked, tabindex и клавиатура у него собственные,
+       а label ему нечего подписывать — for/вложенного input у него нет. -->
+  <div data-row="true" data-invalid="{{ invalidAttr }}" data-disabled="{{ disabledAttr }}" tabindex="{{ tabIdx }}" role="checkbox" aria-checked="{{ ariaChecked }}" aria-disabled="{{ disabledAttr }}" aria-invalid="{{ ariaInvalid }}" onKeyDown="{{ key }}" onMouseDown="{{ noFocus }}" onClick="{{ flip }}" style="position:relative; display:flex; flex-direction:column; padding:0 var(--sp-4); cursor:pointer">
+  <span style="display:flex; align-items:center; justify-content:space-between; min-height:var(--row-h); gap:var(--sp-3); padding:{{ padV }} 0">
+    <dc-import name="RowLabel" label="{{ label }}" subtitle="{{ subtitle }}" has-info="{{ hasInfo }}" open="{{ infoOpen }}" on-toggle="{{ toggleInfo }}" hint-size="160px,20px"></dc-import>
+    <dc-import name="Checkbox" bare="{{ true }}" checked="{{ on }}" invalid="{{ isInvalid }}" disabled="{{ disabled }}" hint-size="20px,20px"></dc-import>
+  </span>
+  <dc-import name="RowInfo" open="{{ infoOpen }}" text="{{ info }}" image="{{ infoImage }}" hint-size="100%,0px"></dc-import>
+  <dc-import name="RowMsg" text="{{ msg }}" level="{{ msgLevel }}" hint-size="100%,0px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 130},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Применить ко всем форматам&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;subtitle&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;checked&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;info&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;infoImage&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;msg&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;msgLevel&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;ok&quot;, &quot;warn&quot;, &quot;danger&quot;], &quot;default&quot;: &quot;ok&quot;, &quot;tsType&quot;: &quot;'ok'|'warn'|'danger'&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(checked: boolean) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  // Ряд-чекбокс — ВЫБОР или согласие, часть формы: снятая галочка это законное «нет»,
+  // которое можно потребовать исправить. Поэтому здесь есть полная валидация, включая
+  // danger. Отдельно от SwitchRow, потому что различие не в виде контрола, а в смысле.
+  state = { on: null, infoOpen: false };
+  renderVals() {
+    const p = this.props, noop = () => {};
+    const on = this.state.on ?? !!p.checked;
+    const hasInfo = !!p.info;
+    const open = hasInfo && this.state.infoOpen;
+    const disabled = !!p.disabled;
+    const level = p.msgLevel ?? 'ok';
+    const isError = level === 'danger';
+    // клик по ⓘ не должен флипать галочку: ряд сам игнорирует клики из раскрывашки,
+    // а не надеется, что дочерний маунт погасит всплытие
+    const fromInfo = (e) => !!(e && e.target && e.target.closest && e.target.closest('button[aria-expanded]'));
+    const flip = (e) => { if (disabled || fromInfo(e)) return; if (e && e.detail > 0 && e.currentTarget) e.currentTarget.blur(); this.setState({ on: !on }); (p.onChange ?? noop)(!on); };
+    return {
+      label: p.label ?? '', subtitle: p.subtitle ?? '',
+      ariaChecked: on ? 'true' : 'false',
+      padV: p.subtitle ? '7px' : '0',
+      on, flip, disabled,
+      tabIdx: disabled ? '-1' : '0',
+      disabledAttr: disabled ? 'true' : 'false',
+      // мышиный клик не оставляет фокус: действие мгновенное. Кольцо — только с клавиатуры
+      noFocus: (e) => e.preventDefault(),
+      key: (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(null); } },
+      hasInfo, info: p.info ?? '', infoImage: p.infoImage ?? '', infoOpen: open,
+      toggleInfo: () => this.setState(s => ({ infoOpen: !s.infoOpen })),
+      msg: p.msg ?? '', msgLevel: level,
+      // рамка чекбокса краснеет тем же --danger, что сообщение — один красный на ряд
+      isInvalid: isError, invalidAttr: isError ? 'true' : 'false',
+      ariaInvalid: isError ? 'true' : undefined,
+    };
+  }
+}
+</script>
+</body>
+</html>

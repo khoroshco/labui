@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+</helmet>
+<div style="display:grid; grid-template-rows:{{ rows }}; opacity:{{ opOut }}; transform:{{ trOut }}; transition:{{ transOut }}"><div style="overflow:{{ ovOut }}; min-height:0; padding-top:{{ gapPx }}"><div role="{{ role }}" aria-live="{{ live }}" data-toast="true" onPointerDown="{{ down }}" onPointerMove="{{ move }}" onPointerUp="{{ up }}" onPointerCancel="{{ up }}" style="transform:translateX({{ dxPx }}); opacity:{{ dragOp }}; transition:{{ dragTrans }}; touch-action:pan-y; position:relative; overflow:hidden; display:flex; align-items:center; gap:var(--sp-25); width:fit-content; max-width:min(420px, calc(100vw - var(--sp-6))); min-height:var(--touch-target); padding:var(--sp-25) var(--sp-35); background:var(--bg-float); border-radius:var(--r-m); box-shadow:var(--shadow-lg)">
+  <sc-if value="{{ hasTimer }}" hint-placeholder-val="{{ false }}"><span data-toast-fill="true" onAnimationEnd="{{ timeout }}" style="position:absolute; left:0; right:0; bottom:0; height:2px; transform-origin:left; background:{{ color }}; opacity:.55; animation-name:ds-toast-fill; animation-timing-function:linear; animation-fill-mode:forwards; animation-duration:{{ dur }}; pointer-events:none"></span></sc-if>
+  <span style="display:inline-flex; color:{{ color }}; flex:none; position:relative"><g-icon name="{{ icon }}" size="16"></g-icon></span>
+  <span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:var(--text-primary); position:relative; top:0.5px">{{ text }}</span>
+  <sc-if value="{{ hasAction }}" hint-placeholder-val="{{ false }}"><dc-import name="Button" label="{{ action }}" variant="ghost" size="xs" on-click="{{ act }}" style="margin-left:var(--sp-05); flex:none" hint-size="90px,28px"></dc-import></sc-if>
+  <sc-if value="{{ hasClose }}" hint-placeholder-val="{{ false }}"><dc-import name="Button" icon="xmark" variant="ghost" size="xs" tooltip="{{ closeLabel }}" on-click="{{ close }}" style="flex:none" hint-size="28px,28px"></dc-import></sc-if>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 400, &quot;height&quot;: 80},
+&quot;text&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;12 форматов готовы к выгрузке&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;level&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;info&quot;, &quot;ok&quot;, &quot;warn&quot;, &quot;danger&quot;], &quot;default&quot;: &quot;info&quot;, &quot;tsType&quot;: &quot;'info'|'ok'|'warn'|'danger'&quot;},
+&quot;actionLabel&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;leaving&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;gap&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;number&quot;},
+&quot;duration&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;onAction&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onTimeout&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onClose&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(() =&gt; void) | null&quot;}}">
+class Component extends DCLogic {
+  state = { dx: 0, drag: false, entered: false };
+  // вход/выход по высоте встроены в тост: экран лишь ставит leaving и удаляет через ~320 мс
+  componentDidMount() { setTimeout(() => this.setState({ entered: true }), 30); }
+  renderVals() {
+    const p = this.props, level = p.level ?? 'info';
+    const dismissFn = p.onClose ?? p.onTimeout ?? null;
+    const leaving = !!p.leaving, shown = this.state.entered && !leaving;
+    const dx = this.state.dx;
+    const M = {
+      info: { icon: 'circle-info', color: 'var(--info)' },
+      ok: { icon: 'circle-check-fill', color: 'var(--ok)' },
+      warn: { icon: 'triangle-exclamation-fill', color: 'var(--warn)' },
+      danger: { icon: 'circle-exclamation-fill', color: 'var(--danger)' },
+    };
+    const m = M[level] ?? M.info;
+    return {
+      text: p.text ?? '', icon: m.icon, color: m.color,
+      // критичные уровни — assertive (прозвучат сразу), инфо/ок — polite
+      role: (level === 'danger' || level === 'warn') ? 'alert' : 'status',
+      // role=alert сам подразумевает assertive — дублировать aria-live не нужно
+      live: (level === 'danger' || level === 'warn') ? undefined : 'polite',
+      closeLabel: 'Скрыть',
+      hasAction: !!p.actionLabel, action: p.actionLabel ?? '',
+      act: () => (p.onAction ?? (() => {}))(),
+      // стек и позиционирование — ответственность экрана; таймер с паузой на hover тост ведёт сам (duration + onTimeout)
+      hasClose: !!p.onClose,
+      close: () => (p.onClose ?? (() => {}))(),
+      rows: shown ? '1fr' : '0fr',
+      opOut: shown ? '1' : '0',
+      // вход и выход — ОДИН механизм (transition обёртки). Раньше поверх него ещё крутилась
+      // css-анимация ds-toast-in: два движения на одно появление, они боролись за transform.
+      trOut: leaving ? 'translateY(6px) scale(.97)' : (this.state.entered ? 'none' : 'translateY(10px) scale(.97)'),
+      transOut: leaving ? 'grid-template-rows .25s var(--ease-in), opacity .2s ease, transform .25s var(--ease-in)' : 'grid-template-rows .32s var(--ease-out), opacity .28s ease .05s, transform .4s var(--ease-spring)',
+      ovOut: shown ? 'visible' : 'hidden',
+      gapPx: (Number(p.gap) || 0) + 'px',
+      hasTimer: !!p.duration && !!(p.onTimeout ?? p.onClose),
+      dur: (Number(p.duration) || 0) + 'ms',
+      timeout: () => (p.onTimeout ?? p.onClose ?? (() => {}))(),
+      // swipe-to-dismiss: тянется за пальцем/мышью, дальше 80px — закрытие, иначе пружинный возврат
+      dxPx: dx + 'px',
+      dragOp: String(1 - Math.min(Math.abs(dx) / 240, .6)),
+      dragTrans: this.state.drag ? 'none' : 'transform .35s var(--ease-spring), opacity .2s ease',
+      down: (e) => { if (e.target.closest('button')) return; this._sx = e.clientX; this.setState({ drag: true, dx: 0 }); try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} },
+      move: (e) => { if (this.state.drag) this.setState({ dx: e.clientX - this._sx }); },
+      up: () => {
+        if (!this.state.drag) return;
+        const d = this.state.dx, dismiss = Math.abs(d) > 80 && dismissFn;
+        if (dismiss) { this.setState({ drag: false }); dismissFn(); } // dx не сбрасываем — тост схлопнется со смещением, без отскока
+        else this.setState({ drag: false, dx: 0 });
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

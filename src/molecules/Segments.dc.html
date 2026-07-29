@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+</helmet>
+<div style="display:inline-flex; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--r-full); padding:var(--sp-1)">
+  <dc-import name="OptionGroup" pill="{{ true }}" inverse="{{ true }}" options="{{ opts }}" value="{{ act }}" on-change="{{ change }}" hint-size="260px,36px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 340, &quot;height&quot;: 64},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string[]&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(i: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  // Segments — тонкая обёртка над OptionGroup (pill + inverse): одно поведение скользящей пилюли на всю ДС
+  renderVals() {
+    const p = this.props;
+    return {
+      opts: p.options ?? ['Все', 'С пометками', 'Готовые'],
+      act: Number(p.value ?? 0),
+      change: typeof p.onChange === 'function' ? (i) => p.onChange(i) : undefined,
+    };
+  }
+}
+</script>
+</body>
+</html>

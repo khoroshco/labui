@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+  <!-- Корень ряда — div, а НЕ label. Внутри лежат свои label-контролы (Toggle, Checkbox,
+       Input), а вложенные label запрещены: браузер на клик внутри порождал второе,
+       активационное событие от имени внешнего label — с другим target, мимо гейта ⓘ.
+       Отсюда был баг «клик по ⓘ открывает подсказку И флипает тоггл». Ряд и так сам
+       себе контрол: role, aria-checked, tabindex и клавиатура у него собственные,
+       а label ему нечего подписывать — for/вложенного input у него нет. -->
+  <div data-row="true" data-invalid="{{ invalidAttr }}" data-disabled="{{ disabledAttr }}" onMouseDown="{{ focusEnd }}" style="position:relative; display:flex; flex-direction:column; padding:0 var(--sp-4); cursor:text">
+  <span style="display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); height:var(--row-h)">
+    <dc-import name="RowLabel" label="{{ label }}" has-info="{{ hasInfo }}" open="{{ infoOpen }}" on-toggle="{{ toggleInfo }}" style="flex:none" hint-size="120px,20px"></dc-import>
+    <span style="display:flex; align-items:center; gap:var(--sp-15); flex:1; min-width:0; justify-content:flex-end">
+      <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+        <span style="display:inline-flex; animation:ds-fade .25s ease"><dc-import name="Skeleton" shape="line" width="96px" hint-size="96px,12px"></dc-import></span>
+      </sc-if>
+      <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+        <span data-nums="{{ numsAttr }}" style="flex:1; min-width:0; display:flex"><dc-import name="Input" bare="{{ true }}" align="right" value="{{ value }}" placeholder="{{ placeholder }}" max-length="{{ maxLength }}" invalid="{{ invalid }}" disabled="{{ disabled }}" on-input="{{ input }}" on-focus="{{ focusCb }}" on-blur="{{ blurCb }}" style="width:100%" hint-size="100%,20px"></dc-import></span>
+        <sc-if value="{{ hasCycle }}" hint-placeholder-val="{{ false }}">
+          <span style="display:flex; align-items:center"><dc-import name="CycleButton" options="{{ cycleOpts }}" value="{{ cycleIdx }}" disabled="{{ disabled }}" on-change="{{ cycleChange }}" hint-size="34px,22px"></dc-import></span>
+        </sc-if>
+      </sc-if>
+    </span>
+  </span>
+  <dc-import name="RowInfo" open="{{ infoOpen }}" text="{{ info }}" image="{{ infoImage }}" hint-size="100%,0px"></dc-import>
+  <dc-import name="RowMsg" text="{{ msg }}" level="{{ msgLevel }}" hint-size="100%,0px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 150},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Отступ лигала&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;10&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;placeholder&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Контент&quot;},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string[] | null&quot;},
+&quot;maxLength&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;nums&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Фичи&quot;},
+&quot;loading&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Фичи&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Фичи&quot;},
+&quot;msg&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Валидация&quot;},
+&quot;msgLevel&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;ok&quot;, &quot;warn&quot;, &quot;danger&quot;], &quot;default&quot;: &quot;ok&quot;, &quot;tsType&quot;: &quot;'ok' | 'warn' | 'danger'&quot;, &quot;section&quot;: &quot;Валидация&quot;},
+&quot;info&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Фичи&quot;},
+&quot;infoImage&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;onInput&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(value: string) =&gt; void&quot;},
+&quot;onFocus&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onBlur&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;optionIndex&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;tsType&quot;: &quot;number&quot;}, &quot;onOptionChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(index: number, option: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { optIdx: null,  infoOpen: false, spin: false };
+  // анти-мерцание лоадера — общий хелпер DSSpin (ds-helpers.js); ввод блокируется сразу
+  componentDidMount() { this._initSpin(); }
+  _initSpin() {
+    if (this._spin) { this._spin.sync(); return; }
+    if (!window.DSSpin) { this._spinWait = setTimeout(() => this._initSpin(), 30); return; } // ждём асинхронный ds-helpers.js
+    this._spin = window.DSSpin({ isLoading: () => !!this.props.loading, getSpin: () => this.state.spin, setSpin: (v) => this.setState({ spin: v }) });
+    this._spin.sync();
+  }
+  componentDidUpdate() { this._spin && this._spin.sync(); }
+  componentWillUnmount() { clearTimeout(this._spinWait); this._spin && this._spin.dispose(); }
+  renderVals() {
+    const p = this.props, noop = () => {};
+    const level = p.msgLevel ?? 'ok';
+    const hasInfo = !!p.info;
+    const open = hasInfo && this.state.infoOpen;
+    return {
+      label: p.label ?? '', value: p.value ?? '', placeholder: p.placeholder ?? '',
+      // тон невалидного ряда рисует обёртка-маунт по data-invalid (ds.css)
+      invalidAttr: level === 'danger' ? 'true' : 'false',
+      blurCb: () => (p.onBlur ?? noop)(),
+      disabledAttr: p.disabled ? 'true' : 'false',
+      focusCb: () => (p.onFocus ?? noop)(),
+      invalid: level === 'danger', disabled: !!p.disabled,
+      // лимит длины и его счётчик доступны и в ряду, а не только у отдельного поля
+      maxLength: Number(p.maxLength) || 0,
+      // nums: числовые/erid-значения выравниваем табличными цифрами (хук data-nums, ds.css) — моношрифта в ДС нет
+      numsAttr: p.nums ? 'true' : undefined,
+      loading: this.state.spin, notLoading: !this.state.spin,
+      input: (v) => (p.onInput ?? noop)(v),
+      // options — любой набор значений для кнопки-циклера, не только единицы
+      hasCycle: Array.isArray(p.options) && p.options.length > 0,
+      cycleOpts: p.options ?? [],
+      cycleIdx: this.state.optIdx ?? Number(p.optionIndex ?? 0),
+      cycleChange: (i, o) => { this.setState({ optIdx: i }); (p.onOptionChange ?? noop)(i, o); },
+      hasInfo, info: p.info ?? '', infoImage: p.infoImage ?? '', infoOpen: open,
+      toggleInfo: () => this.setState(s => ({ infoOpen: !s.infoOpen })),
+      msg: p.msg ?? '', msgLevel: level,
+      focusEnd: (p.disabled || p.loading) ? ((e) => e.preventDefault()) : ((e) => this.focusEnd(e)),
+    };
+  }
+  focusEnd(e) {
+    // каретка в конец при клике по пустой зоне ряда — общий хелпер (ds-helpers.js)
+    if (e.target.tagName === 'INPUT') { window.dsCaretFromClick(e.target, e); return; }
+    const inp = e.currentTarget.querySelector('input');
+    if (inp) { e.preventDefault(); window.dsCaretEnd(inp); }
+  }
+}
+</script>
+</body>
+</html>

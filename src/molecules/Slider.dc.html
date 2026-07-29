@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+<div ref="{{ ref }}" tabindex="{{ tabIdx }}" role="slider" aria-label="{{ text }}" aria-disabled="{{ ariaDisabled }}" aria-valuemin="{{ ariaMin }}" aria-valuemax="{{ ariaMax }}" aria-valuenow="{{ ariaNow }}" aria-valuetext="{{ ariaText }}" onPointerDown="{{ down }}" onPointerMove="{{ move }}" onPointerUp="{{ up }}" onKeyDown="{{ key }}" style="position:relative; height:var(--row-h); background:var(--bg-surface); border-radius:var(--r-m); overflow:hidden; cursor:{{ cursor }}; user-select:none; touch-action:none">
+  <div ref="{{ fillRef }}" style="position:absolute; top:0; bottom:0; left:0; width:{{ fill }}; background:var(--bg-active); border-radius:var(--r-m)"></div>
+  <div data-ticks="true" style="position:absolute; left:var(--sp-35); right:var(--sp-35); top:50%; height:0; pointer-events:none">
+    <sc-for list="{{ dots }}" as="dot" hint-placeholder-count="0">
+      <span style="position:absolute; left:{{ dot.left }}; top:0; height:{{ dot.h }}; transform:translate(-0.5px, -50%); width:1px; background:{{ dot.bg }}; transition:background .15s ease, height .15s ease"></span>
+    </sc-for>
+  </div>
+  <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 var(--sp-4); pointer-events:none">
+    <span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:{{ labelColor }}; position:relative; top:0.5px">{{ text }}</span>
+    <span style="display:flex; align-items:{{ valAlign }}; gap:4px; position:relative; top:{{ valTop }}; pointer-events:{{ valPe }}" onPointerDown="{{ valStop }}">
+      <input data-nums="true" value="{{ valText }}" data-optical="num" disabled="{{ isDisabled }}" aria-label="{{ valAria }}" onChange="{{ valInput }}" onBlur="{{ valBlur }}" onKeyDown="{{ valKey }}" style="border:none; background:transparent; padding:0; color:{{ valColor }}; font-size:var(--fs-m); line-height:var(--lh-ui); font-family:var(--font-ui); font-weight:var(--fw-regular); position:relative; top:{{ numTop }}; text-align:right; outline:none; width:{{ valWidth }}; min-width:1ch; cursor:{{ valCursor }}">
+      <sc-if value="{{ hasCycle }}" hint-placeholder-val="{{ false }}">
+        <span style="pointer-events:{{ valPe }}; display:flex; align-items:center; align-self:center; margin-left:2px"><dc-import name="CycleButton" options="{{ cycleOpts }}" value="{{ cycleIdx }}" disabled="{{ isDisabled }}" on-change="{{ cycleChange }}" hint-size="34px,22px"></dc-import></span>
+      </sc-if>
+      <sc-if value="{{ plainUnit }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-m); line-height:var(--lh-ui); color:{{ unitColor }}">{{ unitText }}</span></sc-if>
+    </span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 76},
+&quot;label&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Охранное поле&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 24, &quot;tsType&quot;: &quot;number&quot;},
+&quot;min&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;max&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 64, &quot;tsType&quot;: &quot;number&quot;},
+&quot;step&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 1, &quot;tsType&quot;: &quot;number&quot;},
+&quot;unit&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;px&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;options&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string[]&quot;}, &quot;optionIndex&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;tsType&quot;: &quot;number&quot;}, &quot;onOptionChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(i: number, o: string) =&gt; void&quot;}, &quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;snapStep&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;onChange&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(v: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { optIdx: null,  v: null, edit: null, dragging: false };
+  def() {
+    // пропсы из атрибутов приходят строками — приводим к числу один раз
+    const p = this.props, N = (x, d) => { const n = Number(x); return isNaN(n) ? d : n; };
+    return { min: N(p.min, 0), max: N(p.max, 100), step: N(p.step, 1) || 1, snap: N(p.snapStep, 0) };
+  }
+  cur() { const d = this.def(); const n = Number(this.props.value); return this.state.v ?? (isNaN(n) ? d.min : n); }
+  set(v, exact) {
+    const d = this.def();
+    v = Math.min(d.max, Math.max(d.min, Math.round(v / d.step) * d.step));
+    if (d.snap && !exact) { // магнит: липнет к кратным snap; на таче зона шире
+      const coarse = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+      const pull = Math.max(0.6, d.snap / 3) * (coarse ? 2 : 1); // сила магнита — константа ДС, не проп
+      const near = Math.round(v / d.snap) * d.snap;
+      if (Math.abs(v - near) <= pull) v = Math.min(d.max, Math.max(d.min, near));
+    }
+    this.setState({ v });
+    (this.props.onChange ?? (() => {}))(v);
+    this.loop();
+  }
+  fromEvent(e) {
+    const d = this.def();
+    const r = this._el.getBoundingClientRect();
+    this.set(d.min + (e.clientX - r.left) / r.width * (d.max - d.min));
+  }
+  fillPct() { const d = this.def(); return (this.cur() - d.min) / (d.max - d.min) * 100; }
+  // rAF-физика: желе (overdrag + скорость) и пружинная заливка
+  _spring = { s: 0, v: 0 }; _fillSp = null; _over = 0; _vel = 0; _dragging = false; _raf = null;
+  loop() {
+    if (this._raf) return;
+    // prefers-reduced-motion: без желе и пружин — заливка встаёт по значению сразу
+    if (window.dsReducedMotion && window.dsReducedMotion()) {
+      if (this._el) { this._el.style.transform = ''; this._el.style.transformOrigin = ''; }
+      if (this._fill) { const frac = Math.max(0, Math.min(1, this.fillPct() / 100)); this._fill.style.width = frac >= 0.999 ? '100%' : `calc((100% - 28px) * ${frac.toFixed(5)} + 22px)`; }
+      return;
+    }
+    let last = performance.now();
+    const tick = (now) => {
+      let done = false;
+      try {
+        const dt = Math.min(0.032, Math.max(0.001, (now - last) / 1000)); last = now;
+        this._vel *= 0.88;
+        const n = Math.max(-1, Math.min(1, this._vel / 3));
+        const target = this._dragging ? Math.max(-1, Math.min(1, this._over + n * Math.abs(n) * 0.55)) : 0;
+        const sp = this._spring;
+        const k = this._dragging ? 260 : 200;
+        const dmp = this._dragging ? 2 * Math.sqrt(k) : 15;
+        sp.v += (k * (target - sp.s) - dmp * sp.v) * dt;
+        sp.s += sp.v * dt;
+        if (this._el) {
+          const a = Math.min(1, Math.abs(sp.s));
+          const ease = a * a * (3 - 2 * a);
+          this._el.style.transformOrigin = sp.s >= 0 ? 'left center' : 'right center';
+          this._el.style.transform = `scaleX(${(1 + 0.05 * ease).toFixed(4)}) scaleY(${(1 - 0.06 * ease).toFixed(4)})`;
+        }
+        // заливка догоняет значение пружиной, с киком от энергии жеста
+        let fillsActive = false;
+        if (this._fill) {
+          const t = this.fillPct();
+          const fs = this._fillSp ??= { p: t, v: 0, t };
+          if (t !== fs.t) { fs.v += (t - fs.t) * 9; fs.t = t; }
+          const amp = Math.min(1, Math.abs(t - fs.p) / 40);
+          fs.v += (320 * (t - fs.p) - (26 - 9 * amp) * fs.v) * dt;
+          fs.p += fs.v * dt;
+          if (Math.abs(t - fs.p) > 0.03 || Math.abs(fs.v) > 0.03) fillsActive = true;
+          else { fs.p = t; fs.v = 0; }
+          const frac = Math.max(0, Math.min(1, fs.p / 100));
+          this._fill.style.width = frac >= 0.999 ? '100%' : `calc((100% - 28px) * ${frac.toFixed(5)} + 22px)`;
+        }
+        if (!fillsActive && !this._dragging && Math.abs(sp.s) < 0.002 && Math.abs(sp.v) < 0.002) {
+          sp.s = 0; sp.v = 0;
+          if (this._el) { this._el.style.transform = ''; this._el.style.transformOrigin = ''; }
+          done = true;
+        }
+      } catch (err) { done = true; }
+      this._raf = done ? null : requestAnimationFrame(tick);
+    };
+    this._raf = requestAnimationFrame(tick);
+  }
+  renderVals() {
+    const d = this.def(), v = this.cur();
+    const editing = !!this.state.edit;
+    const numText = editing ? this.state.edit.text : String(d.step % 1 ? v.toFixed(1) : v);
+    // disabled есть у каждого контрола ДС — слайдер был единственным исключением.
+    // Выключенный не тянется, не принимает клавиши и ввод, не берёт фокус.
+    const off = !!this.props.disabled;
+    return {
+      isDisabled: off, ariaDisabled: off ? 'true' : 'false', tabIdx: off ? '-1' : '0',
+      cursor: off ? 'not-allowed' : 'ew-resize',
+      valPe: off ? 'none' : 'auto', valCursor: off ? 'not-allowed' : 'text',
+      labelColor: off ? 'var(--text-disabled)' : 'var(--text-secondary)',   // как лейбл ряда: подпись на ступень тише значения
+      // значение слайдера — такой же контент, как значение в ряду ввода: первичный цвет,
+      // тот же кегль, табличные цифры. Единица — часть той же надписи, а не бледный хвост:
+      // «14.0 pt» читается одной величиной, а не значением и подписью к нему.
+      valColor: off ? 'var(--text-disabled)' : 'var(--text-primary)',
+      // единица — служебное при значении, своей ступенью тише; в выключенном не ярче порога
+      unitColor: off ? 'var(--text-disabled)' : 'var(--text-secondary)',
+      // options → единицы переключаемые (циклер), иначе — просто слово. Вместе никогда.
+      hasCycle: Array.isArray(this.props.options) && this.props.options.length > 0,
+      // с пилюлей выравниваем боксы по центрам, с единицами-словом — по базовой линии
+      valAlign: (Array.isArray(this.props.options) && this.props.options.length > 0) ? 'center' : 'baseline',
+      valTop: (Array.isArray(this.props.options) && this.props.options.length > 0) ? '0px' : '0.5px',
+      numTop: (Array.isArray(this.props.options) && this.props.options.length > 0) ? '1.2px' : '0px',
+      cycleOpts: this.props.options ?? [],
+      cycleIdx: this.state.optIdx ?? Number(this.props.optionIndex ?? 0),
+      cycleChange: (i, o) => { this.setState({ optIdx: i }); (this.props.onOptionChange ?? (() => {}))(i, o); },
+      plainUnit: !(Array.isArray(this.props.options) && this.props.options.length > 0) && !!(this.props.unit ?? ''),
+      text: this.props.label ?? '', unitText: this.props.unit ?? '',
+      ariaMin: d.min, ariaMax: d.max, ariaNow: v, ariaText: (d.step % 1 ? v.toFixed(1) : v) + (this.props.unit ? ' ' + this.props.unit : ''),
+      valText: numText, valWidth: Math.max(1, numText.length) + 'ch',
+      valAria: (this.props.label ?? 'Значение') + ' — ввод значения',
+      valStop: (e) => e.stopPropagation(),
+      valInput: (e) => off ? null : this.setState({ edit: { text: e.target.value } }),
+      valBlur: () => { const n = parseFloat((this.state.edit?.text ?? '').replace(',', '.')); if (!isNaN(n)) this.set(n, true); this.setState({ edit: null }); },
+      valKey: (e) => { e.stopPropagation(); if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { this.setState({ edit: null }); e.target.blur(); } },
+      fill: (v >= d.max) ? '100%' : `calc((100% - 28px) * ${((v - d.min) / (d.max - d.min)).toFixed(4)} + 22px)`,
+      dots: d.snap ? Array.from({ length: Math.floor((d.max - d.min) / d.snap) + 1 }, (_, i) => {
+        const dv = d.min + i * d.snap;
+        return {
+          left: ((dv - d.min) / (d.max - d.min) * 100).toFixed(1) + '%',
+          h: dv === v ? '14px' : '7px',
+          bg: dv === v ? 'var(--text-primary)' : dv <= v ? 'var(--border-strong)' : 'var(--border)',
+        };
+      }) : [],
+      ref: (el) => { this._el = el; },
+      fillRef: (el) => { this._fill = el; },
+      down: (e) => { if (off) return; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} this._lastX = e.clientX; this._lastT = performance.now(); this._dragging = true; this._over = 0; this._vel = 0; this.setState({ dragging: true }); this.fromEvent(e); this.loop(); },
+      move: (e) => {
+        if (!this.state.dragging) return;
+        this.fromEvent(e);
+        const r = this._el.getBoundingClientRect();
+        const past = e.clientX < r.left ? e.clientX - r.left : e.clientX > r.right ? e.clientX - r.right : 0;
+        this._over = Math.sign(past) * Math.min(1, Math.sqrt(Math.abs(past)) / 12);
+        const now = performance.now();
+        const dtMs = Math.max(1, now - (this._lastT ?? now)); this._lastT = now;
+        const dx = e.clientX - (this._lastX ?? e.clientX); this._lastX = e.clientX;
+        this._vel = this._vel * 0.65 + (dx / dtMs) * 0.35;
+      },
+      up: () => { this._dragging = false; this._over = 0; this._vel = 0; this.setState({ dragging: false }); },
+      key: (e) => {
+        if (off) return;
+        const dir = (e.key === 'ArrowRight' || e.key === 'ArrowUp') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowDown') ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        if (e.shiftKey) {
+          // Shift с магнитом — прыжок по кратным; без магнита — крупный шаг
+          if (d.snap) { const next = dir > 0 ? Math.floor(v / d.snap + 1) * d.snap : Math.ceil(v / d.snap - 1) * d.snap; this.set(next, true); }
+          else this.set(v + dir * d.step * 10, true);
+        } else this.set(v + dir * d.step, true);
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+</helmet>
+<span style="position:relative; display:inline-flex; width:32px; height:32px; flex:none; animation:pin-pop .3s var(--ease-spring); transform-origin:bottom left">
+  <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:50% 50% 50% 4px; background:{{ bg }}; color:{{ fg }}; box-shadow:0 0 0 1.5px {{ ring }}, var(--shadow-sm); font-weight:var(--fw-medium); font-size:{{ fs }}; letter-spacing:{{ ls }}; transition:background .2s ease, color .2s ease, box-shadow .2s ease">
+    <sc-if value="{{ showPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ src }}" alt="" onError="{{ photoFail }}" style="width:100%; height:100%; object-fit:cover; display:block"></sc-if>
+    <sc-if value="{{ showText }}" hint-placeholder-val="{{ true }}"><span style="position:relative; top:0.5px; margin-right:{{ lsFix }}">{{ text }}</span></sc-if>
+  </span>
+  <sc-if value="{{ dot }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:-3px; right:-3px; width:var(--dot-unread); height:var(--dot-unread); border-radius:50%; background:var(--info); box-shadow:0 0 0 2px var(--bg-canvas); animation:ds-appear .3s var(--ease-spring)"></span></sc-if>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 80, &quot;height&quot;: 60},
+&quot;number&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 1, &quot;tsType&quot;: &quot;number&quot;},
+&quot;author&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;src&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;resolved&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;hasReply&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;}}">
+class Component extends DCLogic {
+  // Капля как в Figma: острый угол снизу-слева — точка привязки к объекту.
+  // Активный пин акцентный, решённый гаснет.
+  //
+  // Было: внутрь капли монтировался Avatar со СВОЕЙ круглой рамкой — получалась
+  // обводка в обводке, а круг внутри капли оставлял серп чужого фона в углу.
+  // Стало: капля сама себе поверхность, контент заполняет её целиком —
+  // фото / инициалы / номер живут в одной форме с одной обводкой.
+  // Обводка вынесена в box-shadow: border съедал бы 1.5px внутреннего размера
+  // и ломал радиус угла привязки.
+  state = { broken: false };
+  componentDidUpdate(prev) { if (prev.src !== this.props.src && this.state.broken) this.setState({ broken: false }); }
+  renderVals() {
+    const p = this.props, resolved = !!p.resolved;
+    const src = p.src ?? '', author = (p.author ?? '').trim();
+    const usePhoto = !!src && !this.state.broken;
+    const initials = author ? author.split(/\s+/).slice(0, 2).map(w => (w[0] ?? '')).join('').toUpperCase() : '';
+    // без фото и без автора пин показывает свой номер в треде
+    const text = initials || String(p.number ?? 1);
+    return {
+      src, showPhoto: usePhoto, showText: !usePhoto, text,
+      photoFail: () => this.setState({ broken: true }),
+      // инициалы набираем трекингом капсов, номер — без него
+      ls: initials ? 'var(--ls-pill)' : 'normal',
+      lsFix: initials ? 'calc(-1 * var(--ls-pill))' : '0',
+      fs: initials ? 'var(--fs-xs)' : 'var(--fs-s)',
+      dot: !!p.hasReply, // точка непрочитанного: в треде появился ответ
+      bg: resolved ? 'var(--bg-active)' : 'var(--accent)',
+      fg: resolved ? 'var(--text-tertiary)' : 'var(--on-accent)',
+      ring: resolved ? 'var(--border-strong)' : 'var(--inverse-bg)',
+    };
+  }
+}
+</script>
+</body>
+</html>

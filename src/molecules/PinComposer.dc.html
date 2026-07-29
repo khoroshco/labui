@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+</helmet>
+<div ref="{{ rootRef }}" style="display:flex; align-items:center; gap:var(--sp-2); background:{{ cBg }}; border:{{ cBd }}; border-radius:var(--r-full); box-shadow:{{ cSh }}; padding:{{ cPad }}">
+  <sc-if value="{{ hasAuthor }}" hint-placeholder-val="{{ false }}"><dc-import name="Avatar" author="{{ author }}" src="{{ authorSrc }}" size="s" hint-size="24px,24px"></dc-import></sc-if>
+  <span style="flex:1; min-width:0; display:flex"><dc-import name="Input" bare="{{ true }}" align="left" placeholder="{{ placeholder }}" value="{{ value }}" max-length="{{ maxLength }}" on-input="{{ input }}" on-enter="{{ send }}" on-escape="{{ cancel }}" style="width:100%" hint-size="100%,20px"></dc-import></span>
+  <dc-import name="Button" icon="arrow-right" size="s" variant="primary" tooltip="{{ sendLabel }}" on-click="{{ send }}" hint-size="36px,36px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 320, &quot;height&quot;: 70},
+&quot;author&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;authorSrc&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;string&quot;},
+&quot;placeholder&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Комментарий…&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;value&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;maxLength&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;bare&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;autofocus&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;sendLabel&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Отправить&quot;, &quot;tsType&quot;: &quot;string&quot;}, &quot;onSend&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(text: string) =&gt; void&quot;},
+&quot;onCancel&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { text: null };
+  // автофокус: композер появляется ради ввода — поле активно сразу.
+  // ребёнок-Input монтируется асинхронно — ждём его через MutationObserver, а не цепочкой setTimeout
+  componentDidMount() {
+    if (this.props.autofocus === false) return; // в витринах фокус не крадём
+    this._prevFocus = document.activeElement; // чтобы вернуть фокус при закрытии
+    const grab = () => { const i = this._root && this._root.querySelector('input'); if (i) { i.focus({ preventScroll: true }); return true; } return false; };
+    if (!grab()) {
+      this._mo = new MutationObserver(() => { if (grab()) { this._mo.disconnect(); this._mo = null; } });
+      this._mo.observe(this._root, { childList: true, subtree: true });
+      this._moTimer = setTimeout(() => { if (this._mo) { this._mo.disconnect(); this._mo = null; } }, 3000);
+    }
+  }
+  componentWillUnmount() {
+    if (this._mo) { this._mo.disconnect(); this._mo = null; }
+    clearTimeout(this._moTimer);
+    // возврат фокуса тому, у кого его забрали — только если фокус всё ещё внутри композера
+    const prev = this._prevFocus;
+    if (prev && prev.focus && this._root && this._root.contains(document.activeElement)) {
+      try { prev.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+  renderVals() {
+    const p = this.props, noop = () => {};
+    return {
+      rootRef: (el) => { this._root = el; },
+      // bare — режим ряда внутри карточки: без своей капсулы, поверхностью владеет родитель (как Input.bare)
+      cBg: p.bare ? 'transparent' : 'var(--bg-float)',
+      cBd: p.bare ? 'none' : '1px solid var(--border-subtle)',
+      cSh: p.bare ? 'none' : 'var(--shadow-lg)',
+      cPad: p.bare ? '0 0 0 var(--sp-15)' : '5px 5px 5px var(--sp-35)',
+      placeholder: p.placeholder ?? 'Комментарий…',
+      sendLabel: p.sendLabel ?? 'Отправить · Enter',
+      author: p.author ?? '', authorSrc: p.authorSrc ?? '',
+      hasAuthor: !!(p.author || p.authorSrc),
+      value: this.state.text ?? p.value ?? '',
+      input: (v) => this.setState({ text: v }),
+      // после отправки поле очищается: прокинутый value меняется на '' и вложенный Input сбрасывает свой черновик
+      send: () => { const t = this.state.text ?? p.value ?? ''; this.setState({ text: '' }); (p.onSend ?? noop)(t); },
+      cancel: () => { this.setState({ text: '' }); (p.onCancel ?? noop)(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

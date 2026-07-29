@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+</helmet>
+<span onClick="{{ stop }}" style="display:grid; grid-template-rows:{{ rows }}; transition:{{ trans }}; cursor:default">
+  <span style="overflow:hidden; min-height:0; display:block">
+    <span style="display:flex; flex-direction:column; gap:var(--sp-25); padding:var(--sp-05) 0 var(--sp-35); opacity:{{ opacity }}; transition:{{ opTrans }}">
+      <sc-if value="{{ isUrlImage }}" hint-placeholder-val="{{ false }}">
+        <img src="{{ image }}" style="display:block; width:100%; height:160px; object-fit:cover; border-radius:var(--r-s); background:var(--bg-hover)">
+      </sc-if>
+      <sc-if value="{{ isPlaceholderImage }}" hint-placeholder-val="{{ false }}">
+        <span style="display:flex; width:100%; height:160px; border-radius:var(--r-s); align-items:center; justify-content:center; background:repeating-linear-gradient(45deg, var(--bg-hover) 0 10px, transparent 10px 20px); border:1px solid var(--border-subtle)">
+          <span style="font-size:var(--fs-xs); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ image }}</span>
+        </span>
+      </sc-if>
+      <span style="display:block; font-size:var(--fs-s); font-weight:var(--fw-regular); color:var(--text-secondary); line-height:var(--lh-text); text-wrap:pretty">{{ text }}</span>
+    </span>
+  </span>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 360, &quot;height&quot;: 220},
+&quot;open&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;text&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Текст подсказки приходит пропсом.&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;image&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, open = !!p.open;
+    return {
+      rows: open ? '1fr' : '0fr', opacity: open ? '1' : '0',
+      // асимметрия входа/выхода: вход — ease-out, выход короче и тише (ease-in).
+      // Выход — ОДИН жест: фейд идёт ровно столько же, сколько схлопывание.
+      // Раньше контент гас за .12s против .22s высоты — текст пропадал на середине,
+      // и пустая коробка дозакрывалась рывком (ease-in ускоряется в конце).
+      trans: open ? 'grid-template-rows .35s var(--ease-out)' : 'grid-template-rows .22s var(--ease-in)',
+      opTrans: open ? 'opacity .3s ease .1s' : 'opacity .22s var(--ease-in)',
+      text: p.text ?? '', image: p.image ?? '',
+      isUrlImage: !!p.image && /\/|\.(png|jpe?g|webp|gif|svg)/i.test(p.image),
+      isPlaceholderImage: !!p.image && !(/\/|\.(png|jpe?g|webp|gif|svg)/i.test(p.image)),
+      // клик по раскрытой подсказке не должен дёргать действие ряда (флип тумблера и т.п.)
+      stop: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

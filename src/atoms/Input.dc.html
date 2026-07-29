@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ds.css">
+<script src="g-icon.js"></script>
+<script src="focus-modality.js"></script>
+<script src="ds-helpers.js"></script>
+</helmet>
+<label ref="{{ boxRef }}" data-field="{{ fieldAttr }}" data-disabled="{{ disabledAttr }}" data-invalid="{{ invalidAttr }}" onMouseDown="{{ down }}" style="display:inline-flex; align-items:center; gap:var(--sp-2); width:100%; height:{{ h }}; padding:{{ pad }}; background:{{ bg }}; border:{{ border }}; box-shadow:{{ ring }}; border-radius:{{ radius }}; cursor:{{ cursor }}; pointer-events:{{ pe }}; transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .35s var(--ease-spring)">
+  <sc-if value="{{ hasIcon }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex; color:var(--text-tertiary); flex:none"><g-icon name="{{ iconName }}" size="14"></g-icon></span></sc-if>
+  <sc-if value="{{ hasPrefix }}" hint-placeholder-val="{{ false }}"><span style="font-size:{{ fs }}; font-family:{{ font }}; font-weight:var(--fw-regular); color:var(--text-tertiary); flex:none; position:relative; top:0.5px">{{ prefix }}</span></sc-if>
+  <input value="{{ val }}" disabled="{{ isDisabled }}" aria-invalid="{{ ariaInvalid }}" onChange="{{ input }}" onFocus="{{ focus }}" onBlur="{{ blur }}" onKeyDown="{{ keyDown }}" onPaste="{{ paste }}" placeholder="{{ placeholder }}" maxLength="{{ maxLen }}" style="border:none; background:transparent; padding:0; position:relative; flex:1; min-width:0; outline:none; color:{{ color }}; font-family:{{ font }}; font-weight:var(--fw-regular); font-size:{{ fs }}; line-height:var(--lh-ui); text-align:{{ align }}; position:relative; top:{{ optical }}; cursor:inherit; transition:color .2s ease">
+  <sc-if value="{{ hasSuffix }}" hint-placeholder-val="{{ false }}"><span style="font-size:{{ fs }}; font-family:{{ font }}; font-weight:var(--fw-regular); color:var(--text-tertiary); flex:none; position:relative; top:0.5px">{{ suffix }}</span></sc-if>
+  <sc-if value="{{ showClear }}" hint-placeholder-val="{{ false }}"><button data-tap="true" data-tooltip="{{ clearLabel }}" aria-label="{{ clearLabel }}" onMouseDown="{{ stopMd }}" onClick="{{ clear }}" style="display:inline-flex; align-items:center; justify-content:center; padding:0; border:none; background:none; color:var(--text-tertiary); cursor:pointer; flex:none; animation:ds-fade .15s ease" style-hover="color:var(--text-primary)"><g-icon name="xmark" size="14"></g-icon></button></sc-if>
+</label>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 280, &quot;height&quot;: 68},
+&quot;value&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Осенний сейл&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;placeholder&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;},
+&quot;icon&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
+&quot;prefix&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
+&quot;suffix&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
+&quot;clearable&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Аффиксы&quot;},
+&quot;maxLength&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 0, &quot;tsType&quot;: &quot;number&quot;},
+&quot;invalid&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;disabled&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;align&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;left&quot;, &quot;right&quot;], &quot;default&quot;: &quot;left&quot;, &quot;tsType&quot;: &quot;'left' | 'right'&quot;},
+&quot;bare&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;boolean&quot;},
+&quot;onEnter&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onEscape&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() =&gt; void&quot;},
+&quot;onFocus&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() => void&quot;}, &quot;onBlur&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;() => void&quot;}, &quot;onInput&quot;: {&quot;editor&quot;: null, &quot;tsType&quot;: &quot;(value: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { text: null, focused: false };
+  // контролируемый режим: если родитель сменил value — его слово главнее внутреннего черновика
+  componentDidUpdate(prev) { if (prev && prev.value !== this.props.value && this.state.text !== null) this.setState({ text: null }); }
+  // Перезапуск анимации: тот же animation-name сам себя не рестартует, поэтому
+  // снимаем его, дёргаем reflow и ставим заново — иначе быстрый повторный упор
+  // в предел не даёт отклика.
+  shake() {
+    const el = this._box;
+    if (!el) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'ds-shake .3s var(--ease-inout)';
+  }
+  renderVals() {
+    const p = this.props, bare = !!p.bare, invalid = !!p.invalid, disabled = !!p.disabled;
+    const focused = this.state.focused && !disabled;
+    const val = this.state.text ?? p.value ?? '';
+    return {
+      // состояния текста: placeholder — tertiary (::placeholder в ds.css), введённое — primary, disabled — text-disabled
+      val, placeholder: p.placeholder ?? '',
+      // Оптика по ФАКТУ содержимого: у цифр нет выносных, их пятно сидит выше прозы.
+      // Но если на той же строке есть префикс или суффикс — сдвиг обязан быть общим,
+      // иначе разъезжается базовая линия внутри поля («$ 100»). Тогда — прозаический 0.5px.
+      optical: (() => {
+        const v = String(val), affix = !!(p.prefix || p.suffix);
+        const numeric = /\d/.test(v) && !/[a-zA-Zа-яёА-ЯЁ]/.test(v);
+        return (numeric && !affix) ? '1.2px' : '0.5px';
+      })(),
+      // Оптика зависит от ФОРМЫ набора: у цифр нет выносных, их чернильное пятно сидит
+      // выше в строковом боксе, поэтому числовому полю нужен больший сдвиг вниз, чем прозе
+      // (замер по глифам Unica при --lh-ui: цифры 1.2px, проза 0.5px — правило в ds.css).
+      isDisabled: disabled, ariaInvalid: invalid ? 'true' : undefined,
+      // хук для ds.css: у выключенного поля нет ни ховер-рамки, ни пресса
+      disabledAttr: disabled ? 'true' : 'false',
+      input: (e) => { this.setState({ text: e.target.value }); (p.onInput ?? (() => {}))(e.target.value); },
+      focus: () => { this.setState({ focused: true }); (p.onFocus ?? (() => {}))(); },
+      boxRef: (el) => { this._box = el; },
+      // вставка длиннее остатка тоже упирается в предел — браузер обрежет её молча
+      paste: (e) => {
+        const lim = Number(p.maxLength) || 0;
+        if (!lim) return;
+        const el = e.target, sel = (el.selectionEnd ?? 0) - (el.selectionStart ?? 0);
+        const add = (e.clipboardData && e.clipboardData.getData('text')) || '';
+        if ((el.value ?? '').length - sel + add.length > lim) this.shake();
+      },
+      keyDown: (e) => {
+        if (e.key === 'Enter') (p.onEnter ?? (() => {}))();
+        if (e.key === 'Escape') (p.onEscape ?? (() => {}))();
+        // Попытка ввести символ в заполненное поле: браузер его молча отбрасывает и
+        // никакого события не даёт — поэтому ловим саму попытку. Печатный символ,
+        // без модификаторов, без выделения (иначе символ заменит выделенное).
+        const lim = Number(p.maxLength) || 0;
+        if (!lim || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+        const el = e.target;
+        if (el.selectionStart !== el.selectionEnd) return;
+        if ((el.value ?? '').length < lim) return;
+        this.shake();
+      },
+      blur: () => { this.setState({ focused: false }); (p.onBlur ?? (() => {}))(); },
+      // аффиксы — только у field: иконка слева, prefix/suffix, кнопка очистки
+      hasIcon: !bare && !!p.icon, iconName: p.icon ?? '',
+      hasPrefix: !bare && !!p.prefix, prefix: p.prefix ?? '',
+      hasSuffix: !bare && !!p.suffix, suffix: p.suffix ?? '',
+      showClear: !bare && !!p.clearable && !!val && !disabled,
+      clearLabel: 'Очистить',
+      maxLen: (Number(p.maxLength) || 0) > 0 ? Number(p.maxLength) : undefined,
+      // maxLength — жёсткий предел на нативном input (лишние символы просто не вводятся).
+      // Счётчика нет: он занимал место в ряду и ничего не добавлял — предел ощущается тем,
+      // что ввод останавливается.
+      clear: (e) => { e.preventDefault(); e.stopPropagation(); this.setState({ text: '' }); (p.onInput ?? (() => {}))(''); },
+      stopMd: (e) => { e.preventDefault(); e.stopPropagation(); },
+      // bare: голый ввод для рядов (обвязкой владеет ряд); field: своя поверхность.
+      // data-field — хук ds.css: пресс-состояние поля, forced-colors и общие переходы.
+      // Без него правила [data-field] были мёртвыми, а у field-поля не было пресса.
+      fieldAttr: bare ? undefined : 'true',
+      pad: bare ? '0' : '0 12px',
+      h: bare ? 'auto' : 'var(--control-h-s)',
+      bg: bare ? 'transparent' : disabled ? 'var(--bg-hover)' : 'var(--bg-surface)',
+      border: bare ? 'none' : disabled ? '1px solid transparent' : ('1px solid ' + (invalid ? 'var(--danger)' : focused ? 'var(--accent)' : 'var(--border-subtle)')),
+      ring: (!bare && focused && !invalid) ? 'inset 0 0 0 1px var(--accent)' : 'none',
+      radius: bare ? '0' : 'var(--r-s)',
+      // ховер поля — в ds.css по data-field; здесь только хук ошибки
+      invalidAttr: invalid ? 'true' : 'false',
+      color: disabled ? 'var(--text-disabled)' : invalid ? 'var(--danger)' : 'var(--text-primary)',
+      cursor: disabled ? 'not-allowed' : 'text',
+      pe: (bare && disabled) ? 'none' : 'auto',
+      font: 'var(--font-ui)', fs: 'var(--fs-m)',
+      align: p.align ?? (bare ? 'right' : 'left'),
+      down: (bare || disabled) ? (() => {}) : (e) => this.caret(e),
+    };
+  }
+  caret(e) { // клик по пустой зоне поля — каретка в конец (общий хелпер)
+    if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+    const inp = e.currentTarget.querySelector('input');
+    if (!inp) return;
+    e.preventDefault(); window.dsCaretEnd(inp);
+  }
+}
+</script>
+</body>
+</html>
