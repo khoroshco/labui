@@ -9,8 +9,14 @@
   },
   "scripts": {
     "dev": "vite",
-    "verify": "npm run test:smoke",
-    "test:smoke": "playwright test tests/smoke"
+    "api": "node scripts/build-api.mjs",
+    "lint": "npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:showcase",
+    "lint:tokens": "node scripts/check-tokens.mjs",
+    "lint:props": "node scripts/check-props.mjs",
+    "lint:api": "node scripts/build-api.mjs --check",
+    "lint:showcase": "node scripts/check-showcase.mjs",
+    "test:smoke": "playwright test tests/smoke",
+    "verify": "npm run lint && npm run test:smoke"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",

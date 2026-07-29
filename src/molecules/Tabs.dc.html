@@ -42,14 +42,21 @@ class Component extends DCLogic {
   }
   componentDidUpdate() { this._track && this._track.update(); }
   componentWillUnmount() { clearTimeout(this._trackWait); this._track && this._track.unmount(); }
+  // Список вкладок ОДИН на компонент: и разметка, и кламп берут его отсюда. Когда запасной
+  // набор жил только в renderVals, cur() считал по пустому props.options, клампил индекс в 0 —
+  // и неуправляемый контрол замирал на первой вкладке при живых кликах.
+  items() {
+    const o = this.props.options;
+    return (Array.isArray(o) && o.length) ? o : [['Все форматы', '18'], ['Требуют внимания', '4']];
+  }
   cur() {
-    const p = this.props, n = (p.options ?? []).length;
+    const p = this.props, n = this.items().length;
     const controlled = typeof p.onChange === 'function';
     const raw = controlled ? Number(p.value ?? 0) : (this.state.active ?? Number(p.value ?? 0));
     return n ? Math.max(0, Math.min(raw, n - 1)) : 0;
   }
   renderVals() {
-    const items = this.props.options ?? [['Все форматы', '18'], ['Требуют внимания', '4']];
+    const items = this.items();
     const active = this.cur(), bar = this.state.bar;
     return {
       boxRef: (el) => { this._box = el; },

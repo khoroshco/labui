@@ -21,8 +21,8 @@ ROADMAP.md           что делаем после переезда: DTCG-то�
 src/                 tokens.css, ds.css, хелперы, рантайм, шрифты, иконки
   atoms/             Button, Input, Checkbox, Toggle, CycleButton, OptionGroup, Badge, Skeleton, Avatar, Pin
   molecules/         RowLabel, RowInfo, RowMsg, InputRow, ChoiceRow, SwitchRow, CheckboxRow, ActionRow,
-                     Slider, Disclosure, Segments, Tabs, Toast, EmptyState, PinCard, PinComposer
-  organisms/         Island
+                     Slider, Disclosure, Segments, Tabs, Toast, PinCard, PinComposer
+  organisms/         Island, EmptyState
 storybook/           Storybook.dc.html — единственный источник истины по составу и правилам
 tests/               smoke, unit, a11y, visual
 docs/                handoff (план переезда), process, brief

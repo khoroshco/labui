@@ -1,0 +1,1871 @@
+{
+  "$comment": "Генерируется scripts/build-api.mjs из исходников. Руками не править.",
+  "package": "@banner-lab/ds",
+  "version": "0.1.0",
+  "runtime": "dc",
+  "levels": [
+    "atoms",
+    "molecules",
+    "organisms"
+  ],
+  "components": [
+    {
+      "name": "Avatar",
+      "level": "atoms",
+      "file": "src/atoms/Avatar.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 120,
+        "height": 80
+      },
+      "mounts": [],
+      "mountedBy": [
+        "PinCard",
+        "PinComposer"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "author",
+          "type": "string",
+          "default": "Марина Ковалёва",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "size",
+          "type": "'s'|'m'|'l'|'xl'",
+          "default": "s",
+          "editor": "enum",
+          "options": [
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "callback": false
+        },
+        {
+          "name": "ai",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "Badge",
+      "level": "atoms",
+      "file": "src/atoms/Badge.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 240,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "300×250",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": "",
+          "editor": "enum",
+          "options": [
+            "",
+            "circle-check-fill",
+            "triangle-exclamation-fill",
+            "circle-exclamation-fill",
+            "lock",
+            "clock"
+          ],
+          "callback": false
+        },
+        {
+          "name": "nums",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'solid'|'soft'|'quiet'",
+          "default": "soft",
+          "editor": "enum",
+          "options": [
+            "solid",
+            "soft",
+            "quiet"
+          ],
+          "callback": false
+        },
+        {
+          "name": "tone",
+          "type": "'neutral'|'ok'|'warn'|'danger'|'info'",
+          "default": "neutral",
+          "editor": "enum",
+          "options": [
+            "neutral",
+            "ok",
+            "warn",
+            "danger",
+            "info"
+          ],
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "Button",
+      "level": "atoms",
+      "file": "src/atoms/Button.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 240,
+        "height": 72
+      },
+      "mounts": [],
+      "mountedBy": [
+        "ActionRow",
+        "EmptyState",
+        "PinCard",
+        "PinComposer",
+        "Toast"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Выгрузить",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'primary'|'secondary'|'ghost'|'accent'",
+          "default": "primary",
+          "editor": "enum",
+          "options": [
+            "primary",
+            "secondary",
+            "ghost",
+            "accent"
+          ],
+          "callback": false
+        },
+        {
+          "name": "size",
+          "type": "'xs'|'s'|'m'|'l'",
+          "default": "m",
+          "editor": "enum",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l"
+          ],
+          "callback": false
+        },
+        {
+          "name": "tone",
+          "type": "'default'|'ok'|'danger'",
+          "default": "default",
+          "editor": "enum",
+          "options": [
+            "default",
+            "ok",
+            "danger"
+          ],
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "iconRight",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "tooltip",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "level": "atoms",
+      "file": "src/atoms/Checkbox.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 300,
+        "height": 48
+      },
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Применить ко всем форматам",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": true,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(on: boolean) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "CycleButton",
+      "level": "atoms",
+      "file": "src/atoms/CycleButton.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 120,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [
+        "InputRow",
+        "Slider"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "options",
+          "type": "string[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "tooltip",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number, option: string) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "level": "atoms",
+      "file": "src/atoms/Input.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 280,
+        "height": 68
+      },
+      "mounts": [],
+      "mountedBy": [
+        "InputRow",
+        "PinComposer"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": "Осенний сейл",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "prefix",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "suffix",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "align",
+          "type": "'left' | 'right'",
+          "default": "left",
+          "editor": "enum",
+          "options": [
+            "left",
+            "right"
+          ],
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onEnter",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onEscape",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "OptionGroup",
+      "level": "atoms",
+      "file": "src/atoms/OptionGroup.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 220,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [
+        "ChoiceRow",
+        "Segments"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "pill",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "(string | {icon: string, title?: string, label?: string})[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Pin",
+      "level": "atoms",
+      "file": "src/atoms/Pin.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 80,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "number",
+          "type": "number",
+          "default": 1,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "author",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "resolved",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "hasReply",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "Skeleton",
+      "level": "atoms",
+      "file": "src/atoms/Skeleton.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 240,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [
+        "InputRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "shape",
+          "type": "'line' | 'rect' | 'circle'",
+          "default": "line",
+          "editor": "enum",
+          "options": [
+            "line",
+            "rect",
+            "circle"
+          ],
+          "callback": false
+        },
+        {
+          "name": "width",
+          "type": "string",
+          "default": "140px",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "height",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "Toggle",
+      "level": "atoms",
+      "file": "src/atoms/Toggle.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 260,
+        "height": 48
+      },
+      "mounts": [],
+      "mountedBy": [
+        "SwitchRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Живое превью",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": true,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "ActionRow",
+      "level": "molecules",
+      "file": "src/molecules/ActionRow.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 70
+      },
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": [
+        "Island"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Извлечь сцену",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'primary'|'secondary'|'ghost'|'accent'",
+          "default": "primary",
+          "editor": "enum",
+          "options": [
+            "primary",
+            "secondary",
+            "ghost",
+            "accent"
+          ],
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "CheckboxRow",
+      "level": "molecules",
+      "file": "src/molecules/CheckboxRow.dc.html",
+      "status": "beta",
+      "preview": {
+        "width": 380,
+        "height": 130
+      },
+      "mounts": [
+        "Checkbox",
+        "RowInfo",
+        "RowLabel",
+        "RowMsg"
+      ],
+      "mountedBy": [
+        "Island"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Применить ко всем форматам",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "'ok'|'warn'|'danger'",
+          "default": "ok",
+          "editor": "enum",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "ChoiceRow",
+      "level": "molecules",
+      "file": "src/molecules/ChoiceRow.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 100
+      },
+      "mounts": [
+        "OptionGroup",
+        "RowInfo",
+        "RowLabel"
+      ],
+      "mountedBy": [
+        "Island"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Тип выхода",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "(string | {icon: string, title?: string, label?: string})[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Disclosure",
+      "level": "molecules",
+      "file": "src/molecules/Disclosure.dc.html",
+      "status": "beta",
+      "preview": {
+        "width": 460,
+        "height": 180
+      },
+      "mounts": [],
+      "mountedBy": [],
+      "acceptsChildren": true,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Примеры",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "count",
+          "type": "number | string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'eyebrow'|'plain'",
+          "default": "eyebrow",
+          "editor": "enum",
+          "options": [
+            "eyebrow",
+            "plain"
+          ],
+          "callback": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onToggle",
+          "type": "((open: boolean) => void) | null",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "InputRow",
+      "level": "molecules",
+      "file": "src/molecules/InputRow.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 150
+      },
+      "mounts": [
+        "CycleButton",
+        "Input",
+        "RowInfo",
+        "RowLabel",
+        "RowMsg",
+        "Skeleton"
+      ],
+      "mountedBy": [
+        "Island"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Отступ лигала",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": "10",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "string[] | null",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "nums",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "'ok' | 'warn' | 'danger'",
+          "default": "ok",
+          "editor": "enum",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "optionIndex",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "onOptionChange",
+          "type": "(index: number, option: string) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "PinCard",
+      "level": "molecules",
+      "file": "src/molecules/PinCard.dc.html",
+      "status": "beta",
+      "preview": {
+        "width": 340,
+        "height": 220
+      },
+      "mounts": [
+        "Avatar",
+        "Button",
+        "PinComposer"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "messages",
+          "type": "({ ai: true; text: string } | { ai?: false; text: string; name: string; src?: string })[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'thread'|'preview'",
+          "default": "thread",
+          "editor": "enum",
+          "options": [
+            "thread",
+            "preview"
+          ],
+          "callback": false
+        },
+        {
+          "name": "resolved",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "author",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onResolve",
+          "type": "(resolved: boolean) => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onSend",
+          "type": "(text: string) => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "PinComposer",
+      "level": "molecules",
+      "file": "src/molecules/PinComposer.dc.html",
+      "status": "beta",
+      "preview": {
+        "width": 320,
+        "height": 70
+      },
+      "mounts": [
+        "Avatar",
+        "Button",
+        "Input"
+      ],
+      "mountedBy": [
+        "PinCard"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "author",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "authorSrc",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "Комментарий…",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "autofocus",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "sendLabel",
+          "type": "string",
+          "default": "Отправить",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "onSend",
+          "type": "(text: string) => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "RowInfo",
+      "level": "molecules",
+      "file": "src/molecules/RowInfo.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 360,
+        "height": 220
+      },
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": true,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "default": "Текст подсказки приходит пропсом.",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "RowLabel",
+      "level": "molecules",
+      "file": "src/molecules/RowLabel.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 240,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Запекать в растр",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "hasInfo",
+          "type": "boolean",
+          "default": true,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "onToggle",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "RowMsg",
+      "level": "molecules",
+      "file": "src/molecules/RowMsg.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 360,
+        "height": 60
+      },
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "InputRow",
+        "SwitchRow"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "default": "Токен — латиница и цифры, минимум 11 символов",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "level",
+          "type": "'ok' | 'warn' | 'danger'",
+          "default": "danger",
+          "editor": "enum",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "callback": false
+        }
+      ]
+    },
+    {
+      "name": "Segments",
+      "level": "molecules",
+      "file": "src/molecules/Segments.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 340,
+        "height": 64
+      },
+      "mounts": [
+        "OptionGroup"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "options",
+          "type": "string[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(i: number) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Slider",
+      "level": "molecules",
+      "file": "src/molecules/Slider.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 76
+      },
+      "mounts": [
+        "CycleButton"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Охранное поле",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 24,
+          "editor": "float",
+          "callback": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "default": 0,
+          "editor": "float",
+          "callback": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": 64,
+          "editor": "float",
+          "callback": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "default": 1,
+          "editor": "float",
+          "callback": false
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "default": "px",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "string[]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "optionIndex",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "onOptionChange",
+          "type": "(i: number, o: string) => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "snapStep",
+          "type": "number",
+          "default": 0,
+          "editor": "float",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(v: number) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "SwitchRow",
+      "level": "molecules",
+      "file": "src/molecules/SwitchRow.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 130
+      },
+      "mounts": [
+        "RowInfo",
+        "RowLabel",
+        "RowMsg",
+        "Toggle"
+      ],
+      "mountedBy": [
+        "Island"
+      ],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Запекать в растр",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "'ok'|'warn'",
+          "default": "ok",
+          "editor": "enum",
+          "options": [
+            "ok",
+            "warn"
+          ],
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Tabs",
+      "level": "molecules",
+      "file": "src/molecules/Tabs.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 420,
+        "height": 56
+      },
+      "mounts": [],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "options",
+          "type": "[string, string][]",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(i: number) => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Toast",
+      "level": "molecules",
+      "file": "src/molecules/Toast.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 400,
+        "height": 80
+      },
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "default": "12 форматов готовы к выгрузке",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "level",
+          "type": "'info'|'ok'|'warn'|'danger'",
+          "default": "info",
+          "editor": "enum",
+          "options": [
+            "info",
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "callback": false
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "default": "",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "leaving",
+          "type": "boolean",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": 0,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onTimeout",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onClose",
+          "type": "(() => void) | null",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "EmptyState",
+      "level": "organisms",
+      "file": "src/organisms/EmptyState.dc.html",
+      "status": "beta",
+      "preview": {
+        "width": 380,
+        "height": 260
+      },
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "variant",
+          "type": "'empty'|'error'",
+          "default": "empty",
+          "editor": "enum",
+          "options": [
+            "empty",
+            "error"
+          ],
+          "callback": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Пока нет форматов",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "default": "Добавьте первый баннер — он появится здесь вместе с остальной раскладкой.",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": "",
+          "editor": "enum",
+          "options": [
+            "",
+            "picture",
+            "circle-exclamation",
+            "folder",
+            "magnifier",
+            "layers"
+          ],
+          "callback": false
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "default": "Добавить баннер",
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "editor": null,
+          "callback": true
+        }
+      ]
+    },
+    {
+      "name": "Island",
+      "level": "organisms",
+      "file": "src/organisms/Island.dc.html",
+      "status": "stable",
+      "preview": {
+        "width": 380,
+        "height": 260
+      },
+      "mounts": [
+        "ActionRow",
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ],
+      "mountedBy": [],
+      "acceptsChildren": false,
+      "props": [
+        {
+          "name": "rows",
+          "type": "IslandRow[]",
+          "editor": null,
+          "callback": false
+        }
+      ]
+    }
+  ],
+  "composition": {
+    "islandRows": [
+      "InputRow",
+      "ChoiceRow",
+      "SwitchRow",
+      "CheckboxRow",
+      "ActionRow"
+    ],
+    "outsideIsland": [
+      "Slider",
+      "Disclosure"
+    ],
+    "noValidation": [
+      "ChoiceRow",
+      "Island"
+    ],
+    "warnOnly": [
+      "SwitchRow"
+    ]
+  }
+}
