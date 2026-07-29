@@ -1165,6 +1165,7 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;, &quot;section&quot;: &quot;Тема&quot;}}">
 class Component extends DCLogic {
   state = {
+    api: null,
     theme: null, level: 0, toasts: [], queue: [],
     canvasPins: [], pinSeq: 0, aiSending: false, eridText: '2VtzqxkKfBd', urlText: 'hvostilapy', eridTouched: true, urlTouched: true, eridFocused: false, urlFocused: false, eridHold: false, urlHold: false,
     pg: {
@@ -1333,7 +1334,15 @@ class Component extends DCLogic {
   islandPatch(i, patch) { this.setState(s => ({ islandRows: (s.islandRows ?? []).map((r, j) => j === i ? { ...r, ...patch } : r) })); }
   islandRemove(i) { this.setState(s => ({ islandRows: (s.islandRows ?? []).filter((_, j) => j !== i) })); }
   islandMove(i, d) { this.setState(s => { const a = [...(s.islandRows ?? [])], j = i + d; if (j < 0 || j >= a.length) return null; [a[i], a[j]] = [a[j], a[i]]; return { islandRows: a }; }); }
-  componentDidMount() { this.setState({ islandRows: this.islandSeed() }); this.applyTheme(); this.probeColors(); this.probeType(); this.probeSizes(); }
+  componentDidMount() { this.setState({ islandRows: this.islandSeed() }); this.applyTheme(); this.probeColors(); this.probeType(); this.probeSizes(); this.loadApi(); }
+  // api.json — машинный источник состава (уровни, статусы, пропсы). Витрина обязана
+  // строиться из него: дрейф рукописного списка мы уже проходили.
+  loadApi() {
+    fetch('api.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((api) => { if (api && Array.isArray(api.components)) this.setState({ api }); })
+      .catch(() => {});
+  }
   SIZE_TOKENS = ['--sp-05','--sp-1','--sp-15','--sp-2','--sp-25','--sp-3','--sp-35','--sp-4','--sp-5','--sp-6','--sp-7','--sp-8','--r-s','--r-m','--r-l','--r-full','--control-h-xs','--control-h-s','--control-h-m','--control-h-l','--row-h','--touch-target','--dot-unread'];
   // Размеры читаем так же, как цвет и набор: число в специмене обязано быть правдой,
   // иначе шкала в витрине разъезжается с tokens.css и дизайнер копирует несуществующее.
@@ -1560,16 +1569,16 @@ class Component extends DCLogic {
         { n: '2', swatch: 'var(--bg-surface)', name: 'Алиасы · --bg-* / --text-* / --accent', desc: 'Семантика: «для чего цвет». Единственный слой, который используют компоненты.', code: '--bg-surface: var(--c-gray-900);   --text-secondary: rgb(var(--ink) / .64);' },
         { n: '3', swatch: 'var(--bg-base)', name: 'Тема · [data-theme]', desc: 'Перемапливает алиасы на другие примитивы. Имя алиаса стабильно — меняется значение.', code: '[data-theme="light"] { --ink: var(--k-dark); --bg-surface: var(--c-white); }' },
       ],
-      statusRows: [
-        ['Button', 'Атом', 1], ['Input', 'Атом', 1], ['Checkbox', 'Атом', 1], ['Toggle', 'Атом', 1],
-        ['CycleButton', 'Атом', 1], ['OptionGroup', 'Атом', 1], ['Badge', 'Атом', 1],
-        ['Pin', 'Атом', 1], ['Avatar', 'Атом', 1], ['Skeleton', 'Атом', 1],
-        ['RowLabel', 'Молекула', 1], ['RowInfo', 'Молекула', 1], ['RowMsg', 'Молекула', 1],
-        ['InputRow', 'Молекула', 1], ['ChoiceRow', 'Молекула', 1], ['SwitchRow', 'Молекула', 1], ['CheckboxRow', 'Молекула', 0], ['ActionRow', 'Молекула', 1],
-        ['Slider', 'Молекула', 1], ['Disclosure', 'Молекула', 0], ['Segments', 'Молекула', 1], ['Tabs', 'Молекула', 1],
-        ['PinCard', 'Молекула', 0], ['PinComposer', 'Молекула', 0], ['Toast', 'Молекула', 1],
-        ['Island', 'Организм', 1], ['EmptyState', 'Организм', 0],
-      ].map((r, i) => ({ name: r[0], level: r[1], status: r[2] ? 'stable' : 'beta', dot: r[2] ? 'var(--ok)' : 'var(--warn)', sep: i === 0 ? 'none' : '0.5px solid var(--border-subtle)' })),
+      // Состав витрины приезжает из api.json, а не пишется руками. Рукописный список уже
+      // расходился с кодом: описывал удалённый режим острова и ссылался на удалённый
+      // компонент. Пока api.json не загружен, таблица пуста — это честнее выдумки.
+      statusRows: (this.state.api?.components ?? []).map((c, i) => ({
+        name: c.name,
+        level: { atoms: 'Атом', molecules: 'Молекула', organisms: 'Организм' }[c.level] ?? c.level,
+        status: c.status,
+        dot: c.status === 'stable' ? 'var(--ok)' : 'var(--warn)',
+        sep: i === 0 ? 'none' : '0.5px solid var(--border-subtle)',
+      })),
       uxRules: [
         { title: 'Тон', text: 'По-русски, на «вы» без слова «вы». Спокойно и по делу, без восклицаний и эмодзи. Термины предметной области — как есть.' },
         { title: 'Лейблы', text: 'Существительное, регистр предложения. Без точки и двоеточия. Не Title Case и не КАПС (капс — только у бейджей).' },

@@ -15,6 +15,8 @@ import path from 'node:path';
 
 /** Папки-исходники. Порядок важен только для сообщения о коллизии. */
 const ROOTS = ['src', 'storybook'];
+/** Файлы из корня, которые нужны витрине по сети: состав она берёт из них, а не из текста. */
+const ROOT_FILES = ['api.json', 'components.json'];
 /** Папки, которые отдаются с сохранением своего имени: их путь зашит в код и CSS. */
 const KEEP_DIR = new Set(['svgs', 'fonts']);
 
@@ -59,6 +61,7 @@ export function buildFlatMap(root = process.cwd()) {
   };
 
   for (const r of ROOTS) if (fs.existsSync(path.join(root, r))) walk(r, '/');
+  for (const f of ROOT_FILES) if (fs.existsSync(path.join(root, f))) claim(`/${f}`, f);
   return map;
 }
 

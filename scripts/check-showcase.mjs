@@ -14,7 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { declaredTokens, LEVEL_RU, report, ROOT, showcase } from './lib/dc.mjs';
+import { declaredTokens, report, ROOT, showcase } from './lib/dc.mjs';
 
 const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 const known = new Map(api.components.map((c) => [c.name, c]));
@@ -43,36 +43,16 @@ for (const f of files) {
   }
 }
 
-// 3. Таблица статусов — рукописный массив statusRows в логике витрины.
-const rowsSrc = /statusRows:\s*\[([\s\S]*?)\]\.map\(/.exec(all)?.[1];
-if (!rowsSrc) {
-  problems.push('в витрине не найден массив statusRows — гейт статусов ослеп, проверь разметку');
-} else {
-  const rows = [...rowsSrc.matchAll(/\[\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*([01])\s*\]/g)].map((m) => ({
-    name: m[1],
-    level: m[2],
-    status: m[3] === '1' ? 'stable' : 'beta',
-  }));
-  const seen = new Set();
-  for (const r of rows) {
-    seen.add(r.name);
-    const c = known.get(r.name);
-    if (!c) {
-      problems.push(`статусы витрины: «${r.name}» не существует`);
-      continue;
-    }
-    if (r.level !== LEVEL_RU[c.level]) {
-      problems.push(
-        `статусы витрины: «${r.name}» показан как ${r.level}, а лежит в ${c.level} (${LEVEL_RU[c.level]})`
-      );
-    }
-    if (r.status !== c.status) {
-      problems.push(`статусы витрины: «${r.name}» показан как ${r.status}, в components.json — ${c.status}`);
-    }
-  }
-  for (const name of known.keys()) {
-    if (!seen.has(name)) problems.push(`статусы витрины: «${name}» отсутствует в таблице`);
-  }
+// 3. Состав витрины приезжает из api.json, а не из рукописного массива.
+const HANDWRITTEN = /statusRows:\s*\[\s*\[/;
+if (HANDWRITTEN.test(all)) {
+  problems.push(
+    'состав витрины снова записан руками (statusRows массивом) — он обязан приезжать из api.json: ' +
+      'рукописный список уже расходился с кодом'
+  );
+}
+if (!/fetch\(\s*['"]api\.json['"]/.test(all)) {
+  problems.push('витрина не читает api.json — состав перестал быть машинным');
 }
 
 // 4. Токены: витрина документирует систему, поэтому не имеет права называть несуществующее.
