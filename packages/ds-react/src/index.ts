@@ -25,6 +25,10 @@ export { CheckboxRow, type CheckboxRowProps } from './molecules/CheckboxRow';
 export { Segments, type SegmentsProps } from './molecules/Segments';
 export { Tabs, type TabItem, type TabsProps } from './molecules/Tabs';
 export { InputRow, type InputRowProps } from './molecules/InputRow';
+export { Slider, type SliderProps } from './molecules/Slider';
+export { PinCard, type PinCardProps, type PinMessage } from './molecules/PinCard';
+export { PinComposer, type PinComposerProps } from './molecules/PinComposer';
+export { Toast, type ToastLevel, type ToastProps } from './molecules/Toast';
 export { Disclosure, type DisclosureProps } from './molecules/Disclosure';
 
 export { EmptyState, type EmptyStateProps } from './organisms/EmptyState';
