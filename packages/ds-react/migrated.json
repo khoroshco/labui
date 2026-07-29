@@ -18,6 +18,16 @@
     "Input",
     "RowLabel",
     "RowInfo",
-    "RowMsg"
+    "RowMsg",
+    "ActionRow",
+    "ChoiceRow",
+    "SwitchRow",
+    "CheckboxRow",
+    "Segments",
+    "Disclosure",
+    "EmptyState",
+    "Tabs",
+    "InputRow",
+    "Island"
   ]
 }
