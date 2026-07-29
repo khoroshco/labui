@@ -71,6 +71,17 @@ jobs:
           path: test-results/
           retention-days: 14
 
+      # Эталоны привязаны к платформе: рендер шрифта на Linux и macOS разный. Когда
+      # линуксового снимка ещё нет, Playwright пишет его сам — отдаём наружу, чтобы
+      # эталон можно было посмотреть глазами и закоммитить, а не «обновить не глядя».
+      - name: Снятые эталоны
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-${{ runner.os }}
+          path: tests/visual/snapshots.spec.js-snapshots/
+          retention-days: 14
+
   changeset:
     name: Ченджсет
     runs-on: ubuntu-latest
