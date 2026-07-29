@@ -81,15 +81,16 @@ export default function flatDs({ root = process.cwd(), index = '/Storybook.dc.ht
           res.setHeader('Location', index);
           return res.end();
         }
+        // Карта живая: файл мог появиться или переехать на другой уровень после старта —
+        // пересобираем и повторяем, а не просим рестарт и не отдаём 404 на живой файл.
         let file = map.get(url);
-        if (!file) {
-          // новый файл появился после старта — пересобираем карту, а не просим рестарт
+        let abs = file && path.join(root, file);
+        if (!file || !fs.existsSync(abs)) {
           map = buildFlatMap(root);
           file = map.get(url);
+          abs = file && path.join(root, file);
         }
-        if (!file) return next();
-        const abs = path.join(root, file);
-        if (!fs.existsSync(abs)) return next();
+        if (!file || !fs.existsSync(abs)) return next();
         res.setHeader('Content-Type', MIME[path.extname(abs)] ?? 'application/octet-stream');
         res.setHeader('Cache-Control', 'no-cache');
         if (req.method === 'HEAD') return res.end();

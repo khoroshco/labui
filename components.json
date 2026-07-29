@@ -1,0 +1,53 @@
+{
+  "_почему": [
+    "Здесь лежит ТОЛЬКО то, чего в коде нет: зрелость компонента и правила композиции.",
+    "Всё остальное — пропсы, типы, дефолты, уровни, кто в кого вкладывается — выводится",
+    "из исходников скриптом scripts/build-api.mjs в api.json. Руками api.json не правят.",
+    "beta — API может ещё уточниться. stable трогаем только с бампом мажора и ченджсетом."
+  ],
+  "status": {
+    "ActionRow": "stable",
+    "Avatar": "stable",
+    "Badge": "stable",
+    "Button": "stable",
+    "Checkbox": "stable",
+    "CheckboxRow": "beta",
+    "ChoiceRow": "stable",
+    "CycleButton": "stable",
+    "Disclosure": "beta",
+    "EmptyState": "beta",
+    "Input": "stable",
+    "InputRow": "stable",
+    "Island": "stable",
+    "OptionGroup": "stable",
+    "Pin": "stable",
+    "PinCard": "beta",
+    "PinComposer": "beta",
+    "RowInfo": "stable",
+    "RowLabel": "stable",
+    "RowMsg": "stable",
+    "Segments": "stable",
+    "Skeleton": "stable",
+    "Slider": "stable",
+    "SwitchRow": "stable",
+    "Tabs": "stable",
+    "Toast": "stable",
+    "Toggle": "stable"
+  },
+  "composition": {
+    "_почему": "Правила из CLAUDE.md, которые из графа вложенности не читаются: они запрещают, а не описывают.",
+    "islandRows": ["InputRow", "ChoiceRow", "SwitchRow", "CheckboxRow", "ActionRow"],
+    "outsideIsland": {
+      "components": ["Slider", "Disclosure"],
+      "why": "Slider — сам себе ряд, Disclosure — раскрывашка уровня секции; оба ставятся отдельной стопкой под островом, в конфиг rows не входят."
+    },
+    "noValidation": {
+      "components": ["ChoiceRow", "Island"],
+      "why": "Валидация есть только там, где значение можно не дать или дать неверно. У ChoiceRow всегда есть выбранная опция; у острова валидации нет в принципе — она принадлежит ряду со значением."
+    },
+    "warnOnly": {
+      "components": ["SwitchRow"],
+      "why": "У переключателя нет «неверно» — есть последствие выбора. Поэтому предупреждение, а не ошибка."
+    }
+  }
+}
