@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Рантайм иначе перечитывает документ вторым запросом и пересобирает шаблон поверх уже
+     смонтированного дерева. Второй разбор отличается от первого ТОЛЬКО регистром имён
+     атрибутов (onClick → onclick), который рантайм нормализует сам, — то есть не даёт ничего,
+     а RowLabel на нём падал целиком: «removeChild … not a child of this node». Флаг —
+     собственная ручка рантайма. Подробности: CLAUDE.md, раздел «Репозиторий». -->
+<script>window.__resources = {};</script>
 <script src="./support.js"></script>
 </head>
 <body>
