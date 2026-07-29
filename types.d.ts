@@ -86,6 +86,8 @@ export interface InputProps {
   /** По умолчанию: "Осенний сейл" */
   value?: string;
   /** По умолчанию: "" */
+  ariaLabel?: string;
+  /** По умолчанию: "" */
   placeholder?: string;
   /** По умолчанию: "" */
   icon?: string;
