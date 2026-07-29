@@ -13,6 +13,11 @@
     "Toggle",
     "Checkbox",
     "Button",
-    "CycleButton"
+    "CycleButton",
+    "OptionGroup",
+    "Input",
+    "RowLabel",
+    "RowInfo",
+    "RowMsg"
   ]
 }

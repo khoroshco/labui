@@ -19,4 +19,6 @@ export const FIXTURES = {
     ],
   },
   Skeleton: { shape: 'line', width: '140px', height: '12px' },
+  // Группа без опций — пустой прямоугольник: снимок такого ничего не сторожит.
+  OptionGroup: { options: ['JPG', 'PNG', 'WEBP'], value: 1 },
 };
