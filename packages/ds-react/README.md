@@ -1,20 +1,24 @@
-# @banner-lab/ds
+# @khoroshco/ds
 
 Компоненты дизайн-системы Banner Lab на React. 27 компонентов: атомы, ряды, остров.
 
-**Пакет пока не публикуется.** Публикуются только токены (`@banner-lab/tokens`);
-компоненты остаются внутри репозитория — [ADR 0003](../../docs/adr/0003-не-публикуем-компоненты.md).
-Подключить сейчас можно рабочей копией: `npm i file:../labui/packages/ds-react` или через
-workspace. Ниже — то, как это будет выглядеть после публикации.
+Пакет публикуется **приватно**, в реестр GitHub Packages: он для своих сервисов, а не для
+всех ([ADR 0003](../../docs/adr/0003-не-публикуем-компоненты.md)). Чтобы поставить, нужен
+`.npmrc` рядом с `package.json` потребителя и токен GitHub с правом `read:packages`:
+
+```
+@khoroshco:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
 
 ```bash
-npm i @banner-lab/ds @banner-lab/tokens
+npm i @khoroshco/ds @khoroshco/tokens
 ```
 
 ```tsx
-import '@banner-lab/tokens/tokens.css';
-import '@banner-lab/ds/ds.css';
-import { Island, Slider } from '@banner-lab/ds';
+import '@khoroshco/tokens/tokens.css';
+import '@khoroshco/ds/ds.css';
+import { Island, Slider } from '@khoroshco/ds';
 
 <Island rows={[
   { type: 'text', label: 'Название', value: name, onInput: setName },

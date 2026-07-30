@@ -1,15 +1,15 @@
-# @banner-lab/tokens
+# @khoroshco/tokens
 
 Дизайн-токены Banner Lab: цвет, типографика, отступы, радиусы, тени, движение. Пакет не зависит от рантайма и подключается в любом стеке.
 
 ```bash
-npm i @banner-lab/tokens
+npm i @khoroshco/tokens
 ```
 
 ## CSS
 
 ```css
-@import '@banner-lab/tokens/tokens.css';
+@import '@khoroshco/tokens/tokens.css';
 ```
 
 Тема переключается атрибутом на корне: базовая — тёмная, светлая — `data-theme="light"`.
@@ -17,7 +17,7 @@ npm i @banner-lab/tokens
 ## JS/TS
 
 ```ts
-import { TOKENS, token } from '@banner-lab/tokens';
+import { TOKENS, token } from '@khoroshco/tokens';
 
 token('--text-primary');          // 'var(--text-primary)' — типизировано, опечатка не пройдёт
 TOKENS['--text-secondary'].layer; // 'alias'

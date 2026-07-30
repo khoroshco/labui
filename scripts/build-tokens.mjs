@@ -1,4 +1,4 @@
-/* Сборка пакета @banner-lab/tokens.
+/* Сборка пакета @khoroshco/tokens.
  *
  * Токены публикуются, а компоненты — нет: токены не зависят от рантайма и полезны любому
  * стеку немедленно, а публикация компонентов на DC-рантайме создала бы связанность, из-за
@@ -75,4 +75,4 @@ fs.writeFileSync(
     `export default TOKENS;\n`
 );
 
-console.log(`@banner-lab/tokens: ${names.length} токенов (${names.filter((n) => layerOf(n) === 'alias').length} алиасов)`);
+console.log(`@khoroshco/tokens: ${names.length} токенов (${names.filter((n) => layerOf(n) === 'alias').length} алиасов)`);
