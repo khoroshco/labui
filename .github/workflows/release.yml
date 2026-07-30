@@ -1,8 +1,10 @@
 name: Релиз
 
-# Публикуется ТОЛЬКО @banner-lab/tokens: он не зависит от рантайма и полезен любому стеку
-# сразу. Компоненты на DC-рантайме не публикуются осознанно (docs/adr/0003), корневой пакет
-# помечен private — случайный npm publish не пройдёт.
+# Публикация ПРИВАТНАЯ, в реестр GitHub Packages: пакеты раздаются своим сервисам, а не
+# всему свету (docs/adr/0003). Отдельный секрет для этого не нужен — публикует встроенный
+# GITHUB_TOKEN, которому дано право packages: write. Видимость пакета наследуется от
+# репозитория, поэтому приватный репозиторий даёт приватные пакеты.
+# Корневой пакет labui помечен private — случайный publish не пройдёт.
 on:
   push:
     branches: [main]
@@ -11,6 +13,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  packages: write # публикация в GitHub Packages встроенным токеном
 
 concurrency: release
 
@@ -27,7 +30,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          registry-url: https://registry.npmjs.org
+          registry-url: https://npm.pkg.github.com
+          scope: '@khoroshco'
 
       - run: npm ci
 
@@ -36,29 +40,16 @@ jobs:
       - name: Все гейты перед публикацией
         run: npx playwright install --with-deps chromium && npm run verify
 
-      - name: Есть ли ключ публикации
-        id: guard
-        # Секрет приходит через env: подстановка в тело скрипта кладёт его в трассировку
-        # и ломается на любом shell-метасимволе внутри токена.
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::NPM_TOKEN не задан — версия будет посчитана, но публикации не будет."
-          fi
-
       # changesets сам решает, что делать: есть незакрытые записи — открывает PR с версиями
       # и CHANGELOG; записи уже влиты — публикует.
       - uses: changesets/action@v1
         with:
           version: npx changeset version
-          publish: ${{ steps.guard.outputs.ready == 'true' && 'npx changeset publish' || '' }}
+          publish: npx changeset publish
           commit: 'релиз: версии и CHANGELOG'
           title: 'Релиз: версии и CHANGELOG'
         env:
+          # GITHUB_TOKEN — для PR с версиями, NODE_AUTH_TOKEN — для публикации в GitHub
+          # Packages. Это один и тот же встроенный токен: заводить секрет вручную не нужно.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

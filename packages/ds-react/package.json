@@ -1,14 +1,16 @@
 {
-  "name": "@banner-lab/ds",
+  "name": "@khoroshco/ds",
   "version": "0.0.0",
   "description": "Banner Lab Design System — компоненты на React",
   "license": "UNLICENSED",
-  "private": true,
   "type": "module",
   "sideEffects": [
     "*.css",
     "./dist/index.js"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -25,7 +27,7 @@
     "react-dom": "^18.3.0 || ^19.0.0"
   },
   "dependencies": {
-    "@banner-lab/tokens": "0.1.0"
+    "@khoroshco/tokens": "^0.1.0"
   },
   "repository": {
     "type": "git",

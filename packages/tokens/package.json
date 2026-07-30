@@ -1,5 +1,5 @@
 {
-  "name": "@banner-lab/tokens",
+  "name": "@khoroshco/tokens",
   "version": "0.1.0",
   "description": "Дизайн-токены Banner Lab: цвет, типографика, отступы, радиусы, тени, движение",
   "license": "UNLICENSED",
@@ -19,7 +19,7 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",

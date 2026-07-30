@@ -1,4 +1,4 @@
-# @banner-lab/tokens
+# @khoroshco/tokens
 
 ## 0.1.0
 

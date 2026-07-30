@@ -93,4 +93,4 @@ if (missing.length) {
 }
 
 const files = fs.readdirSync(dist).length;
-console.log(`@banner-lab/ds собран: ${files} записей в dist, ${expected.length} компонентов грузятся в Node`);
+console.log(`@khoroshco/ds собран: ${files} записей в dist, ${expected.length} компонентов грузятся в Node`);

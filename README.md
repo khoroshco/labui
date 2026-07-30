@@ -27,7 +27,7 @@ CONTRIBUTING.md      порядок правок и Definition of Done
 ROADMAP.md           что дальше; §0–§2 выполнены, §3 частично — см. пометки в файле
 api.json             машинный источник состава ЭТАЛОНА: пропсы, уровни, статусы, вложенность
 components.json      рукописное: зрелость stable/beta и правила композиции
-packages/ds-react/   @banner-lab/ds — 27 компонентов на React: ТА реализация, что уезжает
+packages/ds-react/   @khoroshco/ds — 27 компонентов на React: ТА реализация, что уезжает
 src/                 ЗАМОРОЖЕННЫЙ эталон (тег ds-reference-v0) — только для сверки;
                      живые входы обеих реализаций: ds.css, svgs/, fonts/, собираемый tokens.css
   atoms/             Button, Input, Checkbox, Toggle, CycleButton, OptionGroup, Badge, Skeleton, Avatar, Pin
@@ -35,7 +35,7 @@ src/                 ЗАМОРОЖЕННЫЙ эталон (тег ds-reference-
                      Slider, Disclosure, Segments, Tabs, Toast, PinCard, PinComposer
   organisms/         Island, EmptyState
 storybook/           витрина — единственный источник истины по составу и правилам
-packages/tokens/     @banner-lab/tokens — единственный публикуемый пакет
+packages/tokens/     @khoroshco/tokens — единственный публикуемый пакет
 tokens/              источник токенов в формате W3C DTCG; src/tokens.css из него собирается
 harness/             страница, на которой React-компонент сверяется с эталоном
 tests/               unit (без браузера), smoke, visual, parity, a11y
@@ -68,7 +68,16 @@ docs/adr/            решения, которые не надо переигр
 
 ## Публикация
 
-Публикуются **только токены** — [`@banner-lab/tokens`](packages/tokens/README.md). Компоненты на текущем DC-рантайме не публикуются: у системы ноль потребителей, и публикация создала бы связанность, из-за которой миграция на React стала бы согласованным мажором во всех сервисах вместо сравнения с эталоном. Причина целиком — [ADR 0003](docs/adr/0003-не-публикуем-компоненты.md), план — `ROADMAP.md`.
+Пакеты уезжают в **приватный реестр GitHub Packages** — они для своих сервисов, а не для всех. Потребителю нужны две строки в `.npmrc` и токен GitHub с правом `read:packages`:
+
+```
+@khoroshco:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Публикация происходит сама: ченджсеты считают версии, релизный workflow публикует встроенным токеном — заводить секрет вручную не нужно.
+
+Публикуются оба: [`@khoroshco/tokens`](packages/tokens/README.md) и `@khoroshco/ds`. До миграции публиковались только токены — компоненты на DC-рантайме связали бы сервисы со старым форматом, и переход на React стал бы согласованным мажором во всех сразу. Эта причина исчерпана; почему теперь публикуем и почему приватно — [ADR 0003](docs/adr/0003-не-публикуем-компоненты.md).
 
 ## Правки
 

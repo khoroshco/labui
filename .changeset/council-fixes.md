@@ -1,5 +1,5 @@
 ---
-'@banner-lab/ds': patch
+'@khoroshco/ds': patch
 ---
 
 Правки по консилиуму критиков.
