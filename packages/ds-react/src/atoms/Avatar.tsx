@@ -19,7 +19,7 @@ const SIZES = {
 } as const;
 
 /** Аватар: фото (src заполняет круг) → инициалы из author → AI (фирменный градиент). */
-export function Avatar({ author = 'Марина Ковалёва', src = '', size = 's', ai, inverse, bare, style }: AvatarProps) {
+export function Avatar({ author = '', src = '', size = 's', ai, inverse, bare, style }: AvatarProps) {
   const [broken, setBroken] = useState(false);
   useEffect(() => setBroken(false), [src]);
 

@@ -25,7 +25,8 @@ for (const name of components) {
       await open(page, name, FIXTURES[name] ?? null, { theme });
       await expect(page.locator('#dc-root')).toHaveScreenshot(`${name}-${theme}.png`, {
         animations: 'disabled',
-        maxDiffPixelRatio: 0.002,
+        threshold: 0.01,
+        maxDiffPixels: 10,
       });
     });
   }
@@ -37,7 +38,8 @@ for (const name of components) {
     await open(page, name, FIXTURES[name] ?? null, { theme: 'dark' });
     await expect(page.locator('#dc-root')).toHaveScreenshot(`${name}-reduced-motion.png`, {
       animations: 'disabled',
-      maxDiffPixelRatio: 0.002,
+      threshold: 0.01,
+        maxDiffPixels: 10,
     });
   });
 }

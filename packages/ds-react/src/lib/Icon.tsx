@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { ICONS, type IconName } from './icons.generated';
+import { ICONS, type IconName } from './icons.generated.js';
 
 export type { IconName };
 
@@ -18,7 +18,10 @@ export interface IconProps {
  */
 export function Icon({ name, size = 16, label, style }: IconProps) {
   const px = typeof size === 'number' ? `${size}px` : size;
-  const svg = ICONS[name].replace('<svg ', '<svg style="width:100%;height:100%;display:block" ');
+  // Имена приходят и из данных (конфиг рядов, JSON), поэтому неизвестное имя обязано
+  // оставить пустое место, а не уронить рендер: у веб-компонента g-icon было так же.
+  const raw = ICONS[name];
+  const svg = raw ? raw.replace('<svg ', '<svg style="width:100%;height:100%;display:block" ') : '';
   const aria = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true as const };
   return (
     <span

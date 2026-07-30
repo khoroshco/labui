@@ -31,10 +31,19 @@ jobs:
 
       - run: npm ci
 
+      # Гейты прогоняются здесь же: релиз не имеет права публиковать красный main.
+      # Отдельный workflow на push бежал бы параллельно с CI, а не после него.
+      - name: Все гейты перед публикацией
+        run: npx playwright install --with-deps chromium && npm run verify
+
       - name: Есть ли ключ публикации
         id: guard
+        # Секрет приходит через env: подстановка в тело скрипта кладёт его в трассировку
+        # и ломается на любом shell-метасимволе внутри токена.
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+          if [ -n "$NPM_TOKEN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"

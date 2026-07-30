@@ -24,7 +24,7 @@ const files = showcase();
 const all = files.map((f) => f.src).join('\n');
 
 // 1 + 2. Состав: витрина подписывает каждый компонент строкой «Name.dc.html».
-const mentioned = new Set([...all.matchAll(/>([A-Z][A-Za-z]+)\.dc\.html</g)].map((m) => m[1]));
+const mentioned = new Set([...all.matchAll(/>([A-Z][A-Za-z0-9]+)\.dc\.html</g)].map((m) => m[1]));
 for (const name of known.keys()) {
   if (!mentioned.has(name)) problems.push(`витрина не показывает компонент «${name}» — состав разошёлся`);
 }

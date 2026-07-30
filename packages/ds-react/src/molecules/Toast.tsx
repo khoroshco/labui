@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
-import { Button } from '../atoms/Button';
-import { Icon, type IconName } from '../lib/Icon';
+import { Button } from '../atoms/Button.js';
+import { Icon, type IconName } from '../lib/Icon.js';
 
 export type ToastLevel = 'info' | 'ok' | 'warn' | 'danger';
 
@@ -59,6 +59,18 @@ export function Toast({
   const dismiss = onClose ?? onTimeout ?? null;
   const critical = level === 'danger' || level === 'warn';
 
+  const finishDrag = () => {
+    if (!drag) return;
+    if (Math.abs(dx) > 80 && dismiss) {
+      // dx не сбрасываем: тост схлопнется со смещением, без отскока
+      setDrag(false);
+      dismiss();
+    } else {
+      setDrag(false);
+      setDx(0);
+    }
+  };
+
   return (
     <div
       style={{
@@ -93,22 +105,11 @@ export function Toast({
           onPointerMove={(e: PointerEvent<HTMLDivElement>) => {
             if (drag) setDx(e.clientX - startX.current);
           }}
-          onPointerUp={() => {
-            if (!drag) return;
-            if (Math.abs(dx) > 80 && dismiss) {
-              // dx не сбрасываем: тост схлопнется со смещением, без отскока
-              setDrag(false);
-              dismiss();
-            } else {
-              setDrag(false);
-              setDx(0);
-            }
-          }}
-          onPointerCancel={() => {
-            setDrag(false);
-            setDx(0);
-          }}
+          onPointerUp={() => finishDrag()}
+          // отмена указателя — тот же жест: если тост уже утянут за порог, он закрывается
+          onPointerCancel={() => finishDrag()}
           style={{
+
             transform: `translateX(${dx}px)`,
             opacity: String(1 - Math.min(Math.abs(dx) / 240, 0.6)),
             transition: drag ? 'none' : 'transform .35s var(--ease-spring), opacity .2s ease',

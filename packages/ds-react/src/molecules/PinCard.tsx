@@ -1,7 +1,7 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
-import { Avatar } from '../atoms/Avatar';
-import { Button } from '../atoms/Button';
-import { PinComposer } from './PinComposer';
+import { Avatar } from '../atoms/Avatar.js';
+import { Button } from '../atoms/Button.js';
+import { PinComposer } from './PinComposer.js';
 
 export type PinMessage = { ai: true; text: string } | { ai?: false; text: string; name: string; src?: string };
 

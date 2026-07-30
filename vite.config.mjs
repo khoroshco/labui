@@ -9,7 +9,10 @@ buildTokens();
 export default defineConfig({
   plugins: [flatDs()],
   server: {
-    port: 5173,
+    // Порт задаётся снаружи: гейты поднимают СВОЙ сервер на своём порту и никогда не
+    // подключаются к открытому дев-серверу. Иначе прогон мог тихо проверять другой чекаут
+    // того же репозитория — тот, что кто-то оставил на 5173 час назад.
+    port: Number(process.env.DS_PORT ?? 5173),
     strictPort: true,
     open: process.env.CI ? false : '/',
   },

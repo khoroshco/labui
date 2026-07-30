@@ -1,6 +1,6 @@
 import { useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { Icon } from '../lib/Icon';
-import { useControlled } from '../lib/hooks';
+import { Icon } from '../lib/Icon.js';
+import { useControlled } from '../lib/hooks.js';
 
 export interface DisclosureProps {
   label?: string;

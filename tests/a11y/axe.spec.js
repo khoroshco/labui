@@ -12,29 +12,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { dcPages, ROOT } from '../support/dc.js';
 import { open } from '../support/browser.js';
+import { FIXTURES } from '../support/fixtures.js';
 
 /** Ledger известных нарушений: гейт красный на всём, чего в нём нет, и на том,
  *  что в нём есть, но больше не воспроизводится. */
 const KNOWN = JSON.parse(readFileSync(path.join(ROOT, 'tests/a11y/known-violations.json'), 'utf8')).known;
-
-const FIXTURES = {
-  Island: {
-    rows: [
-      { type: 'text', label: 'Название', value: 'Осенний сейл' },
-      { type: 'toggle', label: 'Запекать в растр', checked: true },
-      { type: 'segmented', label: 'Формат', options: ['JPG', 'PNG'], value: 0 },
-      { type: 'action', label: 'Выгрузить' },
-    ],
-  },
-  PinCard: {
-    author: 'Марина Ковалёва',
-    messages: [{ name: 'Марина Ковалёва', text: 'Логотип уезжает за охранное поле.' }],
-  },
-  OptionGroup: { options: ['JPG', 'PNG', 'WEBP'], value: 0 },
-  // Подпись поля лежит снаружи компонента, поэтому имя приходит пропом — то же правило,
-  // что у Toggle и Checkbox. Компонент без имени и не должен считаться доступным.
-  Input: { ariaLabel: 'Название кампании' },
-};
 
 for (const { name, file } of dcPages()) {
   for (const theme of ['dark', 'light']) {
@@ -46,16 +28,31 @@ for (const { name, file } of dcPages()) {
         .include('#dc-root')
         .analyze();
 
-      const seen = violations.map((v) => `${name}/${theme}/${v.id}`);
-      const fresh = violations.filter((v) => !KNOWN[`${name}/${theme}/${v.id}`]);
-      const readable = fresh.map(
-        (v) => `${v.id} (${v.impact}): ${v.help}\n      ${v.nodes.map((n) => n.html.slice(0, 120)).join('\n      ')}`
-      );
-      expect(readable, `${name}/${theme}: новые нарушения доступности\n  ${readable.join('\n  ')}`).toEqual([]);
+      // Записи ledger'а сверяются ПО ЧИСЛУ УЗЛОВ, а не по одному id правила. С одним id
+      // запись «контраст у счётчика вкладки» покрывала бы и любой новый узел того же
+      // класса — покрасить опцию в --warn и потерять контраст можно было бы бесшумно
+      // (проверено). Число — не придирка: именно она отличает принятое решение от нового
+      // долга, приехавшего под его прикрытием.
+      const seen = new Map(violations.map((v) => [`${name}/${theme}/${v.id}`, v.nodes.length]));
+      const problems = [];
+      for (const v of violations) {
+        const key = `${name}/${theme}/${v.id}`;
+        const known = KNOWN[key];
+        const where = v.nodes.map((n) => n.html.slice(0, 120)).join('\n      ');
+        if (!known) {
+          problems.push(`${v.id} (${v.impact}): ${v.help}\n      ${where}`);
+        } else if (v.nodes.length !== known.nodes) {
+          problems.push(
+            `${v.id}: узлов ${v.nodes.length}, в ledger записано ${known.nodes} — ` +
+              `нарушение того же класса приехало на новый узел или уехало с прежнего.\n      ${where}`
+          );
+        }
+      }
+      expect(problems, `${name}/${theme}: доступность разошлась с ledger'ом\n  ${problems.join('\n  ')}`).toEqual([]);
 
       const stale = Object.keys(KNOWN)
         .filter((k) => k.startsWith(`${name}/${theme}/`))
-        .filter((k) => !seen.includes(k));
+        .filter((k) => !seen.has(k));
       expect(
         stale,
         `${name}/${theme}: нарушение из ledger больше не воспроизводится — вычеркни строку ` +

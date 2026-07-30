@@ -1,6 +1,6 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
-import { Icon, type IconName } from '../lib/Icon';
-import { useControlled, useTrackActive } from '../lib/hooks';
+import { Icon, type IconName } from '../lib/Icon.js';
+import { useControlled, useTrackActive } from '../lib/hooks.js';
 
 export type OptionItem = string | { icon: IconName; title?: string; label?: string };
 

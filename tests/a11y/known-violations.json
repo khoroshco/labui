@@ -1,21 +1,29 @@
 {
   "_почему": [
     "Ledger известных нарушений axe. Гейт красный на ЛЮБОМ нарушении, которого здесь нет,",
-    "и красный же на строке, которая перестала воспроизводиться: устаревшая запись хуже",
-    "отсутствующей — она выглядит как истина и живёт вечно.",
+    "красный на строке, которая перестала воспроизводиться, и красный, если число узлов",
+    "разошлось с записанным: устаревшая запись хуже отсутствующей — она выглядит как истина",
+    "и живёт вечно.",
+    "",
+    "Число узлов — не придирка. Запись по одному id правила («контраст у счётчика вкладки»)",
+    "покрывала и любой НОВЫЙ узел того же класса: перекрасить опцию в --warn и потерять",
+    "контраст можно было бесшумно. Поэтому в записи стоит ровно столько узлов, сколько их",
+    "было в день решения; выросло — гейт красный, ушло — тоже, значит запись пора вычеркнуть.",
     "",
     "Остался один класс — контраст, и это ПРИНЯТОЕ решение, а не долг: палитра остаётся",
     "как есть (docs/adr/0008). Цифры по всем парам — tests/a11y/contrast-budget.json."
   ],
   "known": {
-    "OptionGroup/light/color-contrast": "невыбранные опции — --text-tertiary (3.27:1 при норме 4.5)",
-    "Disclosure/light/color-contrast": "капс-рубрика заголовка — --text-tertiary (3.27:1)",
-    "Tabs/light/color-contrast": "счётчик у вкладки — --text-tertiary (3.27:1)",
-    "Island/light/color-contrast": "лейблы рядов и значения — --text-tertiary (3.31:1)",
-    "PinCard/light/color-contrast": "имя автора, 11px — --text-tertiary (3.31:1)",
-    "PinCard/dark/color-contrast": "имя автора, 11px — --text-tertiary (4.36:1, не хватает 0.14)",
-    "RowMsg/light/color-contrast": "текст ошибки — --danger в светлой теме (3.77:1)",
-    "Storybook/light/color-contrast": "витрина набрана тем же --text-tertiary: 182 узла",
-    "Storybook/dark/color-contrast": "подпись версии в шапке — --text-tertiary на --bg-base (2.73:1)"
+    "OptionGroup/light/color-contrast": { "nodes": 2, "why": "невыбранные опции JPG и WEBP — --text-tertiary (3.27:1 при норме 4.5)" },
+    "ChoiceRow/light/color-contrast": { "nodes": 1, "why": "невыбранная опция «Вектор» — тот же --text-tertiary" },
+    "Disclosure/light/color-contrast": { "nodes": 1, "why": "капс-рубрика заголовка — --text-tertiary (3.27:1)" },
+    "SbControls/light/color-contrast": { "nodes": 1, "why": "невыбранная опция «ghost» в панели пропсов — тот же --text-tertiary" },
+    "Tabs/light/color-contrast": { "nodes": 1, "why": "счётчик «18» у активной вкладки — --text-tertiary (3.27:1)" },
+    "Island/light/color-contrast": { "nodes": 2, "why": "невыбранные опции ряда «Формат» — --text-tertiary (3.31:1)" },
+    "PinCard/light/color-contrast": { "nodes": 2, "why": "имена авторов, 11px — --text-tertiary (3.31:1)" },
+    "PinCard/dark/color-contrast": { "nodes": 2, "why": "имена авторов, 11px — --text-tertiary (4.36:1, не хватает 0.14)" },
+    "RowMsg/light/color-contrast": { "nodes": 1, "why": "текст ошибки — --danger в светлой теме (3.77:1)" },
+    "Storybook/light/color-contrast": { "nodes": 182, "why": "витрина набрана тем же --text-tertiary: подписи токенов, счётчики, служебные строки" },
+    "Storybook/dark/color-contrast": { "nodes": 1, "why": "подпись --text-disabled в таблице палитры показывает сам этот уровень" }
   }
 }

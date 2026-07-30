@@ -7,16 +7,25 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildFlatMap } from './vite-plugin-flat-ds.mjs';
 
-const root = process.cwd();
+// Корень — от файла, а не от cwd. С cwd запуск из подкаталога делал rm -rf по чужому пути
+// и выкладывал ПУСТОЙ сайт: карта URL собиралась не оттуда, а пустой список ошибкой не был.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'dist-site');
+
+const map = [...buildFlatMap(root)];
+// Страховка от тихой пустоты: страниц тридцать, к ним стили, шрифты и иконки.
+if (map.length < 40) {
+  throw new Error(`build-site: карта URL собрала ${map.length} файлов — сайт был бы пустым`);
+}
 
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
 let count = 0;
-for (const [url, file] of buildFlatMap(root)) {
+for (const [url, file] of map) {
   const target = path.join(out, url);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.copyFileSync(path.join(root, file), target);

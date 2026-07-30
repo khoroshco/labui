@@ -7,6 +7,10 @@ on:
   push:
     branches: [main]
 
+# Права по минимуму: гейтам нечего писать в репозиторий.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -38,20 +42,16 @@ jobs:
       - name: Браузеры Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Линтеры контракта
-        run: npm run lint
+      # Один шаг вместо перечисления сюит: перечисление разошлось с npm run verify и
+      # оставило React-пакет без единого гейта — ни typecheck, ни паритета в CI не было.
+      # Теперь расхождение невозможно по построению.
+      - name: Все гейты
+        run: npm run verify
 
-      - name: Логика (unit)
-        run: npm run test:unit
-
-      - name: Загрузка страниц (smoke)
-        run: npm run test:smoke
-
-      - name: Инварианты и снапшоты
-        run: npm run test:visual
-
-      - name: Доступность
-        run: npm run test:a11y
+      # Пакеты собираются здесь, а не впервые внутри релиза: сломанная сборка обязана
+      # падать до публикации, а не посреди неё.
+      - name: Сборка пакетов
+        run: npm run build:tokens && npm run build:ds
 
       # Диффы и отчёты кладём к прогону: разбирать «упало на снапшоте» без картинки нельзя,
       # а обновлять снапшоты не глядя запрещено правилом.

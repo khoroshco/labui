@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Button, type ButtonVariant } from '../atoms/Button';
+import { Button, type ButtonVariant } from '../atoms/Button.js';
 
 export interface ActionRowProps {
   label?: string;

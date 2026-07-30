@@ -13,7 +13,14 @@ import path from 'node:path';
 const BASE = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main';
 
 /** Что считается сменой контракта для потребителя. */
-const WATCHED = [/^src\//, /^api\.json$/, /^types\.d\.ts$/, /^components\.json$/];
+const WATCHED = [
+  /^packages\/ds-react\/src\//, // то, что уезжает в пакет компонентов
+  /^packages\/tokens\//,
+  /^tokens\//, // источник токенов: переименование токена — мажор
+  /^src\//, // эталон и глобальный ds.css
+  /^api\.json$/,
+  /^components\.json$/,
+];
 
 const changed = execSync(`git diff --name-only ${BASE}...HEAD`, { encoding: 'utf8' })
   .split('\n')
@@ -26,10 +33,15 @@ if (contractChanges.length === 0) {
   process.exit(0);
 }
 
-const dir = path.join(process.cwd(), '.changeset');
-const notes = fs.existsSync(dir)
-  ? fs.readdirSync(dir).filter((f) => f.endsWith('.md') && f !== 'README.md')
-  : [];
+// Считаем записи, ДОБАВЛЕННЫЕ этим диапазоном, а не лежащие в каталоге. Иначе гейт
+// зеленеет от чужих нераскрытых записей: пока публикация ждёт токен, их там шесть,
+// и «ченджсет есть» перестаёт значить «ченджсет добавлен».
+const notes = execSync(`git diff --name-only --diff-filter=A ${BASE}...HEAD -- .changeset`, {
+  encoding: 'utf8',
+})
+  .split('\n')
+  .map((s) => s.trim())
+  .filter((f) => f.endsWith('.md') && !f.endsWith('README.md'));
 
 if (notes.length === 0) {
   console.error(
@@ -37,6 +49,7 @@ if (notes.length === 0) {
       '  Изменено:\n' +
       contractChanges.map((f) => `    ${f}`).join('\n') +
       '\n\n  Заведи запись: npx changeset\n' +
+      '  Учитываются только записи, добавленные ЭТИМ диапазоном.\n' +
       '  Смена, которую увидит потребитель, не имеет права уехать молча.\n'
   );
   process.exit(1);

@@ -9,7 +9,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { components, report, ROOT, showcase } from './lib/dc.mjs';
+import { components, reactSources, report, ROOT, showcase } from './lib/dc.mjs';
 
 const problems = [];
 const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
@@ -59,24 +59,50 @@ for (const c of [...components(), ...showcase()]) {
 const icons = new Set(
   fs.readdirSync(path.join(ROOT, 'src/svgs')).filter((f) => f.endsWith('.svg')).map((f) => f.replace(/\.svg$/, ''))
 );
-for (const c of [...components(), ...showcase()]) {
-  const names = new Set([
-    ...[...c.template.matchAll(/<g-icon[^>]*\bname="([^"{}]+)"/g)].map((m) => m[1]),
-    ...[...c.logic.matchAll(/icon:\s*'([a-z0-9-]+)'/g)].map((m) => m[1]),
-  ]);
+// Имя иконки приезжает не одним способом, а четырьмя: тегом <g-icon name>, атрибутом
+// icon= на вложенном компоненте, полем icon: в логике и тем же атрибутом/полем в React.
+// Гейт знал только два из них — удаление src/svgs/trash-bin.svg проходило все линтеры
+// зелёными, потому что «icon="trash-bin"» на кнопке ряда никто не читал.
+const ICON_PATTERNS = [
+  /<g-icon[^>]*\bname="([^"{}]+)"/g, // <g-icon name="plus">
+  /\bicon[A-Za-z]*="([a-z][a-z0-9-]*)"/g, // icon="plus", iconRight="chevron-down"
+  /\bicon[A-Za-z]*:\s*'([a-z][a-z0-9-]*)'/g, // icon: 'plus'
+  // icon={'plus'} и icon={resolved ? 'circle-check-fill' : 'circle-check'} — привязка к
+  // имени пропа обязательна: без неё в улов попадают любые пары строк в тернарнике
+  /\bicon[A-Za-z]*=\{[^}]*?'([a-z][a-z0-9-]*)'(?:[^}]*?'([a-z][a-z0-9-]*)')?/g,
+  /'([a-z][a-z0-9-]*)'\s+as\s+IconName/g, // 'picture' as IconName
+];
+
+const sources = [
+  ...[...components(), ...showcase()].map((c) => ({ file: c.file, src: c.template + c.logic })),
+  ...reactSources().map((r) => ({ file: r.file, src: r.body })),
+];
+for (const { file, src } of sources) {
+  const names = new Set();
+  for (const re of ICON_PATTERNS) {
+    for (const m of src.matchAll(re)) for (const g of m.slice(1)) if (g) names.add(g);
+  }
   for (const name of names) {
-    if (!icons.has(name)) problems.push(`${c.file}: иконки «${name}» нет в src/svgs — она не нарисуется`);
+    if (!icons.has(name)) {
+      problems.push(`${file}: иконки «${name}» нет в src/svgs — она не нарисуется`);
+    }
   }
 }
 
 // Порядок яркости обязан совпадать с порядком важности: primary → body → secondary →
 // tertiary → disabled. Проверяем по альфе в источнике токенов.
 const source = JSON.parse(fs.readFileSync(path.join(ROOT, 'tokens/banner-lab.tokens.json'), 'utf8'));
+// Разбор альфы прямой: «.76», «0.76» и «76%» — три законные записи одного значения.
+// Прежняя склейка строки давала NaN на «0.76» и null на «76%», а NaN не меньше ничего —
+// гейт сообщал «лестница сломана» на исправной палитре и «ослеп» на законной записи.
 const alphaOf = (name) => {
-  const v = source.alias[name]?.$value ?? '';
-  if (/^rgb\(var\(--ink\)\)$/.test(v)) return 1;
-  const m = /\/\s*\.?([0-9.]+)\s*\)/.exec(v);
-  return m ? Number(`0${m[0].replace(/[^\d.]/g, '') === '' ? '' : ''}${m[1].startsWith('.') ? m[1] : '.' + m[1]}`) : null;
+  const v = String(source.alias[name]?.$value ?? '');
+  if (!v) return null;
+  if (!v.includes('/')) return /var\(--ink\)/.test(v) ? 1 : null; // без слэша — полная непрозрачность
+  const m = /\/\s*([0-9]*\.?[0-9]+)\s*(%?)\s*\)/.exec(v);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return m[2] === '%' ? n / 100 : n;
 };
 const ladder = ['text-primary', 'text-body', 'text-secondary', 'text-tertiary', 'text-disabled'];
 const alphas = ladder.map((n) => ({ n, a: alphaOf(n) }));

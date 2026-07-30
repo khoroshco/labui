@@ -6,16 +6,38 @@
  */
 import { openDc, preparePage } from './dc.js';
 
-/** Открыть страницу компонента и вернуть копилку ошибок. */
-export async function open(page, name, props = null, { theme = 'dark', freeze = true } = {}) {
+/**
+ * Открыть страницу компонента и вернуть копилку ошибок.
+ *
+ * `impl` выбирает реализацию: 'dc' — замороженный эталон, 'react' — то, что уезжает
+ * потребителю. Инварианты обязаны проверяться на ОБЕИХ: ревью показало, что гейт,
+ * ходящий только по эталону, пропустил сломанный потолок яркости в семи React-компонентах
+ * и вложенный label в React-ряду.
+ */
+export async function open(page, name, props = null, { theme = 'dark', freeze = true, impl = 'dc' } = {}) {
   const bag = preparePage(page);
   await page.emulateMedia({ colorScheme: theme === 'light' ? 'light' : 'dark' });
+  if (impl === 'react') {
+    const q = props ? `&props=${encodeURIComponent(JSON.stringify(props))}` : '';
+    await page.goto(`/harness/?c=${name}&theme=${theme}${q}`, { waitUntil: 'load' });
+    await page.waitForSelector('#dc-root .sc-host > *');
+    // Ждём шрифт: без этого измерения попадают на подменный шрифт, и надпись оказывается
+    // на 2.5px шире — сравнение геометрии превращается в лотерею.
+    await page.evaluate(() => document.fonts.ready);
+    if (freeze) await freezeMotion(page);
+    await setTheme(page, theme);
+    return bag;
+  }
   await openDc(page, `/${name}.dc.html`);
+  await page.evaluate(() => document.fonts.ready);
   if (freeze) await freezeMotion(page);
   await setTheme(page, theme);
   if (props) await setProps(page, props);
   return bag;
 }
+
+/** Обе реализации: эталон и то, что уезжает потребителю. */
+export const IMPLS = ['dc', 'react'];
 
 /**
  * Остановить переходы и анимации.

@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-export const BASE_URL = 'http://localhost:5173';
+// Свой порт, не дев-серверный: см. комментарий в vite.config.mjs.
+const PORT = 5273;
+export const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: 'tests',
@@ -22,9 +24,11 @@ export default defineConfig({
     command: 'npm run dev',
     url: `${BASE_URL}/Storybook.dc.html`, // корень отвечает 302 — пробе нужна страница
 
-    reuseExistingServer: !process.env.CI,
+    // Никогда не переиспользуем чужой сервер: на этом порту его быть не должно, а если
+    // есть — это ошибка окружения, а не повод молча проверять неизвестно что.
+    reuseExistingServer: false,
     stdout: 'ignore',
     stderr: 'pipe',
-    env: { CI: '1' }, // не открывать браузер хостовой машины
+    env: { CI: '1', DS_PORT: String(PORT) }, // CI=1 — не открывать браузер хостовой машины
   },
 });

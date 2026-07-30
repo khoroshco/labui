@@ -1,7 +1,7 @@
 {
-  "name": "@banner-lab/ds",
-  "version": "0.1.0",
-  "description": "Banner Lab Design System — компоненты, токены, витрина",
+  "name": "labui",
+  "version": "0.0.0",
+  "description": "Монорепозиторий Banner Lab DS: пакеты, витрина, гейты. Не публикуется; версии живут у пакетов.",
   "private": true,
   "type": "module",
   "engines": {
@@ -17,7 +17,8 @@
     "api": "node scripts/build-api.mjs",
     "prepare": "node scripts/build-tokens-css.mjs",
     "changeset": "changeset",
-    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:vocabulary && npm run lint:showcase",
+    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:icons && npm run lint:vocabulary && npm run lint:showcase",
+    "lint:icons": "node scripts/build-icons.mjs --check",
     "lint:api": "node scripts/build-api.mjs --check",
     "lint:changeset": "node scripts/check-changeset.mjs",
     "lint:props": "node scripts/check-props.mjs",
@@ -35,13 +36,16 @@
     "typecheck": "tsc -p packages/ds-react/tsconfig.json",
     "verify": "npm run lint && npm run typecheck && npm run test"
   },
+  "overrides": {
+    "brace-expansion": "^5.0.8"
+  },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@changesets/cli": "^2.31.1",
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "axe-core": "^4.12.1",
     "pa11y-ci": "^4.1.1",
     "react": "^18.3.1",

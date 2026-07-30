@@ -1,7 +1,7 @@
 {
-  "$comment": "Генерируется scripts/build-api.mjs из исходников. Руками не править.",
+  "$comment": "Генерируется scripts/build-api.mjs из data-props ЗАМОРОЖЕННОГО эталона (runtime: dc). Руками не править. Типы для потребителя отдаёт tsc: packages/ds-react/dist/index.d.ts — там есть default*-пропсы React, которых в этом снапшоте нет по построению.",
   "package": "@banner-lab/ds",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "runtime": "dc",
   "levels": [
     "atoms",

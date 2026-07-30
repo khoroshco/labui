@@ -1,5 +1,5 @@
 import { useRef, type CSSProperties } from 'react';
-import { Icon } from '../lib/Icon';
+import { Icon } from '../lib/Icon.js';
 
 export type MsgLevel = 'ok' | 'warn' | 'danger';
 

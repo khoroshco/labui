@@ -1,5 +1,5 @@
 import type { CSSProperties, KeyboardEvent } from 'react';
-import { useControlled, useTrackActive } from '../lib/hooks';
+import { useControlled, useTrackActive } from '../lib/hooks.js';
 
 /** Вкладка: подпись и необязательный счётчик. */
 export type TabItem = [label: string, count?: string];

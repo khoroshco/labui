@@ -1,9 +1,9 @@
 import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
-import { Checkbox } from '../atoms/Checkbox';
-import { useControlled } from '../lib/hooks';
-import { RowInfo } from './RowInfo';
-import { RowLabel } from './RowLabel';
-import { RowMsg, type MsgLevel } from './RowMsg';
+import { Checkbox } from '../atoms/Checkbox.js';
+import { useControlled } from '../lib/hooks.js';
+import { RowInfo } from './RowInfo.js';
+import { RowLabel } from './RowLabel.js';
+import { RowMsg, type MsgLevel } from './RowMsg.js';
 
 export interface CheckboxRowProps {
   label?: string;
