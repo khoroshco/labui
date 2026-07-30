@@ -5,13 +5,32 @@
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./ds.css": "./dist/ds.css"
   },
-  "files": ["dist"],
-  "peerDependencies": { "react": "^18.3.0 || ^19.0.0", "react-dom": "^18.3.0 || ^19.0.0" },
-  "dependencies": { "@banner-lab/tokens": "0.1.0" },
-  "repository": { "type": "git", "url": "git+https://github.com/khoroshco/labui.git", "directory": "packages/ds-react" }
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@banner-lab/tokens": "0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khoroshco/labui.git",
+    "directory": "packages/ds-react"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/build-ds-react.mjs"
+  }
 }

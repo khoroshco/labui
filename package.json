@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "build:ds": "node scripts/build-ds-react.mjs",
     "build:site": "node scripts/build-site.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
     "tokens": "node scripts/build-tokens-css.mjs",
