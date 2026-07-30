@@ -47,12 +47,19 @@ const SIGNATURE = `() => {
   const q = (n) => Math.round(n * 2) / 2;   // полпикселя — предел, ниже которого спорить не о чем
   const INERT = { 'data-tooltip': '', 'data-press': 'false', 'aria-label': '', 'data-invalid': 'false', 'data-disabled': 'false' };
   for (const el of root.querySelectorAll('*')) {
-    if (el.classList.contains('sc-host') || el.classList.contains('sc-interp')) continue;
+    // Маунт ряда острова — исключение из пропуска обёрток: сепаратор и тон ховера ds.css
+    // рисует именно на нём, то есть это декор, а не леса. В эталоне это .sc-host рантайма,
+    // в React — свой div; без этой оговорки гейт сравнивал 40 узлов против 44 и требовал
+    // выкинуть из React то, что в эталоне пропущено по классу.
+    const isIslandMount = el.parentElement && el.parentElement.hasAttribute('data-island');
+    if ((el.classList.contains('sc-host') && !isIslandMount) || el.classList.contains('sc-interp')) continue;
     const cs = getComputedStyle(el);
     if (cs.display === 'none') continue;
     const attrs = {};
     for (const a of el.attributes) {
-      if (/^(data-dc-tpl|class|style|id|aria-controls|data-track-item)$/.test(a.name)) continue;
+      // data-dc-tpl и data-sc-name — бухгалтерия рантайма DC (номер шаблона и имя
+      // смонтированного компонента), у React аналога нет и быть не должно
+      if (/^(data-dc-tpl|data-sc-name|class|style|id|aria-controls|data-track-item)$/.test(a.name)) continue;
       const meaningful = a.name === 'role' || a.name === 'tabindex' || a.name === 'disabled' || a.name === 'type' || a.name.startsWith('aria-') || a.name.startsWith('data-');
       if (!meaningful) continue;
       if (INERT[a.name] !== undefined && a.value === INERT[a.name]) continue;
@@ -68,8 +75,17 @@ const SIGNATURE = `() => {
       .join('')
       .replace(/\\s+/g, ' ')
       .trim();
-    // безымянная обёртка без текста — строительные леса любой из двух реализаций
-    if (!Object.keys(attrs).length && !text && (tag === 'div' || tag === 'span')) continue;
+    // Безымянная обёртка без текста — строительные леса любой из двух реализаций.
+    // НО: если узел КРАСИТ (заливка, рамка, тень, градиент), он не лес, а декор, и его
+    // геометрия — часть картинки. Правило без этой оговорки выбрасывало скользящее
+    // подчёркивание Tabs целиком: span без атрибутов и без текста. Гейт при этом заявлял,
+    // что видит сдвиг на полпикселя, а на деле не видел подчёркивание шире вкладки на 6px.
+    const paints =
+      (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') ||
+      cs.backgroundImage !== 'none' ||
+      cs.boxShadow !== 'none' ||
+      parseFloat(cs.borderTopWidth) + parseFloat(cs.borderRightWidth) + parseFloat(cs.borderBottomWidth) + parseFloat(cs.borderLeftWidth) > 0;
+    if (!Object.keys(attrs).length && !text && !paints && (tag === 'div' || tag === 'span')) continue;
     const b = el.getBoundingClientRect();
     out.push({ tag, attrs, text, box: [q(b.x - rootBox.x), q(b.y - rootBox.y), q(b.width), q(b.height)] });
   }

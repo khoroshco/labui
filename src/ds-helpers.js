@@ -40,9 +40,19 @@
       const b = box.querySelectorAll('button')[host.index()];
       host.onRect(b ? { left: b.offsetLeft, w: b.offsetWidth } : null);
     };
+    // Наблюдать надо и сами кнопки, а не только контейнер: у Tabs контейнер блочный и его
+    // ширина от подписей не зависит. Первое измерение попадает на подменный шрифт (Unica
+    // грузится асинхронно), кнопка потом сужается — а контейнер нет, поэтому перемеры не
+    // случалось никогда и подчёркивание оставалось на 6px шире вкладки. У OptionGroup
+    // контейнер по содержимому, там ширина менялась и баг не проявлялся.
+    const observeAll = () => {
+      const box = host.box(); if (!box || !ro) return;
+      ro.observe(box);
+      for (const b of box.querySelectorAll('button')) ro.observe(b);
+    };
     return {
-      mount() { measure(); ro = new ResizeObserver(measure); const box = host.box(); if (box) ro.observe(box); },
-      update() { measure(); },
+      mount() { measure(); ro = new ResizeObserver(measure); observeAll(); },
+      update() { observeAll(); measure(); },
       unmount() { if (ro) ro.disconnect(); },
     };
   };

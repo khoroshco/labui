@@ -4,24 +4,58 @@
  * доступности, CodeSniffer идёт по буквам техник WCAG. Пересечение большое, но края —
  * разные, а у нас нет человека, который заметит пропущенное.
  *
- * Сервер поднимается программно тем же плагином, что и npm run dev: гейт обязан смотреть
- * на то же, что видит разработчик.
+ * Что он смотрит:
+ *   — каждую .dc.html standalone: это проверка страницы как ДОКУМЕНТА (lang, title,
+ *     заголовки) — то, чего не видит axe, включённый по #dc-root;
+ *   — React-харнесс с фикстурами: это проверка того, что реально уезжает потребителю,
+ *     и единственный способ показать движку НАПОЛНЕННЫЙ компонент. Раньше он смотрел
+ *     только страницы с дефолтными пропсами — то есть пустой ряд и пустой остров.
+ *
+ * Сервер поднимается программно тем же плагином, что и npm run dev.
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { buildFlatMap } from './vite-plugin-flat-ds.mjs';
 import flatDs from './vite-plugin-flat-ds.mjs';
+import { FIXTURES } from '../tests/support/fixtures.js';
 
 const PORT = 5174; // не мешаем открытому npm run dev
-const root = process.cwd();
+// Корень — от файла, а не от cwd: запуск из подкаталога молча отдавал пустой список URL,
+// а пустой список для pa11y-ci — это успех.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const base = `http://localhost:${PORT}`;
 
-const urls = [...buildFlatMap(root)]
+const pageUrls = [...buildFlatMap(root)]
   .filter(([u]) => u.endsWith('.dc.html'))
-  .map(([u]) => `http://localhost:${PORT}${u}`)
+  .map(([u]) => `${base}${u}`)
   .sort();
+
+// Страховка от тихого нуля: страниц в системе тридцать. Любое число меньше двадцати
+// означает, что список собрался не из того места, а не что доступность стала идеальной.
+if (pageUrls.length < 20) {
+  throw new Error(`pa11y: собрано ${pageUrls.length} страниц вместо тридцати — проверь корень и карту URL`);
+}
+
+// Ждать монтирования обязательно: первый запрос к харнессу компилируется на ходу, и на
+// холодном сервере это дольше wait. Проверка пустой страницы — это ноль нарушений, то есть
+// зелёный гейт над невыполненной работой. Проверено, что путь краснеет: кнопка-иконка без
+// tooltip даёт «button element does not have a name», с tooltip — чисто.
+// Та же причина у .dc.html: рантайм монтирует страницу сам, дотягивая React со стороны, —
+// и без ожидания движок успевал прочитать документ до появления компонента.
+const MOUNTED = ['wait for element #dc-root .sc-host to be visible'];
+
+const pages = pageUrls.map((url) => ({ url, actions: MOUNTED }));
+
+const filled = Object.entries(FIXTURES).flatMap(([name, props]) =>
+  ['dark', 'light'].map((theme) => ({
+    url: `${base}/harness/?c=${name}&theme=${theme}&props=${encodeURIComponent(JSON.stringify(props))}`,
+    actions: MOUNTED,
+  }))
+);
 
 const config = {
   defaults: {
@@ -38,7 +72,7 @@ const config = {
     ],
     chromeLaunchConfig: { args: ['--no-sandbox', '--disable-dev-shm-usage'] },
   },
-  urls,
+  urls: [...pages, ...filled],
 };
 
 const server = await createServer({
@@ -50,14 +84,26 @@ const server = await createServer({
 });
 await server.listen();
 
-const configPath = path.join(os.tmpdir(), `pa11yci-${process.pid}.json`);
+// Каталог с непредсказуемым именем: путь по pid угадывается, а в него пишется конфиг,
+// который потом исполняется. Дешевле сделать правильно, чем объяснять, почему так можно.
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pa11yci-'));
+const configPath = path.join(tmp, 'config.json');
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
+// Локальный бинарник, а не npx: при неполном node_modules npx молча тянет одноимённый
+// пакет из реестра, и гейт начинает проверять чужой код.
+const bin = path.join(root, 'node_modules', '.bin', 'pa11y-ci');
+if (!fs.existsSync(bin)) throw new Error('pa11y-ci не установлен — запусти npm ci');
+
 const code = await new Promise((resolve) => {
-  const child = spawn('npx', ['pa11y-ci', '--config', configPath], { stdio: 'inherit', shell: false });
+  const child = spawn(bin, ['--config', configPath], { stdio: 'inherit', shell: false });
+  child.on('error', (err) => {
+    console.error('pa11y-ci не запустился:', err.message);
+    resolve(1);
+  });
   child.on('close', resolve);
 });
 
-fs.rmSync(configPath, { force: true });
+fs.rmSync(tmp, { recursive: true, force: true });
 await server.close();
 process.exit(code ?? 1);
