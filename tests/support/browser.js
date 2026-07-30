@@ -154,7 +154,7 @@ export function flatten([r, g, b, a], bg) {
 }
 
 /** Относительная яркость по WCAG. */
-export function luminance([r, g, b]) {
+function luminance([r, g, b]) {
   const f = (c) => {
     const s = c / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;

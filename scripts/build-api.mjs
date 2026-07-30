@@ -39,13 +39,15 @@ const api = {
     'там есть default*-пропсы React, которых в этом снапшоте нет по построению.',
   package: '@khoroshco/ds',
   runtime: 'dc',
+  // Состав иконок — тоже машинный источник: рукописный список в витрине уже разошёлся
+  // с src/svgs на семь имён (пять из них витрина при этом показывала в плейграундах).
+  icons: fs.readdirSync(path.join(ROOT, 'src/svgs')).filter((f) => f.endsWith('.svg')).map((f) => f.replace(/\.svg$/, '')).sort(),
   levels: LEVELS,
   components: list.map((c) => ({
     name: c.name,
     level: c.level,
     file: c.file,
     status: manual.status[c.name] ?? 'unknown',
-    preview: c.preview,
     mounts: c.imports,
     mountedBy: mountedBy.get(c.name).sort(),
     acceptsChildren: c.propsRead.has('children'),

@@ -4,8 +4,8 @@
  * стеку немедленно, а публикация компонентов на DC-рантайме создала бы связанность, из-за
  * которой миграция на React стала бы согласованным мажором во всех сервисах (ROADMAP §0).
  *
- * Источник — src/tokens.css. В Фазе 1 источником станет DTCG-файл, а tokens.css сам станет
- * артефактом сборки; этот скрипт тогда меняет вход, а не выход.
+ * Источник — tokens/banner-lab.tokens.json (формат W3C DTCG); src/tokens.css сам является
+ * артефактом того же источника.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,7 +37,7 @@ if (declared < 120 || Object.keys(light).length < 20) {
 const layerOf = (name) => (flat.primitive[name] !== undefined ? 'primitive' : 'alias');
 
 const tokens = {
-  $comment: 'Генерируется scripts/build-tokens.mjs из src/tokens.css. Руками не править.',
+  $comment: 'Генерируется scripts/build-tokens.mjs из tokens/banner-lab.tokens.json (формат W3C DTCG). Руками не править.',
   themes: {
     dark: 'база',
     light: 'переопределяет два канала (--ink, --tint) и часть алиасов',

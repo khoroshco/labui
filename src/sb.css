@@ -1,0 +1,16 @@
+/* Стили ВИТРИНЫ. Здесь то, что не принадлежит дизайн-системе: разметка страницы-витрины,
+   её демонстрации и вход секций. Раньше это лежало в общем ds.css и уезжало потребителю —
+   `main section` въезжал с задержкой у любого, у кого есть <main><section>. Сборка пакета
+   вырезала эти правила регекспом; теперь вырезать нечего, потому что их там нет.
+
+   Файл подключает только Storybook.dc.html. */
+[data-ol] > li::marker { color:var(--text-tertiary); font-size:var(--fs-xs); }
+@keyframes ds-pop-in { from { opacity:0; transform:translateY(10px) scale(.96); } to { opacity:1; transform:none; } }
+@keyframes sb-slide { 0%, 12% { transform:translateX(0); } 50%, 62% { transform:translateX(180px); } 100% { transform:translateX(0); } }
+@keyframes ds-rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+main section { animation:ds-rise .3s var(--ease-out) backwards; }
+main section:nth-of-type(2) { animation-delay:45ms; }
+main section:nth-of-type(3) { animation-delay:90ms; }
+main section:nth-of-type(4) { animation-delay:135ms; }
+main section:nth-of-type(5) { animation-delay:180ms; }
+main section:nth-of-type(n+6) { animation-delay:225ms; }

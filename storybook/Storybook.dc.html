@@ -17,6 +17,7 @@
 <helmet>
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="sb.css">
 <script src="g-icon.js"></script>
 <script src="focus-modality.js"></script>
 <!-- Прогрев файлов компонентов. Сторибук показывает один уровень за раз (sc-if),
@@ -1340,7 +1341,14 @@ class Component extends DCLogic {
   loadApi() {
     fetch('api.json')
       .then((r) => (r.ok ? r.json() : null))
-      .then((api) => { if (api && Array.isArray(api.components)) this.setState({ api }); })
+      .then((api) => {
+        if (!api) return;
+        const next = {};
+        if (Array.isArray(api.components)) next.api = api;
+        // галерея иконок — тоже из кода, а не из рукописного списка (он уже разошёлся)
+        if (Array.isArray(api.icons)) next.icons = api.icons;
+        this.setState(next);
+      })
       .catch(() => {});
   }
   SIZE_TOKENS = ['--sp-05','--sp-1','--sp-15','--sp-2','--sp-25','--sp-3','--sp-35','--sp-4','--sp-5','--sp-6','--sp-7','--sp-8','--r-s','--r-m','--r-l','--r-full','--control-h-xs','--control-h-s','--control-h-m','--control-h-l','--row-h','--touch-target','--dot-unread'];
@@ -1887,7 +1895,7 @@ class Component extends DCLogic {
         { token: '--shadow-md', css: 'var(--shadow-md)' },
         { token: '--shadow-lg', css: 'var(--shadow-lg)' },
       ],
-      iconNames: ['magnifier','plus','xmark','check','gear','sliders','bell','chevron-down','chevron-right','chevron-left','arrow-left','arrow-right','arrows-rotate-right','layers','layers-3-diagonal','eye','eye-slash','lock','trash-bin','pencil','comment','comment-plus','comment-dot','circle-check','circle-check-fill','circle-exclamation','circle-exclamation-fill','circle-info','triangle-exclamation','triangle-exclamation-fill','play','play-fill','pause','pause-fill','grip','folder','font','font-case','picture','hand','copy','link','arrow-down-to-line','arrow-up-from-line','square-dashed','target-dart','thunderbolt','clock','ellipsis','moon','sun'],
+      iconNames: this.state.icons ?? [],   // из api.json: рукописный список уже расходился с src/svgs
     };
   }
 }

@@ -113,12 +113,9 @@ html[data-modality="kb"] [role="slider"]:focus-visible { outline:none; box-shado
 label[tabindex], [data-row][tabindex] { transition:transform .35s var(--ease-spring); }
 label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
 [data-row][tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active { transform:scale(var(--press-label)); }
-[data-float] label { top:50%; transform:translateY(-50%); font-size:var(--fs-l); color:var(--text-tertiary); transition:top .18s var(--ease-out), transform .18s var(--ease-out), font-size .18s var(--ease-out); }
-[data-float]:focus-within label, [data-float] input:not(:placeholder-shown) + label { top:12px; transform:translateY(0); font-size:var(--fs-s); }
 @media (pointer: coarse) { input, select { font-size:var(--fs-l) !important; } }
 /* Нумерованный список в документации: номер — служебный тон и кегль, он ориентир,
    а не содержание, и не должен конкурировать с фразой. ::marker инлайном не задать. */
-[data-ol] > li::marker { color:var(--text-tertiary); font-size:var(--fs-xs); }
 /* Раскрывашка секции: пресс есть у каждого интерактивного элемента системы.
    Заголовок широкий, поэтому масштаб мельче края шкалы (.99 у plain против .97 у
    компактной рубрики) — иначе крупный блок «дышит» слишком заметно. */
@@ -169,7 +166,6 @@ label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
 /* Появление плавающей карточки, растущей из точки привязки (PinCard у пина):
    сдвиг снизу + лёгкий масштаб, пружиной. Живёт отдельно от входа тоста — тот
    анимируется transition'ом обёртки, потому что ещё и раздвигает стек по высоте. */
-@keyframes ds-pop-in { from { opacity:0; transform:translateY(10px) scale(.96); } to { opacity:1; transform:none; } }
 @keyframes ds-pulse { 0%, 100% { opacity:.5; } 50% { opacity:1; } }
 @keyframes ds-appear { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
 /* Таймер тоста: полоса 2px по нижнему краю, УБЫВАЮЩАЯ — показывает остаток времени,
@@ -180,16 +176,8 @@ label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
 @keyframes ds-toast-fill { from { transform:scaleX(1); } to { transform:scaleX(0); } }
 [data-toast]:hover [data-toast-fill], [data-toast]:active [data-toast-fill] { animation-play-state:paused; }
 /* демо-дорожка изингов в сторибуке */
-@keyframes sb-slide { 0%, 12% { transform:translateX(0); } 50%, 62% { transform:translateX(180px); } 100% { transform:translateX(0); } }
 @keyframes ds-fade { from { opacity:0; } to { opacity:1; } }
 /* stagger: секции витрины входят каскадом ~45 мс */
-@keyframes ds-rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-main section { animation:ds-rise .3s var(--ease-out) backwards; }
-main section:nth-of-type(2) { animation-delay:45ms; }
-main section:nth-of-type(3) { animation-delay:90ms; }
-main section:nth-of-type(4) { animation-delay:135ms; }
-main section:nth-of-type(5) { animation-delay:180ms; }
-main section:nth-of-type(n+6) { animation-delay:225ms; }
 /* ============================================================
    prefers-reduced-motion: убираем КРУПНОЕ и инерционное движение
    (перемещения, scale-пресс, скольжение пилюли, пружины, авто-раскрытия),
