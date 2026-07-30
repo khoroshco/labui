@@ -10,7 +10,11 @@
  * Прочитанным считается и хол шаблона: рантайм склеивает значения как
  * {...props, ...renderVals()}, поэтому «{{ label }}» — это законное чтение пропа.
  */
-import { components, report } from './lib/dc.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { components, report, ROOT, showcase } from './lib/dc.mjs';
+
+const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 
 /** Встроенные каналы рантайма: они видны редактору и без объявления в data-props.
  *  children — содержимое, которое родитель кладёт внутрь (Disclosure не знает, что там). */
@@ -42,6 +46,31 @@ for (const c of components()) {
         `${c.file} — есть колбэк «${name}», но нет ни одного из пропсов ${pair.join('/')}: ` +
           `управляемый режим без значения замораживает контрол`
       );
+    }
+  }
+}
+
+
+// ── Атрибуты вложенных компонентов ──────────────────────────────────────────
+// Проверки не было вовсе: атрибут на <dc-import> мог называть проп, которого у цели нет,
+// и уходил в пустоту. В витрине так жили шесть каналов, включая три ЗАПРЕЩЁННЫХ словарём
+// имени — то есть демо рекламировало поведение, которого в системе нет.
+const KEBAB = (a) => a.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+const SKIP = /^(name|style|class|hint-|data-|aria-|on[A-Z])/;
+const declared = new Map(api.components.map((c) => [c.name, new Set(c.props.map((p) => p.name))]));
+
+for (const c of [...components(), ...showcase()]) {
+  for (const m of c.template.matchAll(/<dc-import\s+([^>]*)>/g)) {
+    const attrs = [...m[1].matchAll(/([a-zA-Z-]+)="/g)].map((x) => x[1]);
+    const target = /name="([A-Za-z0-9]+)"/.exec(m[1])?.[1];
+    const known = target && declared.get(target);
+    if (!known) continue;
+    for (const a of attrs) {
+      if (SKIP.test(a)) continue;
+      const prop = KEBAB(a);
+      if (!known.has(prop)) {
+        problems.push(`${c.file}: <dc-import name="${target}"> получает «${a}» — такого пропа у ${target} нет, значение уходит в пустоту`);
+      }
     }
   }
 }

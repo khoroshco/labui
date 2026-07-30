@@ -11,17 +11,28 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { dcPages, ROOT } from '../support/dc.js';
-import { open } from '../support/browser.js';
-import { FIXTURES } from '../support/fixtures.js';
+import { IMPLS, open } from '../support/browser.js';
+import { propsFor } from '../support/fixtures.js';
 
 /** Ledger известных нарушений: гейт красный на всём, чего в нём нет, и на том,
  *  что в нём есть, но больше не воспроизводится. */
 const KNOWN = JSON.parse(readFileSync(path.join(ROOT, 'tests/a11y/known-violations.json'), 'utf8')).known;
+const api = JSON.parse(readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 
+const migrated = new Set(
+  JSON.parse(readFileSync(path.join(ROOT, 'packages/ds-react/migrated.json'), 'utf8')).components
+);
+
+// По ОБЕИМ реализациям. До этого axe ходил только по эталону — то есть вычисленное дерево
+// доступности у того, что уезжает потребителю, не проверял никто: второй движок (pa11y)
+// видел шесть компонентов из двадцати семи, а имя контрола он считает по разметке, а не
+// по вычисленному имени. Витрина есть только в DC, поэтому её проверяем как страницу.
 for (const { name, file } of dcPages()) {
+  for (const impl of IMPLS) {
+    if (impl === 'react' && !migrated.has(name)) continue;
   for (const theme of ['dark', 'light']) {
-    test(`${file} · ${theme}`, async ({ page }) => {
-      await open(page, name, FIXTURES[name] ?? null, { theme });
+    test(`${file} · ${theme}${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
+      await open(page, name, propsFor(name, api), { theme, impl });
 
       const { violations } = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -33,10 +44,10 @@ for (const { name, file } of dcPages()) {
       // класса — покрасить опцию в --warn и потерять контраст можно было бы бесшумно
       // (проверено). Число — не придирка: именно она отличает принятое решение от нового
       // долга, приехавшего под его прикрытием.
-      const seen = new Map(violations.map((v) => [`${name}/${theme}/${v.id}`, v.nodes.length]));
+      const seen = new Map(violations.map((v) => [`${name}/${theme}${impl === 'react' ? '/react' : ''}/${v.id}`, v.nodes.length]));
       const problems = [];
       for (const v of violations) {
-        const key = `${name}/${theme}/${v.id}`;
+        const key = `${name}/${theme}${impl === 'react' ? '/react' : ''}/${v.id}`;
         const known = KNOWN[key];
         const where = v.nodes.map((n) => n.html.slice(0, 120)).join('\n      ');
         if (!known) {
@@ -51,7 +62,12 @@ for (const { name, file } of dcPages()) {
       expect(problems, `${name}/${theme}: доступность разошлась с ledger'ом\n  ${problems.join('\n  ')}`).toEqual([]);
 
       const stale = Object.keys(KNOWN)
-        .filter((k) => k.startsWith(`${name}/${theme}/`))
+        // Префикс DC-ключа («Tabs/light/») совпадает и с React-ключом («Tabs/light/react/»),
+        // поэтому хвост обязан быть ровно одним сегментом — id правила
+        .filter((k) => {
+          const prefix = `${name}/${theme}${impl === 'react' ? '/react' : ''}/`;
+          return k.startsWith(prefix) && !k.slice(prefix.length).includes('/');
+        })
         .filter((k) => !seen.has(k));
       expect(
         stale,
@@ -59,5 +75,6 @@ for (const { name, file } of dcPages()) {
           `из tests/a11y/known-violations.json, иначе она переживёт свою правду`
       ).toEqual([]);
     });
+  }
   }
 }

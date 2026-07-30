@@ -53,3 +53,19 @@ export const FIXTURES = {
   // что у Toggle и Checkbox. Компонент без имени и не должен считаться доступным.
   Input: { ariaLabel: 'Название кампании' },
 };
+
+/**
+ * Пропсы, с которыми компонент показывают ВСЕ гейты: дефолты из контракта плюс фикстура.
+ *
+ * Одна реализация на снимки, паритет и доступность. Пока её не было, axe открывал каждую
+ * версию с ЕЁ СОБСТВЕННЫМИ дефолтами — у эталона подпись кнопки «Выгрузить», у React пустая
+ * строка, — и находил тридцать расхождений, которые говорили про разные входные данные,
+ * а не про доступность.
+ */
+export function propsFor(name, api) {
+  const c = api.components.find((x) => x.name === name);
+  const defaults = Object.fromEntries(
+    (c?.props ?? []).filter((p) => p.default !== undefined).map((p) => [p.name, p.default])
+  );
+  return { ...defaults, ...(FIXTURES[name] ?? {}) };
+}

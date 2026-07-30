@@ -826,7 +826,7 @@
         <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
           <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:180px">
             <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
-              <dc-import name="InputRow" disabled="{{ pgInputRow.disabled }}" loading="{{ pgInputRow.loading }}" separator="{{ pgInputRow.separator }}" label="{{ pgInputRow.label }}" value="{{ pgInputRow.value }}" placeholder="{{ pgInputRow.placeholder }}" max-length="{{ pgInputRow.maxLength }}" options="{{ pgInputRow.optionsArr }}" msg="{{ pgInputRow.msg }}" msg-level="{{ pgInputRow.msgLevel }}" info="{{ pgInputRow.infoText }}" info-image="{{ pgInputRow.infoImageSrc }}" nums="{{ pgInputRow.nums }}" hint-size="100%,52px"></dc-import>
+              <dc-import name="InputRow" disabled="{{ pgInputRow.disabled }}" loading="{{ pgInputRow.loading }}" label="{{ pgInputRow.label }}" value="{{ pgInputRow.value }}" placeholder="{{ pgInputRow.placeholder }}" max-length="{{ pgInputRow.maxLength }}" options="{{ pgInputRow.optionsArr }}" msg="{{ pgInputRow.msg }}" msg-level="{{ pgInputRow.msgLevel }}" info="{{ pgInputRow.infoText }}" info-image="{{ pgInputRow.infoImageSrc }}" nums="{{ pgInputRow.nums }}" hint-size="100%,52px"></dc-import>
             </div>
           </div>
           <dc-import name="SbControls" style="width:100%" ctrls="{{ inputRowCtrls }}" hint-size="320px,380px"></dc-import>
@@ -849,7 +849,7 @@
         <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
                 <div data-island="true" style="width:380px; max-width:100%; display:flex; flex-direction:column; background:var(--bg-raised); border-radius:var(--r-m); overflow:hidden">
                   <dc-import name="ChoiceRow" label="Тип выхода" options="{{ demoTypeOpts }}" value="0" hint-size="100%,52px"></dc-import>
-                  <dc-import name="ChoiceRow" label="Якорь героя" options="{{ demoAnchorOpts }}" value="2" separator="{{ true }}" info="Якорь — точка, за которую герой держится при пересчёте формата." hint-size="100%,52px"></dc-import>
+                  <dc-import name="ChoiceRow" label="Якорь героя" options="{{ demoAnchorOpts }}" value="2" info="Якорь — точка, за которую герой держится при пересчёте формата." hint-size="100%,52px"></dc-import>
                 </div>
               
         </dc-import>
@@ -914,7 +914,7 @@
         <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
         <div style="display:flex; flex-direction:column; gap:var(--sp-15); max-width:380px">
           <dc-import name="Slider" label="Охранное поле" value="24" min="0" max="64" step="1" unit="px" hint-size="100%,52px"></dc-import>
-          <dc-import name="Slider" label="Скругление CTA" value="12" min="0" max="32" step="1" unit="px" snap="4" hint-size="100%,52px"></dc-import>
+          <dc-import name="Slider" label="Скругление CTA" value="12" min="0" max="32" step="1" unit="px" snap-step="4" hint-size="100%,52px"></dc-import>
         </div>
               
         </dc-import>
@@ -928,7 +928,7 @@
         <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
           <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:32px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:150px">
             <div style="width:340px; max-width:100%">
-              <dc-import name="Disclosure" label="{{ pgDisc.label }}" count="{{ pgDisc.count }}" variant="{{ pgDisc.variant }}" separator="{{ pgDisc.separator }}" disabled="{{ pgDisc.disabled }}" hint-size="100%,28px">
+              <dc-import name="Disclosure" label="{{ pgDisc.label }}" count="{{ pgDisc.count }}" variant="{{ pgDisc.variant }}" disabled="{{ pgDisc.disabled }}" hint-size="100%,28px">
                 <div style="display:flex; flex-direction:column; gap:var(--sp-2)">
                   <div style="font-size:var(--fs-m); color:var(--text-body); line-height:var(--lh-text)">Содержимое приходит детьми — раскрывашка не знает, что внутри.</div>
                   <dc-import name="Button" label="Действие внутри" variant="secondary" size="s" hint-size="150px,36px"></dc-import>
@@ -974,7 +974,7 @@
 
         <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
           <div style="width:100%; display:flex; align-items:center; justify-content:center; padding:48px var(--sp-5); background:var(--bg-surface); background-image:radial-gradient(var(--border) 1px, transparent 1px); background-size:18px 18px; border-radius:var(--r-m); min-height:200px">
-            <div style="width:400px; max-width:100%"><dc-import name="PinCard" messages="{{ pgPinCardMsgs }}" variant="{{ pgPinCardVariant }}" resolved="{{ pgPinCard.resolved }}" on-resolve="{{ pgPinCardResolve }}" on-send="{{ pgPinCardSend }}" reply-autofocus="{{ false }}" hint-size="100%,200px"></dc-import></div>
+            <div style="width:400px; max-width:100%"><dc-import name="PinCard" messages="{{ pgPinCardMsgs }}" variant="{{ pgPinCardVariant }}" resolved="{{ pgPinCard.resolved }}" on-resolve="{{ pgPinCardResolve }}" on-send="{{ pgPinCardSend }}" hint-size="100%,200px"></dc-import></div>
           </div>
           <dc-import name="SbControls" style="width:100%" ctrls="{{ pinCardCtrls }}" hint-size="320px,280px"></dc-import>
         </div>
@@ -1114,7 +1114,7 @@
         </div>
         <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:var(--text-body); line-height:var(--lh-text); max-width:var(--measure-text); text-wrap:pretty">Заглушка на месте контента, когда показывать нечего. Занимает место списка, а не всплывает поверх: эфемерное событие — это тост, а не пустой экран. Действие всегда одно, поэтому вид кнопки и иконку компонент выбирает сам. Сбой сети — это variant=error, а не пустота.</div>
         <div style="display:flex; flex-direction:column; gap:var(--sp-4)">
-          <div style="width:100%; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:var(--r-m); min-height:240px"><dc-import name="EmptyState" variant="{{ pgEmpty.variant }}" label="{{ pgEmpty.label }}" subtitle="{{ pgEmpty.subtitle }}" action-label="{{ pgEmpty.actionLabel }}" action-icon="{{ pgEmpty.actionIcon }}" hint-size="100%,240px"></dc-import></div>
+          <div style="width:100%; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:var(--r-m); min-height:240px"><dc-import name="EmptyState" variant="{{ pgEmpty.variant }}" label="{{ pgEmpty.label }}" subtitle="{{ pgEmpty.subtitle }}" action-label="{{ pgEmpty.actionLabel }}" hint-size="100%,240px"></dc-import></div>
           <dc-import name="SbControls" style="width:100%" ctrls="{{ emptyStateCtrls }}" hint-size="320px,100px"></dc-import>
         </div>
         <dc-import name="Disclosure" label="Примеры" hint-size="100%,28px">
@@ -1179,7 +1179,7 @@ class Component extends DCLogic {
       rowlabel: { label: 'Запекать в растр', subtitle: '', hasInfo: true, open: false },
       rowinfo: { open: true, text: 'Подсказка ряда: раскрывается по ⓘ, картинка-инструкция опциональна.', image: false },
       rowmsg: { text: 'Токен — латиница и цифры, минимум 11 символов', level: 'danger' },
-      inputrow: { label: 'Отступ лигала', value: '10', placeholder: '', options: true, maxLength: 0, disabled: false, loading: false, separator: false, msgLevel: 'ok', msg: 'Токен — латиница и цифры, минимум 11 символов', info: false },
+      inputrow: { label: 'Отступ лигала', value: '10', placeholder: '', options: true, maxLength: 0, disabled: false, loading: false, msgLevel: 'ok', msg: 'Токен — латиница и цифры, минимум 11 символов', info: false },
       pincard: { text: 'Кегль просел — на мастере заголовок заметно крупнее.', reply: '', resolved: false, actions: true, preview: false },
       checkboxrow: { label: 'Применить ко всем форматам', subtitle: '', checked: false, info: true, disabled: false, msgLevel: 'ok', msg: 'Подтвердите применение ко всем форматам' },
       switchrow: { label: 'Запекать в растр', subtitle: '', checked: false, info: true, disabled: false, msg: 'Отметьте пункт, без него не выгрузим', msgLevel: 'ok' },
@@ -1189,7 +1189,7 @@ class Component extends DCLogic {
       pin: { number: 1, author: '', src: '', resolved: false, hasReply: false },
       avatar: { author: 'Марина Ковалёва', src: '', ai: false, inverse: false, bare: false, size: 's' },
       skeleton: { shape: 'line', width: '140px' },
-      disc: { label: 'Примеры', count: '', variant: 'eyebrow', separator: false, disabled: false },
+      disc: { label: 'Примеры', count: '', variant: 'eyebrow', disabled: false },
       segments: { options: 'Все, С пометками, Готовые, Архив', value: 0 },
       tabs: { options: 'Все форматы 18, Требуют внимания 4, HTML5 11, Статика 7', counts: true, value: 0 },
       pincomposer: { placeholder: 'Комментарий к объекту…', author: 'Марина Ковалёва', hasAuthor: true },
@@ -1627,7 +1627,6 @@ class Component extends DCLogic {
         ['infoImage', 'bool', 'Картинка-инструкция внутри раскрывашки (работает вместе с info).'],
         ['nums', 'bool', 'Табличные цифры для числовых/erid-значений (хук data-nums) — моношрифта в ДС нет.'],
         ['maxLength', 'num', 'Жёсткий предел длины: лишние символы не вводятся; 0 — без предела.'],
-        ['separator', 'bool', 'Сепаратор сверху; в острове расставляется автоматически.'],
       ]),
       demoTypeOpts: ['HTML5', 'Статика'],
       demoUnitOpts: ['PX', 'REM'],
@@ -1762,7 +1761,7 @@ class Component extends DCLogic {
         ['крупные панели', '300–400 мс'],
       ].map(([label, value], i) => ({ label, value, sep: i ? '0.5px solid var(--border-subtle)' : 'none' })),
       pgDisc: pg.disc,
-      discCtrls: this.mk('disc', [['label', 'text'], ['count', 'text', 'Число рядом с подписью — набрано служебным тоном, как счётчики в Tabs.'], ['variant', 'enum', ['eyebrow', 'plain'], 'Eyebrow — капс-рубрика по содержимому; plain — заголовок во всю ширину, шеврон у правого края.'], ['separator', 'bool', 'Волосяная линия сверху — когда раскрывашки идут стопкой.'], ['disabled', 'bool']]),
+      discCtrls: this.mk('disc', [['label', 'text'], ['count', 'text', 'Число рядом с подписью — набрано служебным тоном, как счётчики в Tabs.'], ['variant', 'enum', ['eyebrow', 'plain'], 'Eyebrow — капс-рубрика по содержимому; plain — заголовок во всю ширину, шеврон у правого края.'], ['disabled', 'bool']]),
       canvasCtrls: [
         { name: 'показывать пины', isBool: true, on: this.state.canvasShowPins, info: 'Слой пинов целиком — экран решает, показывать ли его.', set: (v) => this.setState({ canvasShowPins: v }) },
         { name: 'решённые видны', isBool: true, on: this.state.canvasShowResolved, info: 'Решённый пин гаснет, но не исчезает — иначе теряется контекст обсуждения.', set: (v) => this.setState({ canvasShowResolved: v }) },
@@ -1807,8 +1806,7 @@ class Component extends DCLogic {
       pgEmpty: { ...pg.emptystatepg,
         label: pg.emptystatepg.variant === 'error' ? 'Не удалось загрузить' : 'Пока нет форматов',
         subtitle: pg.emptystatepg.variant === 'error' ? 'Сбой при сборке ревизии. Попробуйте ещё раз.' : 'Добавьте первый баннер — он появится здесь вместе с раскладкой.',
-        actionLabel: pg.emptystatepg.hasAction ? (pg.emptystatepg.variant === 'error' ? 'Повторить' : 'Добавить баннер') : '',
-        actionIcon: pg.emptystatepg.variant === 'error' ? 'arrows-rotate-right' : 'plus' },
+        actionLabel: pg.emptystatepg.hasAction ? (pg.emptystatepg.variant === 'error' ? 'Повторить' : 'Добавить баннер') : '' },
       emptyStateCtrls: this.mk('emptystatepg', [['variant', 'enum', ['empty', 'error']], ['hasAction', 'bool', 'Кнопка действия под текстом.']]),
       // options — настоящий проп компонента: правим сам список, а не абстрактное «число»
       segOptsLive: this.splitOpts(pg.segments.options),

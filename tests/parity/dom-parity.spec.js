@@ -13,19 +13,14 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { open } from '../support/browser.js';
 import { ROOT } from '../support/dc.js';
-import { FIXTURES } from '../support/fixtures.js';
+import { propsFor as sharedProps } from '../support/fixtures.js';
+
+const propsFor = (name) => sharedProps(name, api);
 
 const api = JSON.parse(readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 const migrated = JSON.parse(readFileSync(path.join(ROOT, 'packages/ds-react/migrated.json'), 'utf8')).components;
 const KNOWN_BOXES = JSON.parse(readFileSync(path.join(ROOT, 'tests/parity/known-box-deltas.json'), 'utf8')).known;
 
-function propsFor(name) {
-  const c = api.components.find((x) => x.name === name);
-  const defaults = Object.fromEntries(
-    (c?.props ?? []).filter((p) => p.default !== undefined).map((p) => [p.name, p.default])
-  );
-  return { ...defaults, ...(FIXTURES[name] ?? {}) };
-}
 
 /**
  * Снимок разметки: то, что несёт смысл, и ничего из того, что его не несёт.

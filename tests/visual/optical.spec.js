@@ -7,7 +7,7 @@
  * сходится — даже когда картинка явно кривая. Это мы уже проходили.
  */
 import { expect, test } from '@playwright/test';
-import { open, setProps } from '../support/browser.js';
+import { IMPLS, open, setProps } from '../support/browser.js';
 
 /** Абсолютный чернильный центр текста элемента и центр контейнера, относительно которого он живёт. */
 const MEASURE = `(sel, boxSel) => {
@@ -38,12 +38,15 @@ const measure = (page, sel, boxSel) =>
 
 const FIELD = '#dc-root .sc-host > *';
 
-test('числовой набор стоит в оптическом центре поля', async ({ page }) => {
+for (const impl of IMPLS)
+test(`числовой набор стоит в оптическом центре поля${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
   // У цифр нет выносных: без компенсации их пятно уезжает вверх. Проверяем результат —
   // чернильный центр значения совпадает с центром поля.
-  await open(page, 'Input', { value: '64' });
+  await open(page, 'Input', { value: '64' }, { impl });
   const a = await measure(page, '#dc-root input', FIELD);
-  await setProps(page, { value: '1920' });
+  // Второе значение открываем заново, а не через мост пропсов рантайма: у React-харнесса
+  // такого моста нет, а проверка нужна на обеих реализациях.
+  await open(page, 'Input', { value: '1920' }, { impl });
   const b = await measure(page, '#dc-root input', FIELD);
 
   for (const m of [a, b]) {
@@ -58,10 +61,11 @@ test('числовой набор стоит в оптическом центр�
   ).toBeLessThan(0.05);
 });
 
-test('прозаическое значение стоит в оптическом центре поля', async ({ page }) => {
+for (const impl of IMPLS)
+test(`прозаическое значение стоит в оптическом центре поля${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
   // Прозе выносные достаются от «р», «у», «д» — её пятно ниже, и компенсация ей нужна
   // меньшая. Один и тот же сдвиг на оба набора развалил бы ровно эту картинку.
-  await open(page, 'Input', { value: 'Обрезка рубрик' });
+  await open(page, 'Input', { value: 'Обрезка рубрик' }, { impl });
   const m = await measure(page, '#dc-root input', FIELD);
   expect(
     Math.abs(m.inkCenter - m.boxCenter),
@@ -69,7 +73,9 @@ test('прозаическое значение стоит в оптическо
   ).toBeLessThan(0.7);
 });
 
-test('гейт видит потерю компенсации — иначе он ничего не сторожит', async ({ page }) => {
+// Только на эталоне: это проверка САМОГО МЕТОДА измерения, а не реализации, и она
+// снимает компенсацию через мост пропсов рантайма DC, которого у React-харнесса нет.
+test(`гейт видит потерю компенсации — иначе он ничего не сторожит`, async ({ page }) => {
   await open(page, 'Input', { value: '64' });
   const withFix = await measure(page, '#dc-root input', FIELD);
 
@@ -89,8 +95,9 @@ test('гейт видит потерю компенсации — иначе о�
   ).toBeLessThan(0.01);
 });
 
-test('надпись кнопки стоит в оптическом центре капсулы', async ({ page }) => {
-  await open(page, 'Button', { label: 'Выгрузить' });
+for (const impl of IMPLS)
+test(`надпись кнопки стоит в оптическом центре капсулы${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
+  await open(page, 'Button', { label: 'Выгрузить' }, { impl });
   const m = await measure(page, '#dc-root button span', '#dc-root button');
   // Допуск 1.5px, а не 0.5: метрики шрифта округляются по-разному на macOS и Linux
   // (замер той же кнопки — 0.6px и 1.0px). Потерянная компенсация даёт 2.5px и больше,
@@ -101,10 +108,11 @@ test('надпись кнопки стоит в оптическом центр�
   ).toBeLessThan(1.5);
 });
 
-test('значение и единицы в слайдере стоят на одной линии', async ({ page }) => {
+for (const impl of IMPLS)
+test(`значение и единицы в слайдере стоят на одной линии${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
   // Компенсация принадлежит ГРУППЕ: относительный сдвиг одного из двух соседей,
   // выровненных по базовой линии («64» и «px»), рвёт общую линию.
-  await open(page, 'Slider', { value: 24, unit: 'px' });
+  await open(page, 'Slider', { value: 24, unit: 'px' }, { impl });
   const gap = await page.evaluate(() => {
     const num = document.querySelector('#dc-root input');
     const unit = [...document.querySelectorAll('#dc-root span')].find((e) => e.textContent.trim() === 'px');
