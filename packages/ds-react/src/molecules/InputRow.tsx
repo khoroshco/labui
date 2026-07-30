@@ -140,7 +140,11 @@ export function InputRow({
                       проп — иначе внешнее переключение единиц он игнорирует. */}
                   <CycleButton
                     options={options}
-                    value={optionIndex}
+                    // Значение вниз — только вместе с колбэком. Управляемый контрол
+                    // показывает РОВНО переданное, поэтому value без onChange его
+                    // замораживает: менять его будет нечем.
+                    value={onOptionChange ? optionIndex : undefined}
+                    defaultValue={onOptionChange ? undefined : optionIndex}
                     disabled={disabled}
                     onChange={onOptionChange}
                   />

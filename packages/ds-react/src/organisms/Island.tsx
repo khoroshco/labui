@@ -70,6 +70,11 @@ export function Island({ rows = [], style }: IslandProps) {
     >
       {rows.map((r, i) => {
         const type = r.type ?? 'text';
+        // ПРАВИЛО КОМПОЗИЦИИ. В React признак управляемости — ЗНАЧЕНИЕ, поэтому ряд отдаёт
+        // значение вниз ТОЛЬКО если получил колбэк; иначе отдаёт его как НАЧАЛЬНОЕ.
+        // Без этого конфиг вида { type:'toggle', checked:true } без onChange делал ряд
+        // мёртвым: контрол показывал ровно переданное, а менять его было нечем — ряд
+        // подсвечивался, продавливался, озвучивал role=switch и не переключался.
         const common = { disabled: !!r.disabled, info: r.info ?? '', infoImage: r.infoImage ?? '' };
         // Ряд живёт в обёртке-маунте, а не прямым ребёнком острова. Обёртка не декорация:
         // сепаратор и тон ховера рисуются ИМЕННО на ней (ds.css), поэтому пресс ряда их не
@@ -81,7 +86,9 @@ export function Island({ rows = [], style }: IslandProps) {
               {...common}
               label={r.label ?? ''}
               options={(r.options ?? []) as OptionItem[]}
-              value={r.value as number | undefined}
+              // Значение вниз — только вместе с колбэком (см. комментарий у owned ниже)
+              value={r.onChange ? (r.value as number | undefined) : undefined}
+              defaultValue={r.onChange ? undefined : (r.value as number | undefined)}
               onChange={r.onChange as ((i: number) => void) | undefined}
             />
           );
@@ -92,7 +99,8 @@ export function Island({ rows = [], style }: IslandProps) {
               {...common}
               label={r.label ?? ''}
               subtitle={r.subtitle ?? ''}
-              checked={r.checked}
+              checked={r.onChange ? r.checked : undefined}
+              defaultChecked={r.onChange ? undefined : r.checked}
               msg={r.msg ?? ''}
               msgLevel={r.msgLevel === 'danger' ? 'warn' : (r.msgLevel ?? 'ok')}
               onChange={r.onChange as ((v: boolean) => void) | undefined}
@@ -105,7 +113,8 @@ export function Island({ rows = [], style }: IslandProps) {
               {...common}
               label={r.label ?? ''}
               subtitle={r.subtitle ?? ''}
-              checked={r.checked}
+              checked={r.onChange ? r.checked : undefined}
+              defaultChecked={r.onChange ? undefined : r.checked}
               msg={r.msg ?? ''}
               msgLevel={r.msgLevel ?? 'ok'}
               onChange={r.onChange as ((v: boolean) => void) | undefined}

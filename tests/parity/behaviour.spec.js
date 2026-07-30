@@ -7,6 +7,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { preparePage } from '../support/dc.js';
+import { FIXTURES } from '../support/fixtures.js';
 
 const openHarness = async (page, name, props = {}) => {
   preparePage(page);
@@ -181,12 +182,20 @@ test('пакет сам ставит модальность фокуса — и�
   );
 });
 
-test('циклер единиц следует за пропом и щёлкается без колбэка', async ({ page }) => {
-  await openHarness(page, 'CycleButton', { options: ['PX', 'REM'], value: 1 });
+test('циклер живёт по общей идиоме: defaultValue щёлкается, value показывает ровно своё', async ({ page }) => {
+  // Своя реализация «живой всегда» была лечением симптома: замирал циклер не сам по себе,
+  // а потому что ряд отдавал ему значение, не отдавая колбэка. Лечится это в композиции —
+  // ряд теперь отдаёт значение только вместе с колбэком, — а идиома у всех шести одна.
+  await openHarness(page, 'CycleButton', { options: ['PX', 'REM'], defaultValue: 1 });
   const btn = page.locator('#dc-root button');
   await expect(btn).toHaveText('REM');
   await btn.click();
-  await expect(btn, 'перебор живой и без колбэка').toHaveText('PX');
+  await expect(btn, 'неуправляемый циклер обязан щёлкаться').toHaveText('PX');
+
+  await openHarness(page, 'CycleButton', { options: ['PX', 'REM'], value: 1 });
+  const owned = page.locator('#dc-root button');
+  await owned.click();
+  await expect(owned, 'управляемый контрол показывает РОВНО то, что пришло сверху').toHaveText('REM');
 });
 
 test('Avatar без автора не выдумывает имя', async ({ page }) => {
@@ -209,4 +218,26 @@ test('подчёркивание вкладок перемеряется при 
   const barW = (await bar.boundingBox())?.width ?? 0;
   const tabW = (await tab.boundingBox())?.width ?? 0;
   expect(Math.abs(barW - tabW), `подложка ${barW} против вкладки ${tabW}`).toBeLessThan(2);
+});
+
+/* Ряды острова, заданные конфигом без колбэка, обязаны оставаться живыми.
+ *
+ * В React признак управляемости — значение, поэтому остров, отдававший вниз checked/value
+ * безусловно, делал тоггл, чекбокс и сегменты МЁРТВЫМИ: контрол показывал ровно переданное,
+ * а менять его было нечем. Ряд при этом подсвечивался, продавливался и озвучивал role=switch.
+ * Фикстура всех гейтов — ровно такой конфиг, поэтому дефект жил во всех снимках сразу.
+ */
+test('тоггл и сегменты в острове переключаются, когда конфиг без колбэка', async ({ page }) => {
+  await page.setViewportSize({ width: 420, height: 900 });
+  await openHarness(page, 'Island', FIXTURES.Island);
+
+  const toggle = page.locator('#dc-root [role="switch"]').first();
+  const before = await toggle.getAttribute('aria-checked');
+  await toggle.click();
+  expect(await toggle.getAttribute('aria-checked'), 'тоггл ряда не переключился').not.toBe(before);
+
+  const opts = page.locator('#dc-root [role="radiogroup"] button');
+  const last = opts.nth((await opts.count()) - 1);
+  await last.click();
+  expect(await last.getAttribute('aria-checked'), 'опция ряда не выбралась').toBe('true');
 });

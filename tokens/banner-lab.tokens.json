@@ -124,6 +124,16 @@
       "$type": "color",
       "$value": "232 62 28"
     },
+    "k-info-d": {
+      "$value": "77 159 255",
+      "$type": "color",
+      "$description": "канал info, тёмная тема — тот же цвет, что --c-info-d"
+    },
+    "k-info-l": {
+      "$value": "31 111 214",
+      "$type": "color",
+      "$description": "канал info, светлая тема — тот же цвет, что --c-info-l"
+    },
     "c-info-d": {
       "$type": "color",
       "$value": "#4d9fff"
@@ -376,6 +386,11 @@
           "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
         }
       }
+    },
+    "info-dim": {
+      "$value": "rgb(var(--k-info-d) / .15)",
+      "$type": "color",
+      "$description": "подложка мягкого бейджа тона info"
     },
     "font-ui": {
       "$type": "fontFamily",
@@ -805,6 +820,10 @@
             "why": "CSS-выражение: спецификация DTCG такой формы значения не описывает (см. docs/adr/0009)"
           }
         }
+      },
+      "info-dim": {
+        "$value": "rgb(var(--k-info-l) / .12)",
+        "$type": "color"
       },
       "shadow-sm": {
         "$type": "shadow",
