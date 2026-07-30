@@ -11,21 +11,15 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { ROOT } from '../support/dc.js';
-import { FIXTURES } from '../support/fixtures.js';
+import { propsFor as sharedProps } from '../support/fixtures.js';
+
+const propsFor = (name) => sharedProps(name, api);
 import { freezeMotion, setTheme } from '../support/browser.js';
 import { preparePage } from '../support/dc.js';
 
 const api = JSON.parse(readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 const migrated = JSON.parse(readFileSync(path.join(ROOT, 'packages/ds-react/migrated.json'), 'utf8')).components;
 
-/** Дефолты из контракта — ровно то, с чем DC-страница снимала эталон. */
-function propsFor(name) {
-  const c = api.components.find((x) => x.name === name);
-  const defaults = Object.fromEntries(
-    (c?.props ?? []).filter((p) => p.default !== undefined).map((p) => [p.name, p.default])
-  );
-  return { ...defaults, ...(FIXTURES[name] ?? {}) };
-}
 
 test('список мигрированных компонентов не пуст и состоит из существующих', () => {
   expect(migrated.length).toBeGreaterThan(0);

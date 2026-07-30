@@ -33,7 +33,9 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
   await page.evaluate(() => document.fonts.ready);
   if (freeze) await freezeMotion(page);
   await setTheme(page, theme);
-  if (props) await setProps(page, props);
+  // Пустой набор — не повод перерисовывать: __dcSetProps перемонтирует дерево, и витрина
+  // при этом сбрасывается на первую секцию (axe видел 1 узел вместо 187).
+  if (props && Object.keys(props).length) await setProps(page, props);
   await settle(page);
   return bag;
 }
@@ -154,7 +156,7 @@ export function flatten([r, g, b, a], bg) {
 }
 
 /** Относительная яркость по WCAG. */
-export function luminance([r, g, b]) {
+function luminance([r, g, b]) {
   const f = (c) => {
     const s = c / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;

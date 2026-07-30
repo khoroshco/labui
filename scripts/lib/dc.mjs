@@ -8,8 +8,6 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 /** Уровни в порядке вложенности: атом лежит в молекуле, молекула в организме. */
 export const LEVELS = ['atoms', 'molecules', 'organisms'];
-/** Витрина подписывает уровни по-русски; связь нужна для сверки состава. */
-export const LEVEL_RU = { atoms: 'Атом', molecules: 'Молекула', organisms: 'Организм' };
 
 const unescapeHtml = (s) =>
   s
@@ -27,7 +25,6 @@ function parseDc(file) {
   const tplMatch = /<x-dc(?:\s[^>]*)?>([\s\S]*)<\/x-dc>/.exec(src);
   if (!tplMatch) throw new Error(`${file}: нет блока <x-dc> — это не Design Component`);
   const withHelmet = tplMatch[1];
-  const helmet = /<helmet(?:\s[^>]*)?>([\s\S]*?)<\/helmet>/.exec(withHelmet)?.[1] ?? '';
   const template = withHelmet.replace(/<helmet(?:\s[^>]*)?>[\s\S]*?<\/helmet>/, '');
 
   const scriptMatch = /<script[^>]*data-dc-script[^>]*>([\s\S]*?)<\/script>/.exec(src);
@@ -52,7 +49,6 @@ function parseDc(file) {
     level: LEVELS.includes(dir) ? dir : null, // null — витрина, она вне уровней
     src,
     template,
-    helmet,
     logic,
     props,
     preview,

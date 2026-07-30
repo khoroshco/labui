@@ -2,6 +2,64 @@
   "$comment": "Генерируется scripts/build-api.mjs из data-props ЗАМОРОЖЕННОГО эталона (runtime: dc). Руками не править. Типы для потребителя отдаёт tsc: packages/ds-react/dist/index.d.ts — там есть default*-пропсы React, которых в этом снапшоте нет по построению.",
   "package": "@khoroshco/ds",
   "runtime": "dc",
+  "icons": [
+    "arrow-down-to-line",
+    "arrow-left",
+    "arrow-right",
+    "arrow-up-from-line",
+    "arrows-rotate-right",
+    "bell",
+    "check",
+    "chevron-down",
+    "chevron-left",
+    "chevron-right",
+    "chevron-up",
+    "circle-check",
+    "circle-check-fill",
+    "circle-exclamation",
+    "circle-exclamation-fill",
+    "circle-info",
+    "clock",
+    "comment",
+    "comment-dot",
+    "comment-plus",
+    "copy",
+    "ellipsis",
+    "eye",
+    "eye-slash",
+    "folder",
+    "font",
+    "font-case",
+    "gear",
+    "grip",
+    "hand",
+    "layers",
+    "layers-3-diagonal",
+    "link",
+    "lock",
+    "magnifier",
+    "moon",
+    "object-align-bottom",
+    "object-align-center-horizontal",
+    "object-align-left",
+    "object-align-right",
+    "pause",
+    "pause-fill",
+    "pencil",
+    "picture",
+    "play",
+    "play-fill",
+    "plus",
+    "sliders",
+    "square-dashed",
+    "sun",
+    "target-dart",
+    "thunderbolt",
+    "trash-bin",
+    "triangle-exclamation",
+    "triangle-exclamation-fill",
+    "xmark"
+  ],
   "levels": [
     "atoms",
     "molecules",
@@ -13,10 +71,6 @@
       "level": "atoms",
       "file": "src/atoms/Avatar.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 120,
-        "height": 80
-      },
       "mounts": [],
       "mountedBy": [
         "PinCard",
@@ -79,10 +133,6 @@
       "level": "atoms",
       "file": "src/atoms/Badge.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 240,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [],
       "acceptsChildren": false,
@@ -149,10 +199,6 @@
       "level": "atoms",
       "file": "src/atoms/Button.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 240,
-        "height": 72
-      },
       "mounts": [],
       "mountedBy": [
         "ActionRow",
@@ -256,10 +302,6 @@
       "level": "atoms",
       "file": "src/atoms/Checkbox.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 300,
-        "height": 48
-      },
       "mounts": [],
       "mountedBy": [
         "CheckboxRow"
@@ -319,10 +361,6 @@
       "level": "atoms",
       "file": "src/atoms/CycleButton.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 120,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [
         "InputRow",
@@ -370,10 +408,6 @@
       "level": "atoms",
       "file": "src/atoms/Input.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 280,
-        "height": 68
-      },
       "mounts": [],
       "mountedBy": [
         "InputRow",
@@ -505,10 +539,6 @@
       "level": "atoms",
       "file": "src/atoms/OptionGroup.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 220,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [
         "ChoiceRow",
@@ -568,10 +598,6 @@
       "level": "atoms",
       "file": "src/atoms/Pin.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 80,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [],
       "acceptsChildren": false,
@@ -618,10 +644,6 @@
       "level": "atoms",
       "file": "src/atoms/Skeleton.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 240,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [
         "InputRow"
@@ -661,10 +683,6 @@
       "level": "atoms",
       "file": "src/atoms/Toggle.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 260,
-        "height": 48
-      },
       "mounts": [],
       "mountedBy": [
         "SwitchRow"
@@ -717,10 +735,6 @@
       "level": "molecules",
       "file": "src/molecules/ActionRow.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 70
-      },
       "mounts": [
         "Button"
       ],
@@ -776,10 +790,6 @@
       "level": "molecules",
       "file": "src/molecules/CheckboxRow.dc.html",
       "status": "beta",
-      "preview": {
-        "width": 380,
-        "height": 130
-      },
       "mounts": [
         "Checkbox",
         "RowInfo",
@@ -864,10 +874,6 @@
       "level": "molecules",
       "file": "src/molecules/ChoiceRow.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 100
-      },
       "mounts": [
         "OptionGroup",
         "RowInfo",
@@ -931,10 +937,6 @@
       "level": "molecules",
       "file": "src/molecules/Disclosure.dc.html",
       "status": "beta",
-      "preview": {
-        "width": 460,
-        "height": 180
-      },
       "mounts": [],
       "mountedBy": [],
       "acceptsChildren": true,
@@ -991,10 +993,6 @@
       "level": "molecules",
       "file": "src/molecules/InputRow.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 150
-      },
       "mounts": [
         "CycleButton",
         "Input",
@@ -1133,10 +1131,6 @@
       "level": "molecules",
       "file": "src/molecules/PinCard.dc.html",
       "status": "beta",
-      "preview": {
-        "width": 340,
-        "height": 220
-      },
       "mounts": [
         "Avatar",
         "Button",
@@ -1206,10 +1200,6 @@
       "level": "molecules",
       "file": "src/molecules/PinComposer.dc.html",
       "status": "beta",
-      "preview": {
-        "width": 320,
-        "height": 70
-      },
       "mounts": [
         "Avatar",
         "Button",
@@ -1292,10 +1282,6 @@
       "level": "molecules",
       "file": "src/molecules/RowInfo.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 360,
-        "height": 220
-      },
       "mounts": [],
       "mountedBy": [
         "CheckboxRow",
@@ -1333,10 +1319,6 @@
       "level": "molecules",
       "file": "src/molecules/RowLabel.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 240,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [
         "CheckboxRow",
@@ -1387,10 +1369,6 @@
       "level": "molecules",
       "file": "src/molecules/RowMsg.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 360,
-        "height": 60
-      },
       "mounts": [],
       "mountedBy": [
         "CheckboxRow",
@@ -1425,10 +1403,6 @@
       "level": "molecules",
       "file": "src/molecules/Segments.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 340,
-        "height": 64
-      },
       "mounts": [
         "OptionGroup"
       ],
@@ -1461,10 +1435,6 @@
       "level": "molecules",
       "file": "src/molecules/Slider.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 76
-      },
       "mounts": [
         "CycleButton"
       ],
@@ -1559,10 +1529,6 @@
       "level": "molecules",
       "file": "src/molecules/SwitchRow.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 130
-      },
       "mounts": [
         "RowInfo",
         "RowLabel",
@@ -1646,10 +1612,6 @@
       "level": "molecules",
       "file": "src/molecules/Tabs.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 420,
-        "height": 56
-      },
       "mounts": [],
       "mountedBy": [],
       "acceptsChildren": false,
@@ -1680,10 +1642,6 @@
       "level": "molecules",
       "file": "src/molecules/Toast.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 400,
-        "height": 80
-      },
       "mounts": [
         "Button"
       ],
@@ -1761,10 +1719,6 @@
       "level": "organisms",
       "file": "src/organisms/EmptyState.dc.html",
       "status": "beta",
-      "preview": {
-        "width": 380,
-        "height": 260
-      },
       "mounts": [
         "Button"
       ],
@@ -1831,10 +1785,6 @@
       "level": "organisms",
       "file": "src/organisms/Island.dc.html",
       "status": "stable",
-      "preview": {
-        "width": 380,
-        "height": 260
-      },
       "mounts": [
         "ActionRow",
         "CheckboxRow",

@@ -34,49 +34,12 @@ execFileSync(tsc, ['-p', path.join(pkg, 'tsconfig.build.json')], { stdio: 'inher
 const dsCss = fs.readFileSync(path.join(root, 'src/ds.css'), 'utf8');
 const withoutFonts = dsCss.replace(/^@font-face\s*\{[^}]*\}\s*$/gmu, '').replace(/^\n{2,}/gm, '\n');
 
-// Правила ВИТРИНЫ в пакет тоже не едут. Они лежат в общем ds.css, потому что витрина —
-// такая же страница системы, но у потребителя они активно вредят: `main section` въезжает
-// с задержкой у любого, у кого есть <main><section>, а он есть у многих. Остальные — про
-// разметку, которой в компонентах нет вовсе (плавающий лейбл, маркеры списка, демо-дорожка
-// изингов). Список закрытый и проверяется: если правило перестанет находиться, сборка падает.
-// Список закрытый и проверяется: если правило перестанет находиться, сборка падает.
-const SHOWCASE_ONLY = ['@keyframes ds-rise', 'main section', '@keyframes sb-slide', '[data-float]', '[data-ol]', '@keyframes ds-pop-in'];
-
-/** Вырезать правило целиком, считая вложенные скобки: у @keyframes они есть. */
-function dropRules(css, head) {
-  let out = css;
-  let found = false;
-  for (;;) {
-    const at = out.indexOf(head);
-    if (at < 0) break;
-    const open = out.indexOf('{', at);
-    if (open < 0) break;
-    let depth = 0;
-    let i = open;
-    for (; i < out.length; i++) {
-      if (out[i] === '{') depth++;
-      else if (out[i] === '}' && --depth === 0) break;
-    }
-    out = out.slice(0, at) + out.slice(i + 1);
-    found = true;
-  }
-  if (!found) throw new Error(`ds.css: правило витрины «${head}» больше не находится — список пора править`);
-  return out;
-}
-
-let shipped = withoutFonts;
-for (const head of SHOWCASE_ONLY) shipped = dropRules(shipped, head);
-shipped = shipped.replace(/^[ \t]*\n{2,}/gm, '\n');
-for (const dead of ['main section', 'ds-rise', 'sb-slide', 'data-float', 'data-ol', 'ds-pop-in']) {
-  if (shipped.includes(dead)) throw new Error(`ds.css: «${dead}» остался в шипаемом файле`);
-}
-if (/@font-face/.test(withoutFonts)) throw new Error('ds.css: @font-face остался в шипаемом файле');
 fs.writeFileSync(
   path.join(dist, 'ds.css'),
   '/* Banner Lab DS — глобальные правила. Гарнитуру Unica 77 подключает потребитель:\n' +
     '   объявите @font-face для family «Unica 77» (Regular 100–450, Medium 451–700,\n' +
     '   ExtraBlack 800–950). Без неё уедут метрики и вся оптическая центровка. */\n' +
-    shipped
+    withoutFonts
 );
 
 // Собранный пакет ОБЯЗАН грузиться в Node. Это не паранойя: с moduleResolution "bundler"

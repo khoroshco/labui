@@ -16,7 +16,9 @@ import path from 'node:path';
 /** Папки-исходники. Порядок важен только для сообщения о коллизии. */
 const ROOTS = ['src', 'storybook'];
 /** Файлы из корня, которые нужны витрине по сети: состав она берёт из них, а не из текста. */
-const ROOT_FILES = ['api.json', 'components.json'];
+// Витрина запрашивает по сети ровно один корневой файл. components.json отсюда убран:
+// его никто не читает из браузера, а на Pages он уезжал вместе с картой.
+const ROOT_FILES = ['api.json'];
 /** Папки, которые отдаются с сохранением своего имени: их путь зашит в код и CSS. */
 const KEEP_DIR = new Set(['svgs', 'fonts']);
 
@@ -24,12 +26,9 @@ const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.otf': 'font/otf',
-  '.woff2': 'font/woff2',
-  '.png': 'image/png',
 };
 
 /** @returns {Map<string, string>} URL «/Button.dc.html» → путь «src/atoms/Button.dc.html» */
