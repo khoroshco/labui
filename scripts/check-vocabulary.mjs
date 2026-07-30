@@ -92,11 +92,17 @@ for (const { file, src } of sources) {
 // Порядок яркости обязан совпадать с порядком важности: primary → body → secondary →
 // tertiary → disabled. Проверяем по альфе в источнике токенов.
 const source = JSON.parse(fs.readFileSync(path.join(ROOT, 'tokens/banner-lab.tokens.json'), 'utf8'));
+// Разбор альфы прямой: «.76», «0.76» и «76%» — три законные записи одного значения.
+// Прежняя склейка строки давала NaN на «0.76» и null на «76%», а NaN не меньше ничего —
+// гейт сообщал «лестница сломана» на исправной палитре и «ослеп» на законной записи.
 const alphaOf = (name) => {
-  const v = source.alias[name]?.$value ?? '';
-  if (/^rgb\(var\(--ink\)\)$/.test(v)) return 1;
-  const m = /\/\s*\.?([0-9.]+)\s*\)/.exec(v);
-  return m ? Number(`0${m[0].replace(/[^\d.]/g, '') === '' ? '' : ''}${m[1].startsWith('.') ? m[1] : '.' + m[1]}`) : null;
+  const v = String(source.alias[name]?.$value ?? '');
+  if (!v) return null;
+  if (!v.includes('/')) return /var\(--ink\)/.test(v) ? 1 : null; // без слэша — полная непрозрачность
+  const m = /\/\s*([0-9]*\.?[0-9]+)\s*(%?)\s*\)/.exec(v);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return m[2] === '%' ? n / 100 : n;
 };
 const ladder = ['text-primary', 'text-body', 'text-secondary', 'text-tertiary', 'text-disabled'];
 const alphas = ladder.map((n) => ({ n, a: alphaOf(n) }));

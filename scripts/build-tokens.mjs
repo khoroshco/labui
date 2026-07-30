@@ -23,7 +23,16 @@ const source = readSource();
 const flat = flatten(source);
 const base = { ...flat.primitive, ...flat.alias };
 const light = flat.light;
-if (Object.keys(base).length < 50) throw new Error('источник токенов пуст — сборка пакета остановлена');
+// Порог от реальности, а не «больше пятидесяти»: в системе 127 токенов, и «50» пропускало
+// вдвое урезанный источник. Числа ниже допускают только осознанное удаление, которое всё
+// равно требует правки этой строки — то есть решения, а не случая.
+const declared = Object.keys(base).length;
+if (declared < 120 || Object.keys(light).length < 20) {
+  throw new Error(
+    `источник токенов урезан: ${declared} базовых и ${Object.keys(light).length} переопределений темы ` +
+      '— ожидается около 127 и 23; если токены удалены осознанно, поправь порог вместе с ними'
+  );
+}
 
 const layerOf = (name) => (flat.primitive[name] !== undefined ? 'primitive' : 'alias');
 

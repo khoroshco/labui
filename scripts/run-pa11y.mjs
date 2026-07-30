@@ -50,7 +50,13 @@ const MOUNTED = ['wait for element #dc-root .sc-host to be visible'];
 
 const pages = pageUrls.map((url) => ({ url, actions: MOUNTED }));
 
-const filled = Object.entries(FIXTURES).flatMap(([name, props]) =>
+// Только мигрированные: панель пропсов витрины живёт лишь в эталоне, и харнесс на такой
+// запрос честно отвечает «нет компонента» — ждать в нём смонтированного острова бессмысленно.
+const inReact = new Set(
+  JSON.parse(fs.readFileSync(path.join(root, 'packages/ds-react/migrated.json'), 'utf8')).components
+);
+
+const filled = Object.entries(FIXTURES).filter(([name]) => inReact.has(name)).flatMap(([name, props]) =>
   ['dark', 'light'].map((theme) => ({
     url: `${base}/harness/?c=${name}&theme=${theme}&props=${encodeURIComponent(JSON.stringify(props))}`,
     actions: MOUNTED,
