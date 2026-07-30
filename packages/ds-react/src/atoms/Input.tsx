@@ -16,7 +16,7 @@ export interface InputProps {
   maxLength?: number;
   invalid?: boolean;
   disabled?: boolean;
-  align?: 'left' | 'right' | 'center';
+  align?: 'left' | 'right';
   /** Голый ввод для рядов: обвязкой владеет ряд. */
   bare?: boolean;
   onEnter?: () => void;
@@ -53,10 +53,20 @@ export function Input({
   onInput,
   style,
 }: InputProps) {
+  // Текстовый ввод — единственный контрол, который ВСЕГДА ведёт своё значение: набор
+  // обязан быть живым, даже когда родитель ещё не принял его. Строгая управляемость
+  // (`value ?? own`) делала поле мёртвым, если проп пришёл без onInput, — ровно то, что
+  // нашло ревью и что противоречит ADR 0011.
   const [own, setOwn] = useState(value ?? defaultValue);
+  const seen = useRef(value);
+  if (value !== undefined && value !== seen.current) {
+    // проп изменился сверху — он перекрывает черновик (так очищается поле после отправки)
+    seen.current = value;
+    setOwn(value);
+  }
   const [focused, setFocused] = useState(false);
   const box = useRef<HTMLLabelElement | null>(null);
-  const val = value !== undefined ? value : own;
+  const val = own;
   const isFocused = focused && !disabled;
   const lim = Number(maxLength) || 0;
 
@@ -70,7 +80,7 @@ export function Input({
   };
 
   const set = (next: string) => {
-    if (value === undefined) setOwn(next);
+    setOwn(next);
     onInput?.(next);
   };
 

@@ -10,7 +10,7 @@
  * темнее, и любая проверка по яркости в лоб ломается при первом же переключении темы.
  */
 import { expect, test } from '@playwright/test';
-import { contrast, flatten, open, parseColor, setProps, tokenValue } from '../support/browser.js';
+import { contrast, flatten, IMPLS, open, parseColor, tokenValue } from '../support/browser.js';
 
 /** Компоненты с disabled, у которых внутри есть что гасить. */
 const DISABLEABLE = [
@@ -29,16 +29,20 @@ const DISABLEABLE = [
   'Disclosure',
 ];
 
-for (const theme of ['dark', 'light']) {
+for (const impl of IMPLS) {
+  for (const theme of ['dark', 'light']) {
   for (const name of DISABLEABLE) {
-    test(`${name}: в disabled ничто не ярче --text-disabled (${theme})`, async ({ page }) => {
+    test(`${name}: в disabled ничто не ярче --text-disabled (${theme}, ${impl})`, async ({ page }) => {
       const props = { disabled: true };
       if (name === 'Input') props.placeholder = 'Плейсхолдер';
       if (name === 'InputRow') Object.assign(props, { placeholder: 'Плейсхолдер', msg: 'Ошибка', msgLevel: 'danger' });
       if (name === 'CheckboxRow') Object.assign(props, { msg: 'Ошибка', msgLevel: 'danger' });
       if (name === 'OptionGroup') props.options = ['Первая', 'Вторая'];
+      // Без опций у ряда под проверку попадает один лейбл, а пилюли — самое вероятное
+      // место нарушения потолка — в тест не попадают вовсе.
+      if (name === 'ChoiceRow') props.options = ['Первая', 'Вторая'];
 
-      await open(page, name, props, { theme });
+      await open(page, name, props, { theme, impl });
 
       const bg = parseColor(await tokenValue(page, '--bg-base', 'background-color'));
       const ceiling = flatten(parseColor(await tokenValue(page, '--text-disabled')), bg);
@@ -70,15 +74,17 @@ for (const theme of ['dark', 'light']) {
 
       expect(
         tooBright,
-        `${name}/${theme}: элементы ярче потолка --text-disabled (${ceilingContrast.toFixed(2)}:1)\n` +
+        `${name}/${theme}/${impl}: элементы ярче потолка --text-disabled (${ceilingContrast.toFixed(2)}:1)\n` +
           tooBright.map((o) => `  ${o.tag} ${o.where} = ${o.css} «${o.text}»`).join('\n')
       ).toEqual([]);
     });
   }
+  }
 }
 
-test('ghost и secondary не приобретают поверхность в disabled', async ({ page }) => {
-  await open(page, 'Button', { variant: 'ghost' });
+for (const impl of IMPLS) {
+test(`ghost и secondary не приобретают поверхность в disabled (${impl})`, async ({ page }) => {
+  await open(page, 'Button', { variant: 'ghost' }, { impl });
 
   const read = () =>
     page.evaluate(() => {
@@ -88,42 +94,51 @@ test('ghost и secondary не приобретают поверхность в d
     });
 
   const ghostOn = await read();
-  await setProps(page, { disabled: true });
+  await open(page, 'Button', { variant: 'ghost', disabled: true }, { impl });
   const ghostOff = await read();
   expect(ghostOff.bg, 'у ghost нет своей поверхности — в disabled ей неоткуда взяться').toBe(ghostOn.bg);
 
-  await setProps(page, { variant: 'secondary', disabled: false });
+  await open(page, 'Button', { variant: 'secondary' }, { impl });
   const secOn = await read();
-  await setProps(page, { disabled: true });
+  await open(page, 'Button', { variant: 'secondary', disabled: true }, { impl });
   const secOff = await read();
   expect(secOff.bg, 'secondary тоже без поверхности: иначе недоступная кнопка единственная с заливкой').toBe(secOn.bg);
   expect(secOff.borderWidth, 'рамка secondary — его форма, она остаётся').toBe(secOn.borderWidth);
   expect(secOff.borderColor, 'но гаснет цветом').not.toBe(secOn.borderColor);
 });
+}
 
-test('primary и accent приглушают собственную поверхность, а не теряют её', async ({ page }) => {
+for (const impl of IMPLS) {
+test(`primary и accent приглушают собственную поверхность, а не теряют её (${impl})`, async ({ page }) => {
   for (const variant of ['primary', 'accent']) {
-    await open(page, 'Button', { variant });
+    await open(page, 'Button', { variant }, { impl });
     const on = await page.evaluate(() => getComputedStyle(document.querySelector('#dc-root button')).backgroundColor);
-    await setProps(page, { disabled: true });
+    await open(page, 'Button', { variant, disabled: true }, { impl });
     const off = await page.evaluate(() => getComputedStyle(document.querySelector('#dc-root button')).backgroundColor);
     expect(off, `${variant}: поверхность обязана остаться`).not.toBe('rgba(0, 0, 0, 0)');
     expect(off, `${variant}: и обязана погаснуть`).not.toBe(on);
   }
 });
+}
 
-test('disabled не реагирует: ни курсора-руки, ни ховера, ни тултипа', async ({ page }) => {
-  await open(page, 'Button', { disabled: true, tooltip: 'Подсказка' });
+for (const impl of IMPLS) {
+test(`disabled не реагирует: ни курсора-руки, ни ховера, ни тултипа (${impl})`, async ({ page }) => {
+  await open(page, 'Button', { disabled: true, tooltip: 'Подсказка' }, { impl });
+  // Проверяем СМЫСЛ, а не механизм: подсказки не видно. Эталон оставляет атрибут и
+  // прячет плашку до ховера, React-версия атрибут не пишет вовсе — оба варианта
+  // выполняют правило, и тест не должен предпочитать один из них.
   const state = await page.evaluate(() => {
     const b = document.querySelector('#dc-root button');
     const cs = getComputedStyle(b);
+    const before = getComputedStyle(b, '::before');
     return {
       cursor: cs.cursor,
-      tooltipOpacity: getComputedStyle(b, '::before').opacity,
       disabled: b.disabled,
+      tooltipShown: before.content !== 'none' && before.opacity !== '0',
     };
   });
   expect(state.cursor).toBe('not-allowed');
   expect(state.disabled).toBe(true);
-  expect(state.tooltipOpacity, 'у выключенного тултипа нет: подсказка — тоже реакция').toBe('0');
+  expect(state.tooltipShown, 'у выключенного подсказки нет: тултип — тоже реакция').toBe(false);
 });
+}

@@ -1,5 +1,4 @@
-import type { CSSProperties, MouseEvent } from 'react';
-import { useControlled } from '../lib/hooks';
+import { useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 
 export interface CycleButtonProps {
   options?: string[];
@@ -22,8 +21,20 @@ export function CycleButton({
   style,
 }: CycleButtonProps) {
   const opts = Array.isArray(options) && options.length ? options : ['PX', 'REM'];
-  const [raw, setRaw] = useControlled(value, defaultValue, (next) => onChange?.(next, opts[next % opts.length] ?? ''));
-  const i = ((raw ?? 0) % opts.length + opts.length) % opts.length;
+  // Перебор живой всегда: пилюля стоит в ряду, где значением владеет ряд, но щёлкать её
+  // обязано быть можно и без колбэка. Новый проп перекрывает свой индекс — так внешнее
+  // переключение единиц доезжает до кнопки.
+  const [own, setOwn] = useState(value ?? defaultValue);
+  const seen = useRef(value);
+  if (value !== undefined && value !== seen.current) {
+    seen.current = value;
+    setOwn(value);
+  }
+  const i = ((own ?? 0) % opts.length + opts.length) % opts.length;
+  const setRaw = (next: number) => {
+    setOwn(next);
+    onChange?.(next, opts[next % opts.length] ?? '');
+  };
 
   return (
     <button

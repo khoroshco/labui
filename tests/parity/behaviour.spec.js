@@ -14,6 +14,9 @@ const openHarness = async (page, name, props = {}) => {
     waitUntil: 'load',
   });
   await page.waitForSelector('#dc-root .sc-host > *');
+  // Ждём шрифт: до его загрузки ширины меряются по подменному, и всё, что зависит от
+  // измерений (скользящая подложка, подчёркивание), сравнивается не с тем.
+  await page.evaluate(() => document.fonts.ready);
 };
 
 test('Toggle: без value ведёт своё состояние, с value показывает переданное', async ({ page }) => {
@@ -115,4 +118,95 @@ test('ⓘ раскрывает подсказку и не трогает пер�
   await info.click();
   await expect(info).toHaveAttribute('aria-expanded', 'true');
   await expect(row, 'справка — не действие').toHaveAttribute('aria-checked', 'false');
+});
+
+test('Input живой, даже когда значение пришло сверху без колбэка', async ({ page }) => {
+  // Ревью нашло здесь паралич: строгая управляемость делала поле мёртвым при value без
+  // onInput — то есть ровно в дефолтном вызове из контракта.
+  await openHarness(page, 'Input', { value: 'Осенний сейл', ariaLabel: 'Название' });
+  const field = page.locator('#dc-root input');
+  await field.click();
+  await field.press('End');
+  await field.pressSequentially('XYZ');
+  await expect(field, 'набор обязан быть живым всегда').toHaveValue('Осенний сейлXYZ');
+});
+
+test('ряд и остров набираются: значение из конфига не замораживает поле', async ({ page }) => {
+  await openHarness(page, 'InputRow', { label: 'Название', value: '10' });
+  const rowField = page.locator('#dc-root input');
+  await rowField.click();
+  await rowField.press('End');
+  await rowField.pressSequentially('99');
+  await expect(rowField).toHaveValue('1099');
+
+  await openHarness(page, 'Island', {
+    rows: [{ type: 'text', label: 'Название', value: 'Осенний сейл' }],
+  });
+  const islandField = page.locator('#dc-root input').first();
+  await islandField.click();
+  await islandField.press('End');
+  await islandField.pressSequentially('!');
+  await expect(islandField, 'форма из статичного конфига обязана набираться').toHaveValue('Осенний сейл!');
+});
+
+test('Slider живой при значении сверху и стартует от min', async ({ page }) => {
+  await openHarness(page, 'Slider', { label: 'Поле', value: 24, min: 0, max: 64, step: 1 });
+  const widget = page.locator('#dc-root [role="slider"]');
+  await widget.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(widget, 'стрелка обязана двигать ползунок и при значении сверху').toHaveAttribute(
+    'aria-valuenow',
+    '25'
+  );
+
+  await openHarness(page, 'Slider', { label: 'Поле', min: 10, max: 20 });
+  await expect(
+    page.locator('#dc-root [role="slider"]'),
+    'без значения слайдер стоит на min, а не на нуле вне диапазона'
+  ).toHaveAttribute('aria-valuenow', '10');
+});
+
+test('у кнопки есть data-tone: ds.css ловит само наличие атрибута', async ({ page }) => {
+  await openHarness(page, 'Button', { label: 'Выгрузить' });
+  await expect(page.locator('#dc-root button')).toHaveAttribute('data-tone', 'default');
+});
+
+test('пакет сам ставит модальность фокуса — иначе кольца не появятся ни у кого', async ({ page }) => {
+  await openHarness(page, 'Button', { label: 'Выгрузить' });
+  await expect(page.locator('html')).toHaveAttribute('data-modality', 'mouse');
+  await page.keyboard.press('Tab');
+  await expect(page.locator('html'), 'клавиатура обязана переводить модальность в kb').toHaveAttribute(
+    'data-modality',
+    'kb'
+  );
+});
+
+test('циклер единиц следует за пропом и щёлкается без колбэка', async ({ page }) => {
+  await openHarness(page, 'CycleButton', { options: ['PX', 'REM'], value: 1 });
+  const btn = page.locator('#dc-root button');
+  await expect(btn).toHaveText('REM');
+  await btn.click();
+  await expect(btn, 'перебор живой и без колбэка').toHaveText('PX');
+});
+
+test('Avatar без автора не выдумывает имя', async ({ page }) => {
+  await openHarness(page, 'Avatar', {});
+  const el = page.locator('#dc-root [role="img"]');
+  await expect(el, 'витринное имя не должно быть дефолтом библиотеки').toHaveAttribute('aria-label', 'Аватар');
+  await expect(el).toHaveText('—');
+});
+
+test('подчёркивание вкладок перемеряется при смене подписей', async ({ page }) => {
+  await openHarness(page, 'Tabs', {
+    options: [['Очень длинная подпись вкладки', ''], ['Б', '']],
+    defaultValue: 0,
+  });
+  // Подложка едет к вкладке пружиной .35s — мерить надо после того, как она приехала,
+  // иначе тест ловит середину перехода, а не результат.
+  await page.waitForTimeout(600);
+  const bar = page.locator('#dc-root [role="tablist"] > span').first();
+  const tab = page.locator('#dc-root [role="tab"]').first();
+  const barW = (await bar.boundingBox())?.width ?? 0;
+  const tabW = (await tab.boundingBox())?.width ?? 0;
+  expect(Math.abs(barW - tabW), `подложка ${barW} против вкладки ${tabW}`).toBeLessThan(2);
 });

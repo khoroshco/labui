@@ -16,6 +16,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { components, report, ROOT } from './lib/dc.mjs';
 
+/** Все .tsx React-пакета: правило про источник значений от формата файла не зависит. */
+function reactSources() {
+  const dir = path.join(ROOT, 'packages/ds-react/src');
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) walk(full);
+      // сгенерированные иконки — это svg-разметка, а не стили
+      else if (e.name.endsWith('.tsx') || (e.name.endsWith('.ts') && !e.name.endsWith('.generated.ts'))) {
+        out.push({ file: path.relative(ROOT, full), body: fs.readFileSync(full, 'utf8') });
+      }
+    }
+  };
+  walk(dir);
+  return out;
+}
+
 const RULES = [
   { re: /#[0-9a-fA-F]{3,8}\b/g, what: 'литеральный цвет' },
   { re: /\brgba?\(/g, what: 'литеральный цвет rgb()' },
@@ -27,6 +46,12 @@ const RULES = [
   { re: /var\(\s*--k-/g, what: 'примитив --k-* напрямую' },
 ];
 
+/** Те же правила в синтаксисе объектов стилей React: ключи там camelCase. */
+const REACT_RULES = [
+  { re: /fontWeight:\s*['"`]?[0-9]/g, what: 'литеральный вес' },
+  { re: /lineHeight:\s*['"`]?[0-9.]/g, what: 'литеральный интерлиньяж' },
+];
+
 const problems = [];
 
 for (const c of components()) {
@@ -36,6 +61,17 @@ for (const c of components()) {
     for (const m of body.matchAll(re)) {
       const line = body.slice(0, m.index).split('\n').length;
       problems.push(`${c.file}:${line} — ${what}: ${JSON.stringify(m[0])}`);
+    }
+  }
+}
+
+// React-исходники: правило про источник значений одно на обе реализации. Ревью показало,
+// что гейт, читающий только .dc.html, латентно разрешал литералы в .tsx.
+for (const { file, body } of reactSources()) {
+  for (const { re, what } of [...RULES, ...REACT_RULES]) {
+    for (const m of body.matchAll(re)) {
+      const line = body.slice(0, m.index).split('\n').length;
+      problems.push(`${file}:${line} — ${what}: ${JSON.stringify(m[0])}`);
     }
   }
 }

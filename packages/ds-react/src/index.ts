@@ -1,6 +1,13 @@
 /* Публичная поверхность пакета. Экспорт именованный: дерево тряски работает, а импорт
  * по путям (@banner-lab/ds/Button) не заводим — как только сервисы начнут им пользоваться,
  * менять раскладку файлов станет breaking change. */
+import { installFocusModality } from './lib/focusModality';
+
+// Побочный эффект осознанный: все правила фокуса в ds.css висят на html[data-modality],
+// и без него у потребителя нет ни одного фокус-кольца. Под SSR не выполняется.
+installFocusModality();
+
+export { installFocusModality } from './lib/focusModality';
 export { Icon, type IconName, type IconProps } from './lib/Icon';
 export { useControlled, useReducedMotion, useSpin, useTrackActive } from './lib/hooks';
 

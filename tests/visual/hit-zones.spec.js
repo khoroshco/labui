@@ -9,7 +9,7 @@
  * событие с другим target.
  */
 import { expect, test } from '@playwright/test';
-import { open } from '../support/browser.js';
+import { IMPLS, open } from '../support/browser.js';
 
 // Ряды и группы живут в островах шириной ~380–500px, а не во весь экран. Ширина здесь
 // важна по делу: пресс уменьшает элемент на процент от ШИРИНЫ, и на 1280px этот процент
@@ -27,9 +27,14 @@ async function clickAt(page, x, y) {
   await page.waitForTimeout(80);
 }
 
-test('OptionGroup: зазор между опциями принадлежит кнопкам', async ({ page }) => {
-  // начинаем с третьей опции: иначе «клик попал в первую» и «клик пропал» неразличимы
-  await open(page, 'OptionGroup', { options: ['Первая', 'Вторая', 'Третья'], value: 2 }, live);
+for (const impl of IMPLS) {
+test(`OptionGroup: зазор между опциями принадлежит кнопкам (${impl})`, async ({ page }) => {
+  // Начинаем с третьей опции: иначе «клик попал в первую» и «клик пропал» неразличимы.
+  // Начальное значение задаётся на своём диалекте: у эталона признак управляемости —
+  // колбэк, у React — само наличие value (ADR 0011). Передать React `value` без onChange
+  // значит попросить его замереть — и тест мерил бы не хит-зону, а идиому.
+  const start = impl === 'react' ? { defaultValue: 2 } : { value: 2 };
+  await open(page, 'OptionGroup', { options: ['Первая', 'Вторая', 'Третья'], ...start }, { ...live, impl });
 
   const rects = await page.evaluate(() =>
     [...document.querySelectorAll('#dc-root [role="radio"], #dc-root button')].map((b) => {
@@ -63,9 +68,11 @@ test('OptionGroup: зазор между опциями принадлежит �
   );
   expect([0, 1], 'клик в зазор обязан выбрать одного из соседей, а не пропасть впустую').toContain(selected);
 });
+}
 
-test('SwitchRow: клик в любую точку ряда переключает ряд, а не что-то ещё', async ({ page }) => {
-  await open(page, 'SwitchRow', { label: 'Запекать в растр', checked: false, info: 'Подсказка про растр' }, live);
+for (const impl of IMPLS) {
+test(`SwitchRow: клик в любую точку ряда переключает ряд, а не что-то ещё (${impl})`, async ({ page }) => {
+  await open(page, 'SwitchRow', { label: 'Запекать в растр', defaultChecked: false, info: 'Подсказка про растр' }, { ...live, impl });
 
   const row = await page.evaluate(() => {
     const r = document.querySelector('#dc-root [data-row], #dc-root [role="switch"]').getBoundingClientRect();
@@ -93,6 +100,9 @@ test('SwitchRow: клик в любую точку ряда переключае
     { x: row.x + row.w - 6, y: row.y + row.h / 2 },
     { x: row.x + row.w - 6, y: row.y + 4 },
   ].filter((p) => Math.abs(p.x - info.x) > info.w || Math.abs(p.y - info.y) > info.h);
+  // Если зона ⓘ разрослась и вычистила все точки, цикл ниже не выполнится ни разу и тест
+  // пройдёт без единого утверждения — ровно тот вакуум, который гейт обязан исключать.
+  expect(points.length, 'проверять нечего: все точки попали в зону ⓘ').toBeGreaterThan(3);
 
   let expected = false;
   for (const p of points) {
@@ -107,9 +117,11 @@ test('SwitchRow: клик в любую точку ряда переключае
     expect(s.info, 'клик по ряду не имеет права раскрывать подсказку').toBe('false');
   }
 });
+}
 
-test('SwitchRow: клик по ⓘ раскрывает подсказку и НЕ трогает переключатель', async ({ page }) => {
-  await open(page, 'SwitchRow', { label: 'Запекать в растр', checked: false, info: 'Подсказка про растр' }, live);
+for (const impl of IMPLS) {
+test(`SwitchRow: клик по ⓘ раскрывает подсказку и НЕ трогает переключатель (${impl})`, async ({ page }) => {
+  await open(page, 'SwitchRow', { label: 'Запекать в растр', defaultChecked: false, info: 'Подсказка про растр' }, { ...live, impl });
 
   const before = await page.evaluate(() =>
     document.querySelector('#dc-root [role="switch"], #dc-root [aria-checked]')?.getAttribute('aria-checked')
@@ -128,9 +140,11 @@ test('SwitchRow: клик по ⓘ раскрывает подсказку и Н
     'справка — не действие: клик по ⓘ не переключает ряд (так ломался вложенный label)'
   ).toBe(before);
 });
+}
 
-test('InputRow: зона ввода растянута на высоту ряда', async ({ page }) => {
-  await open(page, 'InputRow', { label: 'Название', value: 'Осенний сейл' }, live);
+for (const impl of IMPLS) {
+test(`InputRow: зона ввода растянута на высоту ряда (${impl})`, async ({ page }) => {
+  await open(page, 'InputRow', { label: 'Название', value: 'Осенний сейл' }, { ...live, impl });
 
   const row = await page.evaluate(() => {
     const r = document.querySelector('#dc-root [data-row], #dc-root > *').getBoundingClientRect();
@@ -144,11 +158,14 @@ test('InputRow: зона ввода растянута на высоту ряд�
     expect(focused, `клик на высоте ${Math.round(y - row.y)} от верха ряда обязан ставить курсор в поле`).toBe('INPUT');
   }
 });
+}
 
-test('нигде нет вложенных label: второе активационное событие проходит мимо гейта ⓘ', async ({ page }) => {
+for (const impl of IMPLS) {
+test(`нигде нет вложенных label: второе активационное событие проходит мимо гейта ⓘ (${impl})`, async ({ page }) => {
   for (const name of ['SwitchRow', 'CheckboxRow', 'InputRow', 'ChoiceRow', 'ActionRow']) {
-    await open(page, name, { label: 'Ряд', info: 'Подсказка' }, live);
+    await open(page, name, { label: 'Ряд', info: 'Подсказка' }, { ...live, impl });
     const nested = await page.evaluate(() => document.querySelectorAll('#dc-root label label').length);
-    expect(nested, `${name}: корень ряда обязан быть div, а не label`).toBe(0);
+    expect(nested, `${name}/${impl}: корень ряда обязан быть div, а не label`).toBe(0);
   }
 });
+}

@@ -50,7 +50,10 @@ export function Slider({
   };
   const d = { min: num(min, 0), max: num(max, 100), step: num(step, 1) || 1, snap: num(snapStep, 0) };
 
-  const [own, setOwn] = useState(value ?? defaultValue);
+  // Перетаскивание и клавиатура обязаны быть живыми, поэтому значение своё всегда, а
+  // новый проп его перекрывает. Старт — от min: иначе при min=10 слайдер объявляет
+  // aria-valuenow=0 при aria-valuemin=10, то есть ARIA вне диапазона.
+  const [own, setOwn] = useState(() => value ?? defaultValue ?? num(min, 0));
   const [edit, setEdit] = useState<string | null>(null);
   const [, forceTick] = useState(0);
   const el = useRef<HTMLDivElement | null>(null);
@@ -65,7 +68,12 @@ export function Slider({
   const fillSpring = useRef<{ p: number; v: number; t: number } | null>(null);
   const reduced = useReducedMotion();
 
-  const v = value !== undefined ? num(value, d.min) : own;
+  const seen = useRef(value);
+  if (value !== undefined && value !== seen.current) {
+    seen.current = value;
+    setOwn(num(value, d.min));
+  }
+  const v = Math.min(d.max, Math.max(d.min, own));
   const fillPct = ((v - d.min) / (d.max - d.min)) * 100;
 
   const set = useCallback(
@@ -78,10 +86,10 @@ export function Slider({
         const near = Math.round(next / d.snap) * d.snap;
         if (Math.abs(next - near) <= pull) next = Math.min(d.max, Math.max(d.min, near));
       }
-      if (value === undefined) setOwn(next);
+      setOwn(next);
       onChange?.(next);
     },
-    [d.max, d.min, d.snap, d.step, onChange, value]
+    [d.max, d.min, d.snap, d.step, onChange]
   );
 
   /** Желе на перетаскивании и пружинная заливка. Под reduced-motion — сразу по значению. */
@@ -374,7 +382,7 @@ export function Slider({
                 marginLeft: '2px',
               }}
             >
-              <CycleButton options={options} defaultValue={optionIndex} disabled={disabled} onChange={onOptionChange} />
+              <CycleButton options={options} value={optionIndex} disabled={disabled} onChange={onOptionChange} />
             </span>
           ) : null}
           {!hasCycle && unit ? (

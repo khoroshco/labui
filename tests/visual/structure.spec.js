@@ -6,11 +6,12 @@
  * 3. Соло-иконка без подписи обязана иметь тултип — он же даёт имя для скринридера.
  */
 import { expect, test } from '@playwright/test';
-import { open } from '../support/browser.js';
+import { IMPLS, open } from '../support/browser.js';
 
-test('носитель тултипа не капсовый: подсказка не наследует преобразование', async ({ page }) => {
+for (const impl of IMPLS) {
+test(`носитель тултипа не капсовый: подсказка не наследует преобразование (${impl})`, async ({ page }) => {
   for (const name of ['Button', 'CycleButton']) {
-    await open(page, name, { tooltip: 'Единицы измерения' });
+    await open(page, name, { tooltip: 'Единицы измерения' }, { impl });
     const hosts = await page.evaluate(() =>
       [...document.querySelectorAll('#dc-root [data-tooltip]')].map((el) => ({
         tag: el.tagName.toLowerCase(),
@@ -19,38 +20,46 @@ test('носитель тултипа не капсовый: подсказка 
         inner: [...el.querySelectorAll('*')].map((c) => getComputedStyle(c).textTransform),
       }))
     );
-    expect(hosts.length, `${name}: тултип обязан появиться на элементе`).toBeGreaterThan(0);
+    expect(hosts.length, `${name}/${impl}: тултип обязан появиться на элементе`).toBeGreaterThan(0);
     for (const h of hosts) {
       expect(
         h.transform,
-        `${name}: ${h.tag} с data-tooltip набран капсом — подсказка выйдет капсом вместе с ним`
+        `${name}/${impl}: ${h.tag} с data-tooltip набран капсом — подсказка выйдет капсом вместе с ним`
       ).toBe('none');
     }
   }
 });
+}
 
-test('капс у капсульной надписи всё-таки есть — иначе проверять было бы нечего', async ({ page }) => {
-  await open(page, 'CycleButton', { tooltip: 'Единицы измерения' });
+for (const impl of IMPLS) {
+test(`капс у капсульной надписи всё-таки есть — иначе проверять было бы нечего (${impl})`, async ({ page }) => {
+  await open(page, 'CycleButton', { tooltip: 'Единицы измерения' }, { impl });
   const inner = await page.evaluate(() =>
     [...document.querySelectorAll('#dc-root [data-tooltip] *')].map((c) => getComputedStyle(c).textTransform)
   );
   expect(inner, 'у пилюли циклера надпись капсовая, и капс лежит на ней').toContain('uppercase');
 });
+}
 
-test('корень ряда — div: вложенных label в системе нет', async ({ page }) => {
+for (const impl of IMPLS) {
+test(`корень ряда — div: вложенных label в системе нет (${impl})`, async ({ page }) => {
   for (const name of ['SwitchRow', 'CheckboxRow', 'InputRow', 'ChoiceRow', 'ActionRow']) {
-    await open(page, name, { label: 'Ряд' });
+    await open(page, name, { label: 'Ряд' }, { impl });
     const info = await page.evaluate(() => {
       const root = document.querySelector('#dc-root .sc-host > *');
       return { rootTag: root?.tagName.toLowerCase(), nested: document.querySelectorAll('#dc-root label label').length };
     });
-    expect(info.rootTag, `${name}: корень ряда обязан быть div`).not.toBe('label');
-    expect(info.nested, `${name}: вложенный label даёт второе активационное событие`).toBe(0);
+    // Утверждаем ПОЛОЖИТЕЛЬНО: not.toBe('label') проходит и на undefined, то есть на
+    // неотрисованном ряде — гейт молчал бы там, где проверять нечего.
+    expect(info.rootTag, `${name}/${impl}: корень ряда обязан быть div`).toBe('div');
+    expect(info.nested, `${name}/${impl}: вложенный label даёт второе активационное событие`).toBe(0);
   }
 });
+}
 
-test('соло-иконка называет себя: тултип даёт имя для скринридера', async ({ page }) => {
-  await open(page, 'Button', { label: '', icon: 'plus', tooltip: 'Добавить' });
+for (const impl of IMPLS) {
+test(`соло-иконка называет себя: тултип даёт имя для скринридера (${impl})`, async ({ page }) => {
+  await open(page, 'Button', { label: '', icon: 'plus', tooltip: 'Добавить' }, { impl });
   const btn = await page.evaluate(() => {
     const b = document.querySelector('#dc-root button');
     return {
@@ -65,3 +74,4 @@ test('соло-иконка называет себя: тултип даёт и�
   expect(btn.label, 'он же даёт имя для скринридера').toBe('Добавить');
   expect(btn.square, 'кнопка-иконка квадратная').toBe(true);
 });
+}

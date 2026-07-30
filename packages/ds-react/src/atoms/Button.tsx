@@ -92,7 +92,10 @@ export function Button({
       // зону нажатия, не меняя вида.
       data-tap={iconOnly && (size === 'xs' || size === 's') ? 'true' : undefined}
       data-btn={variant}
-      data-tone={tone && tone !== 'default' ? tone : undefined}
+      // Атрибут пишется ВСЕГДА, включая 'default': ds.css ловит само его наличие
+      // ([data-btn="primary"][data-tone]:hover), и без него у самой частой кнопки системы
+      // другой ховер — 0.88 вместо brightness(1.08).
+      data-tone={tone}
       data-busy={loading ? 'true' : undefined}
       disabled={disabled}
       onClick={loading ? undefined : onClick}

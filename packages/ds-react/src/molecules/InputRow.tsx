@@ -65,7 +65,25 @@ export function InputRow({
       return;
     }
     const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT') return;
+    if (target.tagName === 'INPUT') {
+      // Клик внутри поля, но левее правого края текста: каретка обязана уйти в конец
+      // значения, а не встать в позицию 0 — иначе ввод пойдёт ПЕРЕД значением.
+      const input = target as HTMLInputElement;
+      const r = input.getBoundingClientRect();
+      const ctx = document.createElement('canvas').getContext('2d');
+      const cs = getComputedStyle(input);
+      if (ctx) {
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const textRight = r.right - parseFloat(cs.paddingRight || '0');
+        const textLeft = textRight - ctx.measureText(input.value).width;
+        if (e.clientX < textLeft) {
+          e.preventDefault();
+          input.focus();
+          caretToEnd(input);
+        }
+      }
+      return;
+    }
     const input = e.currentTarget.querySelector('input');
     if (input) {
       e.preventDefault();
@@ -118,7 +136,14 @@ export function InputRow({
               </span>
               {hasCycle ? (
                 <span style={{ display: 'flex', alignItems: 'center' }}>
-                  <CycleButton options={options} defaultValue={optionIndex} disabled={disabled} onChange={onOptionChange} />
+                  {/* value, а не defaultValue: до первого клика циклер обязан уважать
+                      проп — иначе внешнее переключение единиц он игнорирует. */}
+                  <CycleButton
+                    options={options}
+                    value={optionIndex}
+                    disabled={disabled}
+                    onChange={onOptionChange}
+                  />
                 </span>
               ) : null}
             </>

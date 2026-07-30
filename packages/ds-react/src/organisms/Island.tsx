@@ -30,7 +30,10 @@ export interface IslandRow {
   onInput?: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
-  onChange?: (value: never) => void;
+  /** Тип зависит от ряда: индекс опции у segmented, включённость у toggle и checkbox.
+   *  `never` в параметре принимал любую функцию из-за контравариантности и не гарантировал
+   *  ничего — здесь честное объединение. */
+  onChange?: ((index: number) => void) | ((checked: boolean) => void);
   onClick?: () => void;
   onOptionChange?: (index: number, option: string) => void;
 }

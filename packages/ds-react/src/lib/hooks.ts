@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * Управляемый и неуправляемый режим — ОДНОЙ идиомой на все контролы.
@@ -54,18 +54,22 @@ export function useSpin(loading: boolean, { delay = 320, minVisible = 450 } = {}
   const shownAt = useRef(0);
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
-    if (loading) {
+    if (loading && !spin) {
+      // условие «&& !spin» обязательно: иначе эффект каждые 320 мс переставлял таймер и
+      // заново писал shownAt, и отсчёт минимальной видимости не начинался никогда
       t = setTimeout(() => {
         shownAt.current = Date.now();
         setSpin(true);
       }, delay);
-    } else if (spin) {
+    } else if (!loading && spin) {
       const left = Math.max(0, minVisible - (Date.now() - shownAt.current));
       t = setTimeout(() => setSpin(false), left);
     }
     return () => clearTimeout(t);
   }, [loading, spin, delay, minVisible]);
-  return loading && spin;
+  // Возвращаем именно spin: `loading && spin` гасило лоадер в тот же миг, что и загрузку,
+  // то есть правило «появившийся лоадер живёт минимум 450 мс» не работало вовсе.
+  return spin;
 }
 
 /**
@@ -89,12 +93,22 @@ export function useTrackActive(index: number, deps: unknown[] = []) {
     setRect((cur) => (cur && cur.left === next.left && cur.w === next.w ? cur : next));
   }, [index]);
 
-  useEffect(() => {
+  // Мерим после КАЖДОГО рендера: эталон делал это в componentDidUpdate. Зависимость
+  // только от индекса пропускала смену подписей — вкладка вырастала, подложка оставалась
+  // прежней ширины.
+  useLayoutEffect(() => {
     measure();
+  });
+
+  useEffect(() => {
     const el = box.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure);
+    // Наблюдаем и контейнер, и сами элементы: у Tabs контейнер блочный и его ширина от
+    // подписей не зависит — без наблюдения за элементами подчёркивание оставалось прежним,
+    // когда вкладка вырастала.
     ro.observe(el);
+    for (const item of el.querySelectorAll('[data-track-item]')) ro.observe(item);
     return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [measure, ...deps]);
