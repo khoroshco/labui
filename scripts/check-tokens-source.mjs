@@ -11,7 +11,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { build, flatten, readSource, ROOT } from './build-tokens-css.mjs';
+import { brokenRefs, emit, flatten, readSource, ROOT, unresolved } from './build-tokens-css.mjs';
 import { components, report, showcase } from './lib/dc.mjs';
 
 const doc = readSource();
@@ -29,11 +29,12 @@ for (const [group, obj] of [
 ]) {
   for (const [name, token] of tokensOf(obj)) {
     if (!token.$type) problems.push(`${group}.${name}: нет $type — файл перестаёт быть машиночитаемым`);
-    const ref = /^\{([a-z]+)\.([a-z0-9-]+)\}$/i.exec(String(token.$value));
-    if (ref && !all.has(`--${ref[2]}`)) {
-      problems.push(`${group}.${name}: ссылка {${ref[1]}.${ref[2]}} ведёт в никуда — var() молча уйдёт в initial`);
-    }
   }
+}
+// Битые ссылки ищет ОДНА реализация — общая с генератором (build-tokens-css.mjs).
+// Своя копия однонивелевого регекспа не видела ссылку внутри выражения и на лишнем уровне.
+for (const b of brokenRefs(doc)) {
+  problems.push(`${b} ведёт в никуда — var() молча уйдёт в initial`);
 }
 
 // 2. тема переопределяет только алиасы и только существующие
@@ -67,10 +68,21 @@ for (const name of all) {
   if (!used) problems.push(`${name} объявлен, но нигде не используется — палитра растёт, а система нет`);
 }
 
-// 4. собранный CSS не разошёлся с источником
-const { changed } = build();
-if (changed) {
-  problems.push('src/tokens.css был не собран из источника — перегенерируй «npm run tokens»');
+// 4. собранный CSS не разошёлся с источником — СВЕРКА БЕЗ ЗАПИСИ.
+// Раньше здесь вызывался build(): гейт сам чинил то, о чём докладывал, а в CI был мёртв
+// вдвойне — prepare пересобирал tokens.css раньше, чем гейт успевал заметить расхождение.
+const built = path.join(ROOT, 'src/tokens.css');
+const expected = emit(doc);
+const actual = fs.existsSync(built) ? fs.readFileSync(built, 'utf8') : null;
+if (actual !== expected) {
+  problems.push(
+    actual === null
+      ? 'src/tokens.css не собран вовсе — запусти «npm run tokens»'
+      : 'src/tokens.css разошёлся с источником — запусти «npm run tokens» (правка в CSS теряется)'
+  );
+}
+for (const left of unresolved(expected)) {
+  problems.push(`в выводе осталась неразвёрнутая ссылка ${left} — браузер такого значения не понимает`);
 }
 
 process.exit(report('источник токенов (DTCG)', problems));

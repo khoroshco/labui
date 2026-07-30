@@ -17,6 +17,7 @@
     "OptionGroup/light/color-contrast": { "nodes": 2, "why": "невыбранные опции JPG и WEBP — --text-tertiary (3.27:1 при норме 4.5)" },
     "ChoiceRow/light/color-contrast": { "nodes": 1, "why": "невыбранная опция «Вектор» — тот же --text-tertiary" },
     "Disclosure/light/color-contrast": { "nodes": 1, "why": "капс-рубрика заголовка — --text-tertiary (3.27:1)" },
+    "SbControls/light/color-contrast": { "nodes": 1, "why": "невыбранная опция «ghost» в панели пропсов — тот же --text-tertiary" },
     "Tabs/light/color-contrast": { "nodes": 1, "why": "счётчик «18» у активной вкладки — --text-tertiary (3.27:1)" },
     "Island/light/color-contrast": { "nodes": 2, "why": "невыбранные опции ряда «Формат» — --text-tertiary (3.31:1)" },
     "PinCard/light/color-contrast": { "nodes": 2, "why": "имена авторов, 11px — --text-tertiary (3.31:1)" },

@@ -7,6 +7,8 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { dcPages, openDc, preparePage, ROOT, unicaFaces } from '../support/dc.js';
+import { setProps } from '../support/browser.js';
+import { FIXTURES } from '../support/fixtures.js';
 
 const pages = dcPages();
 const KNOWN_HOLES = JSON.parse(
@@ -27,6 +29,13 @@ for (const { url, file, name } of pages) {
     // корень смонтирован — иначе «нет ошибок» означало бы «нет и страницы»
     const mounted = await page.locator('#dc-root > *').count();
     expect(mounted, `${name}: рантайм не смонтировал компонент`).toBeGreaterThan(0);
+
+    // …и НАРИСОВАЛ что-то. «Смонтировался» и «видно» — разные факты: у острова без рядов
+    // два узла при нулевой высоте, и такой страницы гейт не отличал от рабочей. Тем, у кого
+    // дефолтов не хватает на картинку, состояние даёт та же фикстура, что и остальным гейтам.
+    if (FIXTURES[name]) await setProps(page, FIXTURES[name]);
+    const box = await page.locator('#dc-root').boundingBox();
+    expect(box?.height ?? 0, `${name}: компонент смонтирован, но не нарисовал ничего`).toBeGreaterThan(4);
     // рантайм не свалился в заглушку с текстом ошибки вместо самого компонента
     await expect(
       page.locator('#dc-root .sc-logic-error, #dc-root .sc-placeholder-error'),

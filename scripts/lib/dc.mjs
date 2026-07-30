@@ -92,6 +92,29 @@ export function showcase() {
     .map((f) => parseDc(`storybook/${f}`));
 }
 
+/**
+ * Исходники React-пакета. Нужны сразу двум гейтам (значения из токенов, существование
+ * иконок), поэтому реализация одна: правило про источник значений и про имя иконки от
+ * формата файла не зависит.
+ */
+export function reactSources() {
+  const dir = path.join(ROOT, 'packages/ds-react/src');
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) walk(full);
+      // сгенерированные иконки — это svg-разметка, а не стили и не ссылки на иконки
+      else if (e.name.endsWith('.tsx') || (e.name.endsWith('.ts') && !e.name.endsWith('.generated.ts'))) {
+        out.push({ file: path.relative(ROOT, full), body: fs.readFileSync(full, 'utf8') });
+      }
+    }
+  };
+  walk(dir);
+  return out;
+}
+
 /** Имена токенов, объявленных в tokens.css и ds.css. */
 export function declaredTokens() {
   const out = new Set();
