@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactElement } from 'react';
-import { ActionRow } from '../molecules/ActionRow';
-import { CheckboxRow } from '../molecules/CheckboxRow';
-import { ChoiceRow } from '../molecules/ChoiceRow';
-import { InputRow } from '../molecules/InputRow';
-import { SwitchRow } from '../molecules/SwitchRow';
-import type { MsgLevel } from '../molecules/RowMsg';
-import type { OptionItem } from '../atoms/OptionGroup';
-import type { ButtonVariant } from '../atoms/Button';
+import { ActionRow } from '../molecules/ActionRow.js';
+import { CheckboxRow } from '../molecules/CheckboxRow.js';
+import { ChoiceRow } from '../molecules/ChoiceRow.js';
+import { InputRow } from '../molecules/InputRow.js';
+import { SwitchRow } from '../molecules/SwitchRow.js';
+import type { MsgLevel } from '../molecules/RowMsg.js';
+import type { OptionItem } from '../atoms/OptionGroup.js';
+import type { ButtonVariant } from '../atoms/Button.js';
 
 /** Конфиг одного ряда острова. Тип решает, каким рядом он станет. */
 export interface IslandRow {

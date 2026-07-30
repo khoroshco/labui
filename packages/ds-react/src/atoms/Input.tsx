@@ -1,5 +1,5 @@
 import { useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
-import { Icon, type IconName } from '../lib/Icon';
+import { Icon, type IconName } from '../lib/Icon.js';
 
 export interface InputProps {
   value?: string;

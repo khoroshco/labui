@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
-import { Button } from '../atoms/Button';
-import { Icon, type IconName } from '../lib/Icon';
+import { Button } from '../atoms/Button.js';
+import { Icon, type IconName } from '../lib/Icon.js';
 
 export interface EmptyStateProps {
   variant?: 'empty' | 'error';

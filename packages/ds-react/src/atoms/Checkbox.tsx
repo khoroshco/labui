@@ -1,6 +1,6 @@
 import { useEffect, type CSSProperties, type KeyboardEvent } from 'react';
-import { Icon } from '../lib/Icon';
-import { useControlled } from '../lib/hooks';
+import { Icon } from '../lib/Icon.js';
+import { useControlled } from '../lib/hooks.js';
 
 export interface CheckboxProps {
   label?: string;

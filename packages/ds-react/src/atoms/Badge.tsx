@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Icon, type IconName } from '../lib/Icon';
+import { Icon, type IconName } from '../lib/Icon.js';
 
 export type BadgeVariant = 'solid' | 'soft' | 'quiet';
 export type BadgeTone = 'neutral' | 'ok' | 'warn' | 'danger' | 'info';

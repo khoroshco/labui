@@ -7,7 +7,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build as buildTokens } from './build-tokens-css.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -23,5 +23,18 @@ execFileSync('npx', ['tsc', '-p', path.join(pkg, 'tsconfig.build.json')], { stdi
 // инлайном не выражаются и едут файлом — как и было в эталоне.
 fs.copyFileSync(path.join(root, 'src/ds.css'), path.join(dist, 'ds.css'));
 
+// Собранный пакет ОБЯЗАН грузиться в Node. Это не паранойя: с moduleResolution "bundler"
+// tsc отдавал импорты без расширений, Vite их терпел, а Node — нет, и dist не грузился
+// вовсе. Ошибка вылезла бы у первого потребителя с SSR, а не у нас.
+const entry = path.join(dist, 'index.js');
+const mod = await import(pathToFileURL(entry).href);
+// Список сверяется с составом, а не с числом: «не меньше 27» зеленело бы и на пакете,
+// который экспортирует 27 хелперов и ни одного компонента.
+const expected = JSON.parse(fs.readFileSync(path.join(pkg, 'migrated.json'), 'utf8')).components;
+const missing = expected.filter((name) => typeof mod[name] !== 'function');
+if (missing.length) {
+  throw new Error(`dist/index.js не экспортирует: ${missing.join(', ')}`);
+}
+
 const files = fs.readdirSync(dist).length;
-console.log(`@banner-lab/ds собран: ${files} записей в dist, ds.css на месте`);
+console.log(`@banner-lab/ds собран: ${files} записей в dist, ${expected.length} компонентов грузятся в Node`);

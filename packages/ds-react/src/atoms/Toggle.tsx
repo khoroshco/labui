@@ -1,5 +1,5 @@
 import { useEffect, type CSSProperties, type KeyboardEvent } from 'react';
-import { useControlled } from '../lib/hooks';
+import { useControlled } from '../lib/hooks.js';
 
 export interface ToggleProps {
   label?: string;

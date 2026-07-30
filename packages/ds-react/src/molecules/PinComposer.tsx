@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Avatar } from '../atoms/Avatar';
-import { Button } from '../atoms/Button';
-import { Input } from '../atoms/Input';
+import { Avatar } from '../atoms/Avatar.js';
+import { Button } from '../atoms/Button.js';
+import { Input } from '../atoms/Input.js';
 
 export interface PinComposerProps {
   author?: string;

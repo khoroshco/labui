@@ -1,5 +1,5 @@
 ---
-'@banner-lab/tokens': patch
+'@banner-lab/ds': patch
 ---
 
 Фаза 4: пакет компонентов собирается (`@banner-lab/ds`) — чистый ESM и типы через tsc, без бандлера. Публикация ждёт токен npm.

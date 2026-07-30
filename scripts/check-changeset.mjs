@@ -19,7 +19,6 @@ const WATCHED = [
   /^tokens\//, // источник токенов: переименование токена — мажор
   /^src\//, // эталон и глобальный ds.css
   /^api\.json$/,
-  /^types\.d\.ts$/,
   /^components\.json$/,
 ];
 

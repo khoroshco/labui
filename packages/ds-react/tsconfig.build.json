@@ -1,6 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    // Пакет собирается по правилам Node, а не бандлера: "type": "module" плюс импорты без
+    // расширений давали dist, который НЕ ГРУЗИТСЯ в Node — Vite такое терпит, SSR нет.
+    // nodenext требует расширения на входе и сохраняет их на выходе, поэтому пропущенное
+    // расширение падает у нас на сборке, а не у потребителя на импорте.
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,

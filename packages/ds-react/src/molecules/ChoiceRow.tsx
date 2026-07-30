@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type MouseEvent } from 'react';
-import { OptionGroup, type OptionItem } from '../atoms/OptionGroup';
-import { RowInfo } from './RowInfo';
-import { RowLabel } from './RowLabel';
+import { OptionGroup, type OptionItem } from '../atoms/OptionGroup.js';
+import { RowInfo } from './RowInfo.js';
+import { RowLabel } from './RowLabel.js';
 
 export interface ChoiceRowProps {
   label?: string;

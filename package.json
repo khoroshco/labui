@@ -1,7 +1,7 @@
 {
-  "name": "@banner-lab/ds",
-  "version": "0.1.0",
-  "description": "Banner Lab Design System — компоненты, токены, витрина",
+  "name": "labui",
+  "version": "0.0.0",
+  "description": "Монорепозиторий Banner Lab DS: пакеты, витрина, гейты. Не публикуется; версии живут у пакетов.",
   "private": true,
   "type": "module",
   "engines": {

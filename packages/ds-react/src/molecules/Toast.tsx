@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
-import { Button } from '../atoms/Button';
-import { Icon, type IconName } from '../lib/Icon';
+import { Button } from '../atoms/Button.js';
+import { Icon, type IconName } from '../lib/Icon.js';
 
 export type ToastLevel = 'info' | 'ok' | 'warn' | 'danger';
 

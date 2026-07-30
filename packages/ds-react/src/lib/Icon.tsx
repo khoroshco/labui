@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { ICONS, type IconName } from './icons.generated';
+import { ICONS, type IconName } from './icons.generated.js';
 
 export type { IconName };
 

@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent } from 'react';
-import { Icon, type IconName } from '../lib/Icon';
-import { useSpin } from '../lib/hooks';
+import { Icon, type IconName } from '../lib/Icon.js';
+import { useSpin } from '../lib/hooks.js';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'accent';
 export type ButtonSize = 'xs' | 's' | 'm' | 'l';

@@ -1,11 +1,11 @@
 import { useState, type CSSProperties, type MouseEvent } from 'react';
-import { CycleButton } from '../atoms/CycleButton';
-import { Input } from '../atoms/Input';
-import { Skeleton } from '../atoms/Skeleton';
-import { caretToEnd, useSpin } from '../lib/hooks';
-import { RowInfo } from './RowInfo';
-import { RowLabel } from './RowLabel';
-import { RowMsg, type MsgLevel } from './RowMsg';
+import { CycleButton } from '../atoms/CycleButton.js';
+import { Input } from '../atoms/Input.js';
+import { Skeleton } from '../atoms/Skeleton.js';
+import { caretToEnd, useSpin } from '../lib/hooks.js';
+import { RowInfo } from './RowInfo.js';
+import { RowLabel } from './RowLabel.js';
+import { RowMsg, type MsgLevel } from './RowMsg.js';
 
 export interface InputRowProps {
   label?: string;

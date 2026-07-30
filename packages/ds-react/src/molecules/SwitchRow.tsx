@@ -1,9 +1,9 @@
 import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
-import { Toggle } from '../atoms/Toggle';
-import { useControlled } from '../lib/hooks';
-import { RowInfo } from './RowInfo';
-import { RowLabel } from './RowLabel';
-import { RowMsg } from './RowMsg';
+import { Toggle } from '../atoms/Toggle.js';
+import { useControlled } from '../lib/hooks.js';
+import { RowInfo } from './RowInfo.js';
+import { RowLabel } from './RowLabel.js';
+import { RowMsg } from './RowMsg.js';
 
 export interface SwitchRowProps {
   label?: string;

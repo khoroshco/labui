@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
-import { CycleButton } from '../atoms/CycleButton';
-import { useReducedMotion } from '../lib/hooks';
+import { CycleButton } from '../atoms/CycleButton.js';
+import { useReducedMotion } from '../lib/hooks.js';
 
 export interface SliderProps {
   label?: string;

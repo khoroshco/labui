@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { OptionGroup } from '../atoms/OptionGroup';
+import { OptionGroup } from '../atoms/OptionGroup.js';
 
 export interface SegmentsProps {
   options?: string[];

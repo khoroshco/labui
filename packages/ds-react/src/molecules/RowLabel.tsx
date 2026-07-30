@@ -1,5 +1,5 @@
 import type { CSSProperties, MouseEvent } from 'react';
-import { Icon } from '../lib/Icon';
+import { Icon } from '../lib/Icon.js';
 
 export interface RowLabelProps {
   label?: string;
