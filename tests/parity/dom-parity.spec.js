@@ -45,7 +45,11 @@ const SIGNATURE = `() => {
   const rootBox = root.getBoundingClientRect();
   const out = [];
   const q = (n) => Math.round(n * 2) / 2;   // полпикселя — предел, ниже которого спорить не о чем
-  const INERT = { 'data-tooltip': '', 'data-press': 'false', 'aria-label': '', 'data-invalid': 'false', 'data-disabled': 'false' };
+  const INERT = { 'data-tooltip': '', 'data-press': 'false', 'aria-label': '', 'data-invalid': 'false', 'data-disabled': 'false',
+    // type="button" — ОСОЗНАННОЕ расхождение с эталоном, а не потеря: без него браузерный
+    // дефолт submit отправляет форму потребителя, и переопределить это было нечем.
+    // На вид не влияет ничем, поэтому из сравнения исключено явно и с объяснением.
+    'type': 'button' };
   for (const el of root.querySelectorAll('*')) {
     // Маунт ряда острова — исключение из пропуска обёрток: сепаратор и тон ховера ds.css
     // рисует именно на нём, то есть это декор, а не леса. В эталоне это .sc-host рантайма,
@@ -87,7 +91,18 @@ const SIGNATURE = `() => {
       parseFloat(cs.borderTopWidth) + parseFloat(cs.borderRightWidth) + parseFloat(cs.borderBottomWidth) + parseFloat(cs.borderLeftWidth) > 0;
     if (!Object.keys(attrs).length && !text && !paints && (tag === 'div' || tag === 'span')) continue;
     const b = el.getBoundingClientRect();
-    out.push({ tag, attrs, text, box: [q(b.x - rootBox.x), q(b.y - rootBox.y), q(b.width), q(b.height)] });
+    // КРАСКА сравнивается точно. До этого её не сверял НИКТО: style из подписи выброшен
+    // (в React все стили инлайновые, то есть вся палитра лежит именно там), а бюджет
+    // пиксельного снимка в 900 точек больше, чем весь компонент у пятерых из двадцати
+    // семи — у циклера впятеро. То есть React-версия могла быть любого цвета.
+    const paint = [
+      cs.color, cs.backgroundColor, cs.backgroundImage, cs.boxShadow, cs.opacity,
+      cs.borderTopWidth, cs.borderRightWidth, cs.borderBottomWidth, cs.borderLeftWidth,
+      cs.borderTopColor, cs.borderRightColor, cs.borderBottomColor, cs.borderLeftColor,
+      cs.borderRadius, cs.fontWeight, cs.fontSize, cs.fontFamily, cs.letterSpacing, cs.lineHeight,
+      cs.textTransform, cs.textAlign,
+    ].join(' | ');
+    out.push({ tag, attrs, text, paint, box: [q(b.x - rootBox.x), q(b.y - rootBox.y), q(b.width), q(b.height)] });
   }
   return out;
 }`;
@@ -110,6 +125,11 @@ for (const name of migrated) {
         // Разметка и текст — точно: пропавший атрибут или чужая роль это дефект, а не шум.
         if (a.tag !== b.tag || JSON.stringify(a.attrs) !== JSON.stringify(b.attrs) || a.text !== b.text) {
           problems.push(`узел №${i}: ${JSON.stringify(a)} против ${JSON.stringify(b)}`);
+          continue;
+        }
+        if (a.paint !== b.paint) {
+          const which = a.paint.split(' | ').map((v, k) => (v === b.paint.split(' | ')[k] ? null : `${v} → ${b.paint.split(' | ')[k]}`)).filter(Boolean);
+          problems.push(`узел №${i} (${a.tag}${a.text ? ` «${a.text}»` : ''}): краска разошлась — ${which.join('; ')}`);
           continue;
         }
         // Геометрия — с допуском в пиксель: измерение подложки округляется по-разному, а

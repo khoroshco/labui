@@ -1,4 +1,5 @@
-import { useRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
+import { useControlled } from '../lib/hooks.js';
 
 export interface CycleButtonProps {
   options?: string[];
@@ -21,20 +22,14 @@ export function CycleButton({
   style,
 }: CycleButtonProps) {
   const opts = Array.isArray(options) && options.length ? options : ['PX', 'REM'];
-  // Перебор живой всегда: пилюля стоит в ряду, где значением владеет ряд, но щёлкать её
-  // обязано быть можно и без колбэка. Новый проп перекрывает свой индекс — так внешнее
-  // переключение единиц доезжает до кнопки.
-  const [own, setOwn] = useState(value ?? defaultValue);
-  const seen = useRef(value);
-  if (value !== undefined && value !== seen.current) {
-    seen.current = value;
-    setOwn(value);
-  }
-  const i = ((own ?? 0) % opts.length + opts.length) % opts.length;
-  const setRaw = (next: number) => {
-    setOwn(next);
-    onChange?.(next, opts[next % opts.length] ?? '');
-  };
+  // Идиома общая на все шесть контролов (ADR 0011): задан value — владеет родитель,
+  // задан только defaultValue — кнопка ведёт своё. Своя реализация «живой всегда» тут
+  // была лечением симптома: замирал циклер не сам по себе, а потому что ряд отдавал ему
+  // значение, не отдавая колбэка. Лечится это в композиции, а не расхождением идиом.
+  const [raw, setRaw] = useControlled(value, defaultValue, (next: number) =>
+    onChange?.(next, opts[((next % opts.length) + opts.length) % opts.length] ?? '')
+  );
+  const i = ((raw % opts.length) + opts.length) % opts.length;
 
   return (
     <button

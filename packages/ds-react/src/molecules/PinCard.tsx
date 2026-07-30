@@ -115,6 +115,8 @@ export function PinCard({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-1)', minWidth: 0, flex: 1 }}>
                   {isAi ? (
                     <span
+                      // хук forced-colors: подпись AI набрана градиентом, и это её смысл
+                      data-ai-grad="true"
                       style={{
                         alignSelf: 'flex-start',
                         fontSize: 'var(--fs-xs)',

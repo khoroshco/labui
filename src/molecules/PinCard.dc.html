@@ -31,7 +31,7 @@
       <div style="display:flex; gap:var(--sp-25); padding:var(--sp-3) var(--sp-4); padding-right:{{ m.padR }}; border-top:{{ m.sepCss }}; animation:ds-fade .3s ease">
         <dc-import name="Avatar" author="{{ m.name }}" src="{{ m.src }}" ai="{{ m.isAi }}" size="s" hint-size="20px,20px"></dc-import>
         <div style="display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; flex:1">
-          <sc-if value="{{ m.isAi }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start; font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); letter-spacing:var(--ls-caps-s); background:var(--ai-grad); -webkit-background-clip:text; background-clip:text; color:transparent">AI</span></sc-if><sc-if value="{{ m.isHuman }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ m.author }}</span></sc-if>
+          <sc-if value="{{ m.isAi }}" hint-placeholder-val="{{ false }}"><span data-ai-grad="true" style="align-self:flex-start; font-size:var(--fs-xs); font-weight:var(--fw-medium); line-height:var(--lh-ui); letter-spacing:var(--ls-caps-s); background:var(--ai-grad); -webkit-background-clip:text; background-clip:text; color:transparent">AI</span></sc-if><sc-if value="{{ m.isHuman }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs); font-weight:var(--fw-regular); line-height:var(--lh-ui); color:var(--text-tertiary)">{{ m.author }}</span></sc-if>
           <div style="font-size:var(--fs-m); font-weight:var(--fw-regular); color:{{ m.color }}; line-height:var(--lh-text); text-wrap:pretty">{{ m.text }}</div>
         </div>
       </div>

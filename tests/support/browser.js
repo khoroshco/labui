@@ -26,6 +26,7 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
     await page.evaluate(() => document.fonts.ready);
     if (freeze) await freezeMotion(page);
     await setTheme(page, theme);
+    await settle(page);
     return bag;
   }
   await openDc(page, `/${name}.dc.html`);
@@ -33,7 +34,51 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
   if (freeze) await freezeMotion(page);
   await setTheme(page, theme);
   if (props) await setProps(page, props);
+  await settle(page);
   return bag;
+}
+
+/**
+ * Дождаться, когда дерево перестанет меняться.
+ *
+ * Рантайм DC монтирует каждый вложенный компонент ОТДЕЛЬНЫМ запросом (и каждую иконку —
+ * ещё одним), поэтому остров из пяти рядов собирается волнами. На быстрой машине это
+ * незаметно, на медленной — нет: при задержке ответов в 200 мс сразу после open() у острова
+ * 12 узлов, через 300 мс — 113, и только через полторы секунды — 119. Всё, что смотрит на
+ * дерево раньше, смотрит на недомонтированный компонент. Снимок это переживает (он ждёт
+ * двух одинаковых кадров), а сверка разметки и axe — нет: axe на половине дерева честно
+ * сообщает ноль нарушений, и гейт зеленеет на невыполненной работе. Ровно так гейт разметки
+ * и упал на CI, где эталон отдал 38 узлов вместо 44.
+ *
+ * Ждём не фиксированную паузу (мала на медленной машине, потрачена зря на быстрой), а
+ * ТИШИНУ MutationObserver'а — и повторяем, пока число узлов не совпадёт с предыдущим
+ * замером: пауза между волнами бывает длиннее окна тишины.
+ */
+export async function settle(page, { quiet = 120, rounds = 12 } = {}) {
+  let prev = -1;
+  for (let i = 0; i < rounds; i++) {
+    const count = await page.evaluate(
+      (quiet) =>
+        new Promise((resolve) => {
+          const root = document.querySelector('#dc-root') ?? document.body;
+          let tick;
+          const finish = () => {
+            clearTimeout(tick);
+            obs.disconnect();
+            resolve(root.querySelectorAll('*').length);
+          };
+          const obs = new MutationObserver(() => {
+            clearTimeout(tick);
+            tick = setTimeout(finish, quiet);
+          });
+          obs.observe(root, { childList: true, subtree: true, attributes: true, characterData: true });
+          tick = setTimeout(finish, quiet);
+        }),
+      quiet
+    );
+    if (count === prev) return;
+    prev = count;
+  }
 }
 
 /** Обе реализации: эталон и то, что уезжает потребителю. */

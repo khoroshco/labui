@@ -82,6 +82,8 @@ export function Pin({ number = 1, author = '', src = '', resolved, hasReply, sty
       </span>
       {hasReply ? (
         <span
+          // хук forced-colors: точка непрочитанного — случай, когда цвет и есть информация
+          data-dot="true"
           style={{
             position: 'absolute',
             top: '-3px',

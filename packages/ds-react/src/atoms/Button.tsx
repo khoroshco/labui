@@ -16,6 +16,8 @@ export interface ButtonProps {
   iconRight?: IconName | '';
   /** Соло-иконке обязателен: он же даёт имя для скринридера. */
   tooltip?: string;
+  /** По умолчанию button: внутри формы кнопка не должна отправлять её случайно. */
+  type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
   loading?: boolean;
   onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
@@ -49,6 +51,7 @@ export function Button({
   icon = '',
   iconRight = '',
   tooltip = '',
+  type = 'button',
   disabled = false,
   loading = false,
   onClick,
@@ -88,6 +91,9 @@ export function Button({
 
   return (
     <button
+      // Без type браузерный дефолт — submit: кнопка внутри <form> отправляет её. Значение
+      // «button» безопасно по умолчанию, а submit потребитель просит явно.
+      type={type}
       // На таче соло-иконка мелких размеров не дотягивает до 44px: хук data-tap расширяет
       // зону нажатия, не меняя вида.
       data-tap={iconOnly && (size === 'xs' || size === 's') ? 'true' : undefined}
