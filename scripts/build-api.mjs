@@ -20,9 +20,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { components, LEVELS, report, ROOT } from './lib/dc.mjs';
 
-// Версия берётся у ПАКЕТА компонентов, а не у корня монорепозитория: корень не публикуется,
-// и его номер, попадая в шапку контракта, читался как версия дизайн-системы.
-const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/ds-react/package.json'), 'utf8'));
+// Версия в контракт НЕ попадает вовсе. Она там была украшением, а стоила дорого: снапшот
+// устаревал от каждого бампа, и релизный PR (его пишет бот, он не запускает npm run api)
+// не мог позеленеть никогда — гейт запирал собственную публикацию.
 const manual = JSON.parse(fs.readFileSync(path.join(ROOT, 'components.json'), 'utf8'));
 
 const list = components();
@@ -37,8 +37,7 @@ const api = {
     'Генерируется scripts/build-api.mjs из data-props ЗАМОРОЖЕННОГО эталона (runtime: dc). ' +
     'Руками не править. Типы для потребителя отдаёт tsc: packages/ds-react/dist/index.d.ts — ' +
     'там есть default*-пропсы React, которых в этом снапшоте нет по построению.',
-  package: pkg.name,
-  version: pkg.version,
+  package: '@khoroshco/ds',
   runtime: 'dc',
   levels: LEVELS,
   components: list.map((c) => ({

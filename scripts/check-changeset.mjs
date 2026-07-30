@@ -27,6 +27,15 @@ const changed = execSync(`git diff --name-only ${BASE}...HEAD`, { encoding: 'utf
   .map((s) => s.trim())
   .filter(Boolean);
 
+// PR, который выпускает релиз, ченджсетов не добавляет — он их ТРАТИТ: changeset version
+// удаляет записи и переписывает версии с CHANGELOG. Требовать от него новую запись значит
+// запереть собственную публикацию, что и случилось при первом же релизе.
+const head = process.env.GITHUB_HEAD_REF ?? '';
+if (head.startsWith('changeset-release/')) {
+  console.log('✓ ченджсет не требуется: это релизный PR, он записи тратит, а не заводит');
+  process.exit(0);
+}
+
 const contractChanges = changed.filter((f) => WATCHED.some((re) => re.test(f)));
 if (contractChanges.length === 0) {
   console.log('✓ ченджсет не требуется: контракт не менялся');
