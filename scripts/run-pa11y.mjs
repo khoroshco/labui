@@ -64,6 +64,9 @@ const filled = Object.entries(FIXTURES).filter(([name]) => inReact.has(name)).fl
 );
 
 const config = {
+  // pa11y поднимает отдельный Chrome на каждый URL — это самая долгая часть прогона.
+  // Четыре параллельно укладываются в память раннера и режут время втрое.
+  concurrency: 4,
   defaults: {
     standard: 'WCAG2AA',
     timeout: 40000,
