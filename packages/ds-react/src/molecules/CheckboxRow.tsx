@@ -1,11 +1,12 @@
 import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Checkbox } from '../atoms/Checkbox.js';
 import { useControlled } from '../lib/hooks.js';
 import { RowInfo } from './RowInfo.js';
 import { RowLabel } from './RowLabel.js';
 import { RowMsg, type MsgLevel } from './RowMsg.js';
 
-export interface CheckboxRowProps {
+export interface CheckboxRowProps extends PassThrough {
   label?: string;
   subtitle?: string;
   checked?: boolean;
@@ -36,6 +37,7 @@ export function CheckboxRow({
   msgLevel = 'ok',
   onChange,
   style,
+  ...rest
 }: CheckboxRowProps) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -54,6 +56,7 @@ export function CheckboxRow({
 
   return (
     <div
+      {...passThrough(rest)}
       data-row="true"
       data-invalid={isError ? 'true' : 'false'}
       data-disabled={disabled ? 'true' : 'false'}

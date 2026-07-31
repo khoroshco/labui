@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 
-export interface AvatarProps {
+export interface AvatarProps extends PassThrough {
   /** Проп называется author, а не name: name зарезервировано под имя компонента. */
   author?: string;
   src?: string;
@@ -19,7 +20,9 @@ const SIZES = {
 } as const;
 
 /** Аватар: фото (src заполняет круг) → инициалы из author → AI (фирменный градиент). */
-export function Avatar({ author = '', src = '', size = 's', ai, inverse, bare, style }: AvatarProps) {
+export function Avatar({ author = '', src = '', size = 's', ai, inverse, bare, style,
+  ...rest
+}: AvatarProps) {
   const [broken, setBroken] = useState(false);
   useEffect(() => setBroken(false), [src]);
 
@@ -41,6 +44,7 @@ export function Avatar({ author = '', src = '', size = 's', ai, inverse, bare, s
 
   return (
     <span
+      {...passThrough(rest)}
       data-ai-grad={ai ? 'true' : undefined}
       role="img"
       aria-label={ai ? 'AI' : name || 'Аватар'}

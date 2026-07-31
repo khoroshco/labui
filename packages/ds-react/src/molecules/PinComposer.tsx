@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Avatar } from '../atoms/Avatar.js';
 import { Button } from '../atoms/Button.js';
 import { Input } from '../atoms/Input.js';
 
-export interface PinComposerProps {
+export interface PinComposerProps extends PassThrough {
   author?: string;
   authorSrc?: string;
   placeholder?: string;
@@ -31,6 +32,7 @@ export function PinComposer({
   onSend,
   onCancel,
   style,
+  ...rest
 }: PinComposerProps) {
   const [text, setText] = useState(value);
   const root = useRef<HTMLDivElement | null>(null);
@@ -62,6 +64,7 @@ export function PinComposer({
 
   return (
     <div
+      {...passThrough(rest)}
       ref={root}
       style={{
         display: 'flex',

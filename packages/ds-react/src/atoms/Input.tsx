@@ -1,7 +1,8 @@
 import { useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
-export interface InputProps {
+export interface InputProps extends PassThrough {
   value?: string;
   defaultValue?: string;
   /** Имя для скринридера, когда подпись лежит СНАРУЖИ компонента. */
@@ -52,6 +53,7 @@ export function Input({
   onBlur,
   onInput,
   style,
+  ...rest
 }: InputProps) {
   // Текстовый ввод — единственный контрол, который ВСЕГДА ведёт своё значение: набор
   // обязан быть живым, даже когда родитель ещё не принял его. Строгая управляемость
@@ -96,6 +98,7 @@ export function Input({
 
   return (
     <label
+      {...passThrough(rest)}
       ref={box}
       // data-field — хук ds.css: пресс поля, forced-colors и общие переходы
       data-field={bare ? undefined : 'true'}

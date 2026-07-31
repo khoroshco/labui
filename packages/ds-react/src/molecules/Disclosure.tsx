@@ -1,8 +1,9 @@
 import { useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon } from '../lib/Icon.js';
 import { useControlled } from '../lib/hooks.js';
 
-export interface DisclosureProps {
+export interface DisclosureProps extends PassThrough {
   label?: string;
   /** Служебное число у подписи — как счётчики Tabs. */
   count?: number | string;
@@ -32,6 +33,7 @@ export function Disclosure({
   onToggle,
   children,
   style,
+  ...rest
 }: DisclosureProps) {
   const [rawOpen, setOpen] = useControlled(openProp, defaultOpen, onToggle);
   const open = !disabled && rawOpen;
@@ -40,7 +42,8 @@ export function Disclosure({
   const bodyId = useId();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', ...style }}>
+    <div
+      {...passThrough(rest)} style={{ display: 'flex', flexDirection: 'column', ...style }}>
       <button
         data-disc={eyebrow ? 'eyebrow' : 'plain'}
         data-disabled={disabled ? 'true' : 'false'}

@@ -1,10 +1,11 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 import { useControlled, useTrackActive } from '../lib/hooks.js';
 
 export type OptionItem = string | { icon: IconName; title?: string; label?: string };
 
-export interface OptionGroupProps {
+export interface OptionGroupProps extends PassThrough {
   /** Капсульная подача: скользящая пилюля и полные радиусы. */
   pill?: boolean;
   /** На инверсной подложке. */
@@ -35,6 +36,7 @@ export function OptionGroup({
   disabled = false,
   onChange,
   style,
+  ...rest
 }: OptionGroupProps) {
   const n = options.length;
   const [raw, setRaw] = useControlled(value, defaultValue, onChange);
@@ -54,6 +56,7 @@ export function OptionGroup({
 
   return (
     <div
+      {...passThrough(rest)}
       ref={(el) => {
         box.current = el;
       }}

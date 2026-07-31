@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { Input } from '../atoms/Input.js';
 import { Skeleton } from '../atoms/Skeleton.js';
@@ -7,7 +8,7 @@ import { RowInfo } from './RowInfo.js';
 import { RowLabel } from './RowLabel.js';
 import { RowMsg, type MsgLevel } from './RowMsg.js';
 
-export interface InputRowProps {
+export interface InputRowProps extends PassThrough {
   label?: string;
   value?: string;
   placeholder?: string;
@@ -50,6 +51,7 @@ export function InputRow({
   onBlur,
   onOptionChange,
   style,
+  ...rest
 }: InputRowProps) {
   const [infoOpen, setInfoOpen] = useState(false);
   const spin = useSpin(loading);
@@ -94,6 +96,7 @@ export function InputRow({
 
   return (
     <div
+      {...passThrough(rest)}
       data-row="true"
       // тон невалидного ряда рисует обёртка-маунт по data-invalid (ds.css)
       data-invalid={invalid ? 'true' : 'false'}

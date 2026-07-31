@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
 export type BadgeVariant = 'solid' | 'soft' | 'quiet';
 export type BadgeTone = 'neutral' | 'ok' | 'warn' | 'danger' | 'info';
 
-export interface BadgeProps {
+export interface BadgeProps extends PassThrough {
   label?: string;
   icon?: IconName | '';
   nums?: boolean;
@@ -29,12 +30,15 @@ const TONES: Record<BadgeTone, { c: string; dim: string; solidBg: string; solidF
   info: { c: 'var(--info)', dim: 'var(--info-dim)', solidBg: 'var(--info)', solidFg: 'var(--on-tone)', quiet: 'var(--info)' },
 };
 
-export function Badge({ label = '', icon, nums, variant = 'soft', tone = 'neutral', style }: BadgeProps) {
+export function Badge({ label = '', icon, nums, variant = 'soft', tone = 'neutral', style,
+  ...rest
+}: BadgeProps) {
   const t = TONES[tone] ?? TONES.neutral;
   const quiet = variant === 'quiet';
   const solid = variant === 'solid';
   return (
     <span
+      {...passThrough(rest)}
       data-nums={nums ? 'true' : undefined}
       style={{
         display: 'inline-flex',

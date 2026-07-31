@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { ActionRow } from '../molecules/ActionRow.js';
 import { CheckboxRow } from '../molecules/CheckboxRow.js';
 import { ChoiceRow } from '../molecules/ChoiceRow.js';
@@ -10,6 +11,8 @@ import type { ButtonVariant } from '../atoms/Button.js';
 
 /** Конфиг одного ряда острова. Тип решает, каким рядом он станет. */
 export interface IslandRow {
+  /** Устойчивый ключ ряда. Без него ключом служит позиция, и состояние переезжает при сортировке. */
+  key?: string;
   type?: 'text' | 'segmented' | 'toggle' | 'checkbox' | 'action';
   label?: string;
   value?: string | number;
@@ -38,7 +41,7 @@ export interface IslandRow {
   onOptionChange?: (index: number, option: string) => void;
 }
 
-export interface IslandProps {
+export interface IslandProps extends PassThrough {
   rows?: IslandRow[];
   style?: CSSProperties;
 }
@@ -54,9 +57,12 @@ export interface IslandProps {
  * есть», ряд форвардил бы их дальше, и атом встал бы в управляемый режим со значением из
  * статичного конфига — то есть без хозяина, и замер.
  */
-export function Island({ rows = [], style }: IslandProps) {
+export function Island({ rows = [], style,
+  ...rest
+}: IslandProps) {
   return (
     <div
+      {...passThrough(rest)}
       data-island="true"
       style={{
         display: rows.length ? 'flex' : 'none',
@@ -69,6 +75,10 @@ export function Island({ rows = [], style }: IslandProps) {
       }}
     >
       {rows.map((r, i) => {
+        // Ключ ряда: индекс прилипает к ПОЗИЦИИ, и при вставке или сортировке черновик
+        // неуправляемого поля, галочка и открытая ⓘ переезжают на соседний ряд. Даём
+        // потребителю канал key; без него остаётся прежнее поведение.
+        const rowKey = r.key ?? `${r.type ?? 'text'}:${r.label ?? ''}:${i}`;
         const type = r.type ?? 'text';
         // ПРАВИЛО КОМПОЗИЦИИ. В React признак управляемости — ЗНАЧЕНИЕ, поэтому ряд отдаёт
         // значение вниз ТОЛЬКО если получил колбэк; иначе отдаёт его как НАЧАЛЬНОЕ.
@@ -79,7 +89,7 @@ export function Island({ rows = [], style }: IslandProps) {
         // Ряд живёт в обёртке-маунте, а не прямым ребёнком острова. Обёртка не декорация:
         // сепаратор и тон ховера рисуются ИМЕННО на ней (ds.css), поэтому пресс ряда их не
         // двигает, а край не двоится на возврате. В DC-версии обёртку давал рантайм.
-        const wrap = (node: ReactElement) => <div key={i}>{node}</div>;
+        const wrap = (node: ReactElement) => <div key={rowKey}>{node}</div>;
         if (type === 'segmented') {
           return wrap(
             <ChoiceRow

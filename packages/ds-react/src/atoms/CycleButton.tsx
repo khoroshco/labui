@@ -1,7 +1,8 @@
 import type { CSSProperties, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled } from '../lib/hooks.js';
 
-export interface CycleButtonProps {
+export interface CycleButtonProps extends PassThrough {
   options?: string[];
   value?: number;
   defaultValue?: number;
@@ -20,6 +21,7 @@ export function CycleButton({
   disabled = false,
   onChange,
   style,
+  ...rest
 }: CycleButtonProps) {
   const opts = Array.isArray(options) && options.length ? options : ['PX', 'REM'];
   // Идиома общая на все шесть контролов (ADR 0011): задан value — владеет родитель,
@@ -33,6 +35,7 @@ export function CycleButton({
 
   return (
     <button
+      {...passThrough(rest)}
       data-tap="true"
       data-cycle="true"
       disabled={disabled}

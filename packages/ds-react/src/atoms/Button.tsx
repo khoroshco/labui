@@ -1,4 +1,5 @@
 import type { CSSProperties, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 import { useSpin } from '../lib/hooks.js';
 
@@ -6,7 +7,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'accent';
 export type ButtonSize = 'xs' | 's' | 'm' | 'l';
 export type ButtonTone = 'default' | 'ok' | 'danger';
 
-export interface ButtonProps {
+export interface ButtonProps extends PassThrough {
   label?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -56,6 +57,7 @@ export function Button({
   loading = false,
   onClick,
   style,
+  ...rest
 }: ButtonProps) {
   // анти-мерцание: клики блокируются сразу, спиннер живёт по таймингам ДС
   const spin = useSpin(loading);
@@ -91,6 +93,7 @@ export function Button({
 
   return (
     <button
+      {...passThrough(rest)}
       // Без type браузерный дефолт — submit: кнопка внутри <form> отправляет её. Значение
       // «button» безопасно по умолчанию, а submit потребитель просит явно.
       type={type}

@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Button, type ButtonVariant } from '../atoms/Button.js';
 
-export interface ActionRowProps {
+export interface ActionRowProps extends PassThrough {
   label?: string;
   variant?: ButtonVariant;
   loading?: boolean;
@@ -11,9 +12,12 @@ export interface ActionRowProps {
 }
 
 /** Ряд-действие: кнопка по центру острова. */
-export function ActionRow({ label = '', variant = 'primary', loading = false, disabled = false, onClick, style }: ActionRowProps) {
+export function ActionRow({ label = '', variant = 'primary', loading = false, disabled = false, onClick, style,
+  ...rest
+}: ActionRowProps) {
   return (
     <div
+      {...passThrough(rest)}
       data-row="true"
       data-disabled={disabled ? 'true' : 'false'}
       style={{

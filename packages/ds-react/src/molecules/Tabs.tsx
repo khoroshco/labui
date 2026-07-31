@@ -1,10 +1,11 @@
 import type { CSSProperties, KeyboardEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled, useTrackActive } from '../lib/hooks.js';
 
 /** Вкладка: подпись и необязательный счётчик. */
 export type TabItem = [label: string, count?: string];
 
-export interface TabsProps {
+export interface TabsProps extends PassThrough {
   options?: TabItem[];
   value?: number;
   defaultValue?: number;
@@ -24,7 +25,9 @@ const DEFAULT_TABS: TabItem[] = [
  * Список вкладок ОДИН на компонент: и разметка, и кламп берут его отсюда. Когда запасной
  * набор жил отдельно, кламп считал по пустому списку и замораживал контрол при живых кликах.
  */
-export function Tabs({ options, value, defaultValue = 0, onChange, style }: TabsProps) {
+export function Tabs({ options, value, defaultValue = 0, onChange, style,
+  ...rest
+}: TabsProps) {
   const items = Array.isArray(options) && options.length ? options : DEFAULT_TABS;
   const [raw, setRaw] = useControlled(value, defaultValue, onChange);
   const n = items.length;
@@ -42,6 +45,7 @@ export function Tabs({ options, value, defaultValue = 0, onChange, style }: Tabs
 
   return (
     <div
+      {...passThrough(rest)}
       ref={(el) => {
         box.current = el;
       }}

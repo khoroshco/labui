@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { useReducedMotion } from '../lib/hooks.js';
 
-export interface SliderProps {
+export interface SliderProps extends PassThrough {
   label?: string;
   value?: number;
   defaultValue?: number;
@@ -43,6 +44,7 @@ export function Slider({
   onChange,
   onOptionChange,
   style,
+  ...rest
 }: SliderProps) {
   const num = (x: unknown, d: number) => {
     const n = Number(x);
@@ -183,6 +185,7 @@ export function Slider({
 
   return (
     <div
+      {...passThrough(rest)}
       ref={el}
       onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
         if (disabled) return;
