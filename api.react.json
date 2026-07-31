@@ -1,0 +1,2270 @@
+{
+  "$comment": "Генерируется scripts/build-api-react.mjs из исходников packages/ds-react. Руками не править. Это контракт РЕАЛИЗАЦИИ, которая уезжает потребителю; api.json описывает замороженный эталон.",
+  "package": "@khoroshco/ds",
+  "runtime": "react",
+  "levels": [
+    "atoms",
+    "molecules",
+    "organisms"
+  ],
+  "icons": [
+    "arrow-down-to-line",
+    "arrow-left",
+    "arrow-right",
+    "arrow-up-from-line",
+    "arrows-rotate-right",
+    "bell",
+    "check",
+    "chevron-down",
+    "chevron-left",
+    "chevron-right",
+    "chevron-up",
+    "circle-check",
+    "circle-check-fill",
+    "circle-exclamation",
+    "circle-exclamation-fill",
+    "circle-info",
+    "clock",
+    "comment",
+    "comment-dot",
+    "comment-plus",
+    "copy",
+    "ellipsis",
+    "eye",
+    "eye-slash",
+    "folder",
+    "font",
+    "font-case",
+    "gear",
+    "grip",
+    "hand",
+    "layers",
+    "layers-3-diagonal",
+    "link",
+    "lock",
+    "magnifier",
+    "moon",
+    "object-align-bottom",
+    "object-align-center-horizontal",
+    "object-align-left",
+    "object-align-right",
+    "pause",
+    "pause-fill",
+    "pencil",
+    "picture",
+    "play",
+    "play-fill",
+    "plus",
+    "sliders",
+    "square-dashed",
+    "sun",
+    "target-dart",
+    "thunderbolt",
+    "trash-bin",
+    "triangle-exclamation",
+    "triangle-exclamation-fill",
+    "xmark"
+  ],
+  "components": [
+    {
+      "name": "ActionRow",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/ActionRow.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "options": [
+            "primary",
+            "secondary",
+            "ghost",
+            "accent"
+          ],
+          "editor": "enum",
+          "default": "primary",
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": [
+        "Island"
+      ]
+    },
+    {
+      "name": "Avatar",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Avatar.tsx",
+      "props": [
+        {
+          "name": "author",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Проп называется author, а не name: name зарезервировано под имя компонента."
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "size",
+          "type": "'s' | 'm' | 'l' | 'xl'",
+          "options": [
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "editor": "enum",
+          "default": "s",
+          "callback": false
+        },
+        {
+          "name": "ai",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "PinCard",
+        "PinComposer"
+      ]
+    },
+    {
+      "name": "Badge",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Badge.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "callback": false
+        },
+        {
+          "name": "nums",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "BadgeVariant",
+          "options": [
+            "solid",
+            "soft",
+            "quiet"
+          ],
+          "editor": "enum",
+          "default": "soft",
+          "callback": false
+        },
+        {
+          "name": "tone",
+          "type": "BadgeTone",
+          "options": [
+            "neutral",
+            "ok",
+            "warn",
+            "danger",
+            "info"
+          ],
+          "editor": "enum",
+          "default": "neutral",
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
+      "name": "Button",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Button.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "options": [
+            "primary",
+            "secondary",
+            "ghost",
+            "accent"
+          ],
+          "editor": "enum",
+          "default": "primary",
+          "callback": false
+        },
+        {
+          "name": "size",
+          "type": "ButtonSize",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l"
+          ],
+          "editor": "enum",
+          "default": "m",
+          "callback": false
+        },
+        {
+          "name": "tone",
+          "type": "ButtonTone",
+          "options": [
+            "default",
+            "ok",
+            "danger"
+          ],
+          "editor": "enum",
+          "default": "default",
+          "callback": false,
+          "info": "Семантика поверх иерархии: тон работает с любым вариантом."
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "tooltip",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Соло-иконке обязателен: он же даёт имя для скринридера."
+        },
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "options": [
+            "button",
+            "submit",
+            "reset"
+          ],
+          "editor": "enum",
+          "default": "button",
+          "callback": false,
+          "info": "По умолчанию button: внутри формы кнопка не должна отправлять её случайно."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "(e: MouseEvent<HTMLButtonElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "ActionRow",
+        "EmptyState",
+        "PinCard",
+        "PinComposer",
+        "Toast"
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Checkbox.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Чисто визуал: состоянием, вводом и семантикой владеет родительский ряд."
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow"
+      ]
+    },
+    {
+      "name": "CheckboxRow",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/CheckboxRow.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "MsgLevel",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "editor": "enum",
+          "default": "ok",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [
+        "Checkbox",
+        "RowInfo",
+        "RowLabel",
+        "RowMsg"
+      ],
+      "mountedBy": [
+        "Island"
+      ]
+    },
+    {
+      "name": "ChoiceRow",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/ChoiceRow.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "OptionItem[]",
+          "options": null,
+          "editor": null,
+          "default": [],
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "OptionGroup",
+        "RowInfo",
+        "RowLabel"
+      ],
+      "mountedBy": [
+        "Island"
+      ]
+    },
+    {
+      "name": "CycleButton",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/CycleButton.tsx",
+      "props": [
+        {
+          "name": "options",
+          "type": "string[]",
+          "options": null,
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "tooltip",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number, option: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "InputRow",
+        "Slider"
+      ]
+    },
+    {
+      "name": "Disclosure",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Disclosure.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "count",
+          "type": "number | string",
+          "options": null,
+          "editor": null,
+          "callback": false,
+          "info": "Служебное число у подписи — как счётчики Tabs."
+        },
+        {
+          "name": "variant",
+          "type": "'eyebrow' | 'plain'",
+          "options": [
+            "eyebrow",
+            "plain"
+          ],
+          "editor": "enum",
+          "default": "eyebrow",
+          "callback": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onToggle",
+          "type": "(open: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "options": null,
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
+      "name": "EmptyState",
+      "level": "organisms",
+      "file": "packages/ds-react/src/organisms/EmptyState.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "'empty' | 'error'",
+          "options": [
+            "empty",
+            "error"
+          ],
+          "editor": "enum",
+          "default": "empty",
+          "callback": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "Input",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Input.tsx",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя для скринридера, когда подпись лежит СНАРУЖИ компонента."
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "default": "",
+          "callback": false,
+          "info": "Аффиксы — только у field-режима."
+        },
+        {
+          "name": "prefix",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "suffix",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false,
+          "info": "Жёсткий предел на нативном поле; счётчика нет — предел ощущается остановкой ввода."
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "align",
+          "type": "'left' | 'right'",
+          "options": [
+            "left",
+            "right"
+          ],
+          "editor": "enum",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Голый ввод для рядов: обвязкой владеет ряд."
+        },
+        {
+          "name": "onEnter",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onEscape",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "InputRow",
+        "PinComposer"
+      ]
+    },
+    {
+      "name": "InputRow",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/InputRow.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "string[]",
+          "options": null,
+          "editor": null,
+          "callback": false,
+          "info": "Любой набор значений для кнопки-циклера, не только единицы."
+        },
+        {
+          "name": "optionIndex",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "nums",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Табличные цифры по явному хуку: моношрифта в системе нет."
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "MsgLevel",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "editor": "enum",
+          "default": "ok",
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onOptionChange",
+          "type": "(index: number, option: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "CycleButton",
+        "Input",
+        "RowInfo",
+        "RowLabel",
+        "RowMsg",
+        "Skeleton"
+      ],
+      "mountedBy": [
+        "Island"
+      ]
+    },
+    {
+      "name": "Island",
+      "level": "organisms",
+      "file": "packages/ds-react/src/organisms/Island.tsx",
+      "props": [
+        {
+          "name": "rows",
+          "type": "IslandRow[]",
+          "options": null,
+          "editor": null,
+          "default": [],
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "ActionRow",
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "OptionGroup",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/OptionGroup.tsx",
+      "props": [
+        {
+          "name": "pill",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Капсульная подача: скользящая пилюля и полные радиусы."
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "На инверсной подложке."
+        },
+        {
+          "name": "options",
+          "type": "OptionItem[]",
+          "options": null,
+          "editor": null,
+          "default": [],
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "ChoiceRow",
+        "Segments"
+      ]
+    },
+    {
+      "name": "Pin",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Pin.tsx",
+      "props": [
+        {
+          "name": "number",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 1,
+          "callback": false
+        },
+        {
+          "name": "author",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "resolved",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "hasReply",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
+      "name": "PinCard",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/PinCard.tsx",
+      "props": [
+        {
+          "name": "messages",
+          "type": "PinMessage[]",
+          "options": null,
+          "editor": null,
+          "default": [],
+          "callback": false
+        },
+        {
+          "name": "variant",
+          "type": "'thread' | 'preview'",
+          "options": [
+            "thread",
+            "preview"
+          ],
+          "editor": "enum",
+          "default": "thread",
+          "callback": false
+        },
+        {
+          "name": "resolved",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "author",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onResolve",
+          "type": "(resolved: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onSend",
+          "type": "(text: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [
+        "Avatar",
+        "Button",
+        "PinComposer"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "PinComposer",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/PinComposer.tsx",
+      "props": [
+        {
+          "name": "author",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "authorSrc",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "Комментарий…",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Режим ряда внутри карточки: без своей капсулы, поверхностью владеет родитель."
+        },
+        {
+          "name": "autofocus",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": true,
+          "callback": false
+        },
+        {
+          "name": "sendLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "Отправить · Enter",
+          "callback": false
+        },
+        {
+          "name": "onSend",
+          "type": "(text: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [
+        "Avatar",
+        "Button",
+        "Input"
+      ],
+      "mountedBy": [
+        "PinCard"
+      ]
+    },
+    {
+      "name": "RowInfo",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/RowInfo.tsx",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Строка с «/» или расширением — реальная картинка, иначе плейсхолдер."
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ]
+    },
+    {
+      "name": "RowLabel",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/RowLabel.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "hasInfo",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Только факт наличия подсказки; сам текст живёт у ряда."
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onToggle",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "ChoiceRow",
+        "InputRow",
+        "SwitchRow"
+      ]
+    },
+    {
+      "name": "RowMsg",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/RowMsg.tsx",
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "level",
+          "type": "MsgLevel",
+          "options": [
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "editor": "enum",
+          "default": "ok",
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "CheckboxRow",
+        "InputRow",
+        "SwitchRow"
+      ]
+    },
+    {
+      "name": "Segments",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Segments.tsx",
+      "props": [
+        {
+          "name": "options",
+          "type": "string[]",
+          "options": null,
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "OptionGroup"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "Skeleton",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Skeleton.tsx",
+      "props": [
+        {
+          "name": "shape",
+          "type": "'line' | 'rect' | 'circle'",
+          "options": [
+            "line",
+            "rect",
+            "circle"
+          ],
+          "editor": "enum",
+          "default": "line",
+          "callback": false
+        },
+        {
+          "name": "width",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "height",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "InputRow"
+      ]
+    },
+    {
+      "name": "Slider",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Slider.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 100,
+          "callback": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 1,
+          "callback": false
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "options",
+          "type": "string[]",
+          "options": null,
+          "editor": null,
+          "callback": false,
+          "info": "Единицы переключаемые (циклер) ИЛИ просто слово — вместе никогда."
+        },
+        {
+          "name": "optionIndex",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "snapStep",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false,
+          "info": "Магнит: значение липнет к кратным при ПЕРЕТАСКИВАНИИ."
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onOptionChange",
+          "type": "(index: number, option: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "CycleButton"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "SwitchRow",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/SwitchRow.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "info",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "infoImage",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "msg",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "msgLevel",
+          "type": "'ok' | 'warn'",
+          "options": [
+            "ok",
+            "warn"
+          ],
+          "editor": "enum",
+          "default": "ok",
+          "callback": false,
+          "info": "У переключателя нет «неверно» — есть последствие выбора. Поэтому только ok и warn."
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "RowInfo",
+        "RowLabel",
+        "RowMsg",
+        "Toggle"
+      ],
+      "mountedBy": [
+        "Island"
+      ]
+    },
+    {
+      "name": "Tabs",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Tabs.tsx",
+      "props": [
+        {
+          "name": "options",
+          "type": "TabItem[]",
+          "options": null,
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
+      "name": "Toast",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Toast.tsx",
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "level",
+          "type": "ToastLevel",
+          "options": [
+            "info",
+            "ok",
+            "warn",
+            "danger"
+          ],
+          "editor": "enum",
+          "default": "info",
+          "callback": false
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "leaving",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Экран ставит leaving и удаляет тост примерно через 320 мс."
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 0,
+          "callback": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 8000,
+          "callback": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onTimeout",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [
+        "Button"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "Toggle",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Toggle.tsx",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Нужен, когда подпись лежит СНАРУЖИ компонента: иначе контрол безымянный."
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Чисто визуал: состоянием, вводом и семантикой владеет родительский ряд."
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "stable",
+      "mounts": [],
+      "mountedBy": [
+        "SwitchRow"
+      ]
+    }
+  ],
+  "composition": {
+    "islandRows": [
+      "InputRow",
+      "ChoiceRow",
+      "SwitchRow",
+      "CheckboxRow",
+      "ActionRow"
+    ],
+    "outsideIsland": [
+      "Slider",
+      "Disclosure"
+    ],
+    "noValidation": [
+      "ChoiceRow",
+      "Island"
+    ],
+    "warnOnly": [
+      "SwitchRow"
+    ]
+  }
+}

@@ -5,6 +5,7 @@
  * относительно открытого документа (см. CLAUDE.md, «Репозиторий»). То есть на Pages уезжает
  * ровно то же дерево URL, что отдаёт npm run dev, — гейты и живой сайт смотрят на одно и то же.
  */
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,7 +45,10 @@ fs.writeFileSync(
 <meta http-equiv="refresh" content="0; url=./Storybook.dc.html">
 <link rel="canonical" href="./Storybook.dc.html">
 </head>
-<body><a href="./Storybook.dc.html">Витрина Banner Lab DS</a></body>
+<body>
+<a href="./Storybook.dc.html">Витрина Banner Lab DS</a> ·
+<a href="./showcase/">та же витрина на React (проверяется)</a>
+</body>
 </html>
 `
 );
@@ -52,4 +56,11 @@ fs.writeFileSync(
 // Pages по умолчанию прогоняет всё через Jekyll и выбрасывает файлы, начинающиеся с «_».
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
-console.log(`dist-site: ${count} файлов + index.html`);
+// React-витрина собирается сюда же, в /showcase. Пока их две, старая остаётся корнем:
+// сравнивать их должен человек, а не гейт, и для этого обе обязаны быть открыты.
+execFileSync('npx', ['vite', 'build', '--config', path.join(root, 'showcase/vite.config.mjs')], {
+  stdio: 'inherit',
+  cwd: root,
+});
+
+console.log(`dist-site: ${count} файлов + index.html + витрина на React в /showcase/`);
