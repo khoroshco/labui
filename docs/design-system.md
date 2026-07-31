@@ -5,8 +5,8 @@
 «так короче».
 
 Визуальный источник истины — витрина: https://khoroshco.github.io/labui/
-Механика репозитория — [репозиторий.md](репозиторий.md). Что и чем проверяется —
-[гейты.md](гейты.md).
+Механика репозитория — [repository.md](repository.md). Что и чем проверяется —
+[gates.md](gates.md).
 
 - Шрифт: только Unica 77 LL Cyrillic (Regular ≤450, Medium 451+). Моноширинного шрифта в ДС НЕТ: табличные цифры (font-variant-numeric: tabular-nums) — ТОЛЬКО по явному хуку data-nums (НЕ глобально и НЕ на всех инпутах: у Unica tnum делает табличным и пробел — разъезжаются слова и плейсхолдеры).
 - Все стили — через токены (`tokens/banner-lab.tokens.json` → `tokens.css`), темы data-theme dark (база) / light.
