@@ -15,6 +15,11 @@ buildTokens();
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export default defineConfig({
+  // Пути к ассетам — ОТНОСИТЕЛЬНЫЕ. Сайт живёт в подкаталоге (khoroshco.github.io/labui/
+  // showcase/), и абсолютный /assets/... уходил в корень домена: страница отдавала 200 и
+  // белый лист, потому что скрипт отвечал 404. Относительный путь работает и там, и на
+  // локальном дев-сервере.
+  base: './',
   root: path.join(ROOT, 'showcase'),
   build: {
     outDir: path.join(ROOT, 'dist-site/showcase'),

@@ -63,4 +63,21 @@ execFileSync('npx', ['vite', 'build', '--config', path.join(root, 'showcase/vite
   cwd: root,
 });
 
-console.log(`dist-site: ${count} файлов + index.html + витрина на React в /showcase/`);
+// Проверка, которой не было: страница отдавала 200 и БЕЛЫЙ ЛИСТ, потому что Vite собрал
+// абсолютные пути к ассетам, а сайт живёт в подкаталоге (…/labui/showcase/). Ни один гейт
+// этого не видел — нашёл владелец, открыв ссылку. Теперь: ни одной абсолютной ссылки на
+// ассет и каждый упомянутый файл существует.
+const showcaseHtml = path.join(out, 'showcase/index.html');
+const html = fs.readFileSync(showcaseHtml, 'utf8');
+const absolute = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((m) => m[1]);
+if (absolute.length) {
+  throw new Error(`витрина ссылается на ассеты абсолютным путём — в подкаталоге это белый лист: ${absolute.join(', ')}`);
+}
+const refs = [...html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)].map((m) => m[1]);
+if (refs.length < 2) throw new Error('в собранной витрине нет ссылок на скрипт и стиль — сборка пуста');
+for (const ref of refs) {
+  const file = path.join(out, 'showcase', ref.replace(/^\.\//, ''));
+  if (!fs.existsSync(file)) throw new Error(`витрина ссылается на несуществующий файл: ${ref}`);
+}
+
+console.log(`dist-site: ${count} файлов + index.html + витрина на React в /showcase/ (${refs.length} ассета на месте)`);
