@@ -2,12 +2,18 @@ name: CI
 
 # Красный прогон блокирует мёрж: ревью человеком здесь нет, и это единственное,
 # что стоит между ошибкой и main.
+#
+# Сюиты разведены по ПАРАЛЛЕЛЬНЫМ джобам. Одной последовательной джобой прогон занимал
+# 12–14 минут, и это было главной статьёй расхода времени на задачу: не работа, а
+# ожидание. Разведённый укладывается в самую долгую сюиту.
+#
+# Джоба «Гейты» остаётся: она ничего не проверяет сама, а собирает результат остальных —
+# так защита ветки продолжает требовать один понятный чек, а не пять.
 on:
   pull_request:
   push:
     branches: [main]
 
-# Права по минимуму: гейтам нечего писать в репозиторий.
 permissions:
   contents: read
 
@@ -16,25 +22,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Гейты
+  fast:
+    name: Линтеры, типы, юниты
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # changesets сравнивает с main
-
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: npm ci
+      # Браузер этой джобе не нужен вовсе — она и должна падать первой и быстро.
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - name: Сборка пакетов
+        run: npm run build:tokens && npm run build:ds
 
+  browser:
+    name: ${{ matrix.suite.title }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - { title: Smoke и снимки, cmd: 'npm run test:smoke && npm run test:visual' }
+          - { title: Паритет, cmd: 'npm run test:parity' }
+          - { title: Доступность, cmd: 'npm run test:a11y' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
       - run: npm ci
 
       - name: Кэш браузеров Playwright
         uses: actions/cache@v4
-        id: pw-cache
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -42,32 +70,16 @@ jobs:
       - name: Браузеры Playwright
         run: npx playwright install --with-deps chromium
 
-      # Один шаг вместо перечисления сюит: перечисление разошлось с npm run verify и
-      # оставило React-пакет без единого гейта — ни typecheck, ни паритета в CI не было.
-      # Теперь расхождение невозможно по построению.
-      - name: Все гейты
-        run: npm run verify
-
-      # Пакеты собираются здесь, а не впервые внутри релиза: сломанная сборка обязана
-      # падать до публикации, а не посреди неё.
-      - name: Сборка пакетов
-        run: npm run build:tokens && npm run build:ds
+      - name: ${{ matrix.suite.title }}
+        run: ${{ matrix.suite.cmd }}
 
       # Диффы и отчёты кладём к прогону: разбирать «упало на снапшоте» без картинки нельзя,
       # а обновлять снапшоты не глядя запрещено правилом.
-      - name: Отчёт Playwright
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 14
-
       - name: Визуальные диффы и артефакты падений
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ strategy.job-index }}
           path: test-results/
           retention-days: 14
 
@@ -78,9 +90,26 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: snapshots-${{ runner.os }}
+          name: snapshots-${{ runner.os }}-${{ strategy.job-index }}
           path: tests/__screenshots__/
           retention-days: 14
+
+  verify:
+    name: Гейты
+    runs-on: ubuntu-latest
+    needs: [fast, browser]
+    if: always()
+    steps:
+      # Собирает результат остальных джоб в один чек: защита ветки требует именно его.
+      # «needs» с if: always() нужен, чтобы падение любой сюиты доехало сюда, а не
+      # оставило чек висеть в ожидании.
+      - name: Итог
+        run: |
+          if [ "${{ needs.fast.result }}" != "success" ] || [ "${{ needs.browser.result }}" != "success" ]; then
+            echo "::error::Гейты красные: линтеры «${{ needs.fast.result }}», браузерные «${{ needs.browser.result }}»"
+            exit 1
+          fi
+          echo "Все гейты зелёные"
 
   changeset:
     name: Ченджсет
@@ -91,14 +120,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-
       - run: npm ci
-
       # Правка исходников без записи ченджсета — это смена контракта, которая уедет
       # к потребителю молча. Именно так у нас переименовывались пропсы.
       - name: Ченджсет обязателен для правок в src/

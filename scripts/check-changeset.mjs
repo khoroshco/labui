@@ -13,9 +13,12 @@ import path from 'node:path';
 const BASE = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main';
 
 /** Что считается сменой контракта для потребителя. */
+// Следим за тем, что МЕНЯЕТ КОНТРАКТ, а не за каталогом пакета целиком: правка CHANGELOG
+// или README ченджсета не требует — иначе гейт краснеет на собственном релизе и на любой
+// правке документации.
 const WATCHED = [
-  /^packages\/ds-react\/src\//, // то, что уезжает в пакет компонентов
-  /^packages\/tokens\//,
+  /^packages\/ds-react\/(src\/|package\.json)/, // то, что уезжает в пакет компонентов
+  /^packages\/tokens\/(src|package\.json)/,
   /^tokens\//, // источник токенов: переименование токена — мажор
   /^src\//, // эталон и глобальный ds.css
   /^api\.json$/,
