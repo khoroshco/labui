@@ -17,7 +17,7 @@
     "api": "node scripts/build-api.mjs",
     "prepare": "node scripts/build-tokens-css.mjs",
     "changeset": "changeset",
-    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:icons && npm run lint:vocabulary && npm run lint:showcase",
+    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:api-react && npm run lint:icons && npm run lint:vocabulary && npm run lint:showcase",
     "lint:icons": "node scripts/build-icons.mjs --check",
     "lint:api": "node scripts/build-api.mjs --check",
     "lint:changeset": "node scripts/check-changeset.mjs",
@@ -34,7 +34,11 @@
     "test:unit": "node --test \"tests/unit/**/*.test.mjs\"",
     "test:visual": "playwright test tests/visual",
     "typecheck": "tsc -p packages/ds-react/tsconfig.json",
-    "verify": "npm run lint && npm run typecheck && npm run test"
+    "verify": "npm run lint && npm run typecheck && npm run test",
+    "api:react": "node scripts/build-api-react.mjs",
+    "lint:api-react": "node scripts/build-api-react.mjs --check",
+    "dev:showcase": "vite --config showcase/vite.config.mjs",
+    "build:showcase": "npm run api:react && vite build --config showcase/vite.config.mjs"
   },
   "overrides": {
     "brace-expansion": "^5.0.8"

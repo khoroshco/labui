@@ -14,3 +14,7 @@ main section:nth-of-type(3) { animation-delay:90ms; }
 main section:nth-of-type(4) { animation-delay:135ms; }
 main section:nth-of-type(5) { animation-delay:180ms; }
 main section:nth-of-type(n+6) { animation-delay:225ms; }
+
+/* Витрина набрана тем же шрифтом, что система: моноширинного в ДС нет вовсе, а <code>
+   по умолчанию берёт системный monospace и ломает это правило прямо на первом экране. */
+code, kbd, samp { font-family: var(--font-ui); font-size: var(--fs-s); }
