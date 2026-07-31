@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Button } from '../atoms/Button.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
-export interface EmptyStateProps {
+export interface EmptyStateProps extends PassThrough {
   variant?: 'empty' | 'error';
   label?: string;
   subtitle?: string;
@@ -33,10 +34,12 @@ export function EmptyState({
   actionLabel = '',
   onAction,
   style,
+  ...rest
 }: EmptyStateProps) {
   const v = VARIANTS[variant] ?? VARIANTS.empty;
   return (
     <div
+      {...passThrough(rest)}
       style={{
         display: 'flex',
         flexDirection: 'column',

@@ -1,11 +1,12 @@
 import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Toggle } from '../atoms/Toggle.js';
 import { useControlled } from '../lib/hooks.js';
 import { RowInfo } from './RowInfo.js';
 import { RowLabel } from './RowLabel.js';
 import { RowMsg } from './RowMsg.js';
 
-export interface SwitchRowProps {
+export interface SwitchRowProps extends PassThrough {
   label?: string;
   subtitle?: string;
   checked?: boolean;
@@ -37,6 +38,7 @@ export function SwitchRow({
   msgLevel = 'ok',
   onChange,
   style,
+  ...rest
 }: SwitchRowProps) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -57,6 +59,7 @@ export function SwitchRow({
 
   return (
     <div
+      {...passThrough(rest)}
       data-row="true"
       data-disabled={disabled ? 'true' : 'false'}
       tabIndex={disabled ? -1 : 0}

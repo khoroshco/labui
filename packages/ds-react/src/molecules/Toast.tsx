@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Button } from '../atoms/Button.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
 export type ToastLevel = 'info' | 'ok' | 'warn' | 'danger';
 
-export interface ToastProps {
+export interface ToastProps extends PassThrough {
   text?: string;
   level?: ToastLevel;
   actionLabel?: string;
@@ -38,11 +39,12 @@ export function Toast({
   actionLabel = '',
   leaving = false,
   gap = 0,
-  duration = 0,
+  duration = 8000,
   onAction,
   onClose,
   onTimeout,
   style,
+  ...rest
 }: ToastProps) {
   const [entered, setEntered] = useState(false);
   const [dx, setDx] = useState(0);
@@ -73,6 +75,7 @@ export function Toast({
 
   return (
     <div
+      {...passThrough(rest)}
       style={{
         display: 'grid',
         gridTemplateRows: shown ? '1fr' : '0fr',

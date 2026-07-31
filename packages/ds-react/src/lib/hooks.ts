@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
+ * На сервере useLayoutEffect не выполняется и печатает предупреждение на КАЖДЫЙ рендер.
+ * Подменяем его на useEffect там, где DOM'а нет: на клиенте поведение не меняется, а
+ * SSR-лог потребителя перестаёт быть красным.
+ */
+const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+
+/**
  * Управляемый и неуправляемый режим — ОДНОЙ идиомой на все контролы.
  *
  * В DC-версии признаком управляемости было наличие колбэка. В React общепринято другое:
@@ -96,7 +103,7 @@ export function useTrackActive(index: number, deps: unknown[] = []) {
   // Мерим после КАЖДОГО рендера: эталон делал это в componentDidUpdate. Зависимость
   // только от индекса пропускала смену подписей — вкладка вырастала, подложка оставалась
   // прежней ширины.
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     measure();
   });
 

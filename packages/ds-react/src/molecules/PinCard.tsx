@@ -1,11 +1,16 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Avatar } from '../atoms/Avatar.js';
 import { Button } from '../atoms/Button.js';
 import { PinComposer } from './PinComposer.js';
 
-export type PinMessage = { ai: true; text: string } | { ai?: false; text: string; name: string; src?: string };
+/** Автор сообщения называется author — как у Avatar, PinComposer и самой карточки.
+ *  Поле name осталось принимаемым: так его звал эталон, ломать чужой конфиг не за что. */
+export type PinMessage =
+  | { ai: true; text: string }
+  | { ai?: false; text: string; author?: string; name?: string; src?: string };
 
-export interface PinCardProps {
+export interface PinCardProps extends PassThrough {
   messages?: PinMessage[];
   variant?: 'thread' | 'preview';
   resolved?: boolean;
@@ -34,6 +39,7 @@ export function PinCard({
   onSend,
   onClose,
   style,
+  ...rest
 }: PinCardProps) {
   const isPreview = variant === 'preview';
   const hasResolve = !!onResolve && !isPreview;
@@ -41,6 +47,7 @@ export function PinCard({
 
   return (
     <div
+      {...passThrough(rest)}
       tabIndex={isPreview ? undefined : -1}
       onKeyDown={(e: KeyboardEvent) => {
         if (e.key === 'Escape' && onClose) {
@@ -98,7 +105,7 @@ export function PinCard({
           ) : null}
           {messages.map((m, i) => {
             const isAi = !!m.ai;
-            const name = 'name' in m ? (m.name ?? '') : '';
+            const name = 'ai' in m && m.ai ? '' : ((m as { author?: string; name?: string }).author ?? (m as { name?: string }).name ?? '');
             return (
               <div
                 key={i}

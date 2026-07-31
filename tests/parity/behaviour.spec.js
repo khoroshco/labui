@@ -241,3 +241,31 @@ test('тоггл и сегменты в острове переключаютс�
   await last.click();
   expect(await last.getAttribute('aria-checked'), 'опция ряда не выбралась').toBe('true');
 });
+
+/* Каналы наружу: className, id, data-* и aria-* обязаны доезжать до корня.
+ *
+ * Раньше щель была одна — style. При этом aria-label и data-testid ПРОХОДИЛИ проверку
+ * типов (TypeScript не ловит лишние свойства с дефисом) и молча терялись: потребитель
+ * получал поле без доступного имени и тест-сьют, которому не за что зацепиться.
+ */
+test('className, id, data-* и aria-* доезжают до корня компонента', async ({ page }) => {
+  await openHarness(page, 'Button', {
+    label: 'Выгрузить',
+    className: 'layout-wide',
+    id: 'export-btn',
+    'data-testid': 'export',
+    'aria-describedby': 'hint',
+  });
+  const btn = page.locator('#dc-root button');
+  await expect(btn).toHaveClass(/layout-wide/);
+  await expect(btn).toHaveAttribute('id', 'export-btn');
+  await expect(btn).toHaveAttribute('data-testid', 'export');
+  await expect(btn).toHaveAttribute('aria-describedby', 'hint');
+});
+
+test('опечатка в имени пропа НЕ превращается в атрибут разметки', async ({ page }) => {
+  await openHarness(page, 'Button', { label: 'Ок', lable: 'опечатка', onclick: 'нет' });
+  const btn = page.locator('#dc-root button');
+  expect(await btn.getAttribute('lable'), 'мусор уехал в разметку').toBeNull();
+  expect(await btn.getAttribute('onclick')).toBeNull();
+});

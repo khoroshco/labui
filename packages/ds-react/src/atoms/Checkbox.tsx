@@ -1,8 +1,9 @@
 import { useEffect, type CSSProperties, type KeyboardEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon } from '../lib/Icon.js';
 import { useControlled } from '../lib/hooks.js';
 
-export interface CheckboxProps {
+export interface CheckboxProps extends PassThrough {
   label?: string;
   checked?: boolean;
   defaultChecked?: boolean;
@@ -25,6 +26,7 @@ export function Checkbox({
   bare = false,
   onChange,
   style,
+  ...rest
 }: CheckboxProps) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   // выключенное — потолок яркости: ошибку у disabled не показываем, иначе красный ярче гашения
@@ -43,6 +45,7 @@ export function Checkbox({
 
   return (
     <label
+      {...passThrough(rest)}
       tabIndex={bare || disabled ? -1 : 0}
       role={bare ? undefined : 'checkbox'}
       aria-hidden={bare ? true : undefined}

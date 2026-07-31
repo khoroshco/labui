@@ -1,9 +1,10 @@
 import { useState, type CSSProperties, type MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { OptionGroup, type OptionItem } from '../atoms/OptionGroup.js';
 import { RowInfo } from './RowInfo.js';
 import { RowLabel } from './RowLabel.js';
 
-export interface ChoiceRowProps {
+export interface ChoiceRowProps extends PassThrough {
   label?: string;
   options?: OptionItem[];
   value?: number;
@@ -32,6 +33,7 @@ export function ChoiceRow({
   infoImage = '',
   onChange,
   style,
+  ...rest
 }: ChoiceRowProps) {
   const [infoOpen, setInfoOpen] = useState(false);
   const hasInfo = !!info;
@@ -39,6 +41,7 @@ export function ChoiceRow({
 
   return (
     <div
+      {...passThrough(rest)}
       data-row="true"
       data-disabled={disabled ? 'true' : 'false'}
       style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 var(--sp-15) 0 var(--sp-4)', ...style }}

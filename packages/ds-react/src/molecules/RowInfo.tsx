@@ -1,6 +1,7 @@
 import type { CSSProperties, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 
-export interface RowInfoProps {
+export interface RowInfoProps extends PassThrough {
   open?: boolean;
   text?: string;
   /** Строка с «/» или расширением — реальная картинка, иначе плейсхолдер. */
@@ -11,10 +12,13 @@ export interface RowInfoProps {
 const IS_URL = /\/|\.(png|jpe?g|webp|gif|svg)/i;
 
 /** Раскрывашка подсказки ряда: grid-rows с пружиной, без прозрачности у выхода. */
-export function RowInfo({ open = false, text = '', image = '', style }: RowInfoProps) {
+export function RowInfo({ open = false, text = '', image = '', style,
+  ...rest
+}: RowInfoProps) {
   const isUrl = !!image && IS_URL.test(image);
   return (
     <span
+      {...passThrough(rest)}
       // клик по раскрытой подсказке не должен дёргать действие ряда
       onClick={(e: MouseEvent) => e.stopPropagation()}
       style={{

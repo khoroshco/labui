@@ -1,7 +1,8 @@
 import type { CSSProperties, MouseEvent } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon } from '../lib/Icon.js';
 
-export interface RowLabelProps {
+export interface RowLabelProps extends PassThrough {
   label?: string;
   subtitle?: string;
   /** Только факт наличия подсказки; сам текст живёт у ряда. */
@@ -12,9 +13,12 @@ export interface RowLabelProps {
 }
 
 /** Лейбл ряда с необязательной ⓘ. Раскрытием подсказки владеет ряд. */
-export function RowLabel({ label = '', subtitle = '', hasInfo = false, open = false, onToggle, style }: RowLabelProps) {
+export function RowLabel({ label = '', subtitle = '', hasInfo = false, open = false, onToggle, style,
+  ...rest
+}: RowLabelProps) {
   return (
     <span
+      {...passThrough(rest)}
       style={{
         display: 'flex',
         flexDirection: 'column',

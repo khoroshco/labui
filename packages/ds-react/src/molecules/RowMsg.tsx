@@ -1,9 +1,10 @@
 import { useRef, type CSSProperties } from 'react';
+import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon } from '../lib/Icon.js';
 
 export type MsgLevel = 'ok' | 'warn' | 'danger';
 
-export interface RowMsgProps {
+export interface RowMsgProps extends PassThrough {
   text?: string;
   level?: MsgLevel;
   style?: CSSProperties;
@@ -16,7 +17,9 @@ export interface RowMsgProps {
  * как выглядела открытой. Поэтому последний показанный уровень и текст запоминаются:
  * иначе ok проваливался в ветку danger и на 200 мс краснел, а текст исчезал мгновенно.
  */
-export function RowMsg({ text = '', level = 'ok', style }: RowMsgProps) {
+export function RowMsg({ text = '', level = 'ok', style,
+  ...rest
+}: RowMsgProps) {
   const open = !!text && (level === 'danger' || level === 'warn');
   const shownLevel = useRef<MsgLevel>('danger');
   const shownMsg = useRef('');
@@ -29,6 +32,7 @@ export function RowMsg({ text = '', level = 'ok', style }: RowMsgProps) {
 
   return (
     <span
+      {...passThrough(rest)}
       style={{
         display: 'grid',
         gridTemplateRows: open ? '1fr' : '0fr',
