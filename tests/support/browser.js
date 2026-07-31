@@ -20,7 +20,14 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
   if (impl === 'react') {
     const q = props ? `&props=${encodeURIComponent(JSON.stringify(props))}` : '';
     await page.goto(`/harness/?c=${name}&theme=${theme}${q}`, { waitUntil: 'load' });
-    await page.waitForSelector('#dc-root .sc-host > *');
+    // Ждём обёртку, а не её содержимое: компонент имеет право отрендерить ПУСТО в
+    // некоторых состояниях (RowMsg без сообщения), и такое состояние тоже надо сверять —
+    // а не ждать тридцать секунд того, чего не будет. Что дерево домонтировалось,
+    // гарантирует settle() ниже, а «нарисовал не пустоту» — smoke.
+    // Ждём ПРИСОЕДИНЕНИЯ, а не видимости: компонент имеет право быть нулевой высоты
+    // (свёрнутое сообщение ряда), и такое состояние тоже надо уметь сверить. С ожиданием
+    // видимости прогон висел до таймаута на совершенно исправном компоненте.
+    await page.waitForSelector('#dc-root .sc-host', { state: 'attached' });
     // Ждём шрифт: без этого измерения попадают на подменный шрифт, и надпись оказывается
     // на 2.5px шире — сравнение геометрии превращается в лотерею.
     await page.evaluate(() => document.fonts.ready);

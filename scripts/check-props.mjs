@@ -12,7 +12,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { components, report, ROOT, showcase } from './lib/dc.mjs';
+import { components, reactSources, report, ROOT, showcase } from './lib/dc.mjs';
 
 const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 
@@ -50,6 +50,50 @@ for (const c of components()) {
   }
 }
 
+
+/** Разбить список деструктуризации по запятым ВЕРХНЕГО уровня. */
+function splitTop(src) {
+  const out = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if ('([{'.includes(ch)) depth++;
+    else if (')]}'.includes(ch)) depth--;
+    else if (ch === ',' && depth === 0) {
+      out.push(src.slice(start, i));
+      start = i + 1;
+    }
+  }
+  out.push(src.slice(start));
+  return out;
+}
+
+// ── React: объявлен ⇔ читается, и словарь имён ──────────────────────────────
+// Три гейта (этот, lint:api и словарь имён) читали ТОЛЬКО замороженный эталон — то есть
+// физически не могли покраснеть от новой работы. В React-компонент можно было завести
+// проп title (имя прямо запрещено словарём) или объявить проп и не читать его.
+const BANNED_NAMES = new Set(['active', 'on', 'onAccent', 'title', 'state', 'flat', 'snap', 'separator', 'embedded']);
+const REACT_BUILTIN = new Set(['children', 'className', 'id', 'style']);
+
+for (const { file, body } of reactSources()) {
+  for (const m of body.matchAll(/export interface (\w+Props)[^{]*\{([\s\S]*?)\n\}/g)) {
+    const [, iface, block] = m;
+    const declared = [...block.matchAll(/^\s{2}(\w+)\??:/gm)].map((x) => x[1]);
+    const fn = new RegExp(`export function \\w+\\(\\{([\\s\\S]*?)\\}: ${iface}`).exec(body);
+    // Имена берём по запятым верхнего уровня: значения по умолчанию могут содержать
+    // объекты, массивы и вызовы, и «первое слово в строке» их не переживает.
+    const taken = fn ? new Set(splitTop(fn[1]).map((part) => /^\s*\.{0,3}\s*(\w+)/.exec(part)?.[1]).filter(Boolean)) : null;
+    for (const name of declared) {
+      if (BANNED_NAMES.has(name)) {
+        problems.push(`${file} — проп «${name}» запрещён словарём имён (CLAUDE.md)`);
+      }
+      if (taken && !taken.has(name) && !REACT_BUILTIN.has(name)) {
+        problems.push(`${file} — проп «${name}» объявлен в ${iface}, но не разбирается компонентом: канал есть, а действия нет`);
+      }
+    }
+  }
+}
 
 // ── Атрибуты вложенных компонентов ──────────────────────────────────────────
 // Проверки не было вовсе: атрибут на <dc-import> мог называть проп, которого у цели нет,

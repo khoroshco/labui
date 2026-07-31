@@ -19,7 +19,9 @@ const propsFor = (name) => sharedProps(name, api);
 
 const api = JSON.parse(readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 const migrated = JSON.parse(readFileSync(path.join(ROOT, 'packages/ds-react/migrated.json'), 'utf8')).components;
-const KNOWN_BOXES = JSON.parse(readFileSync(path.join(ROOT, 'tests/parity/known-box-deltas.json'), 'utf8')).known;
+const LEDGER = JSON.parse(readFileSync(path.join(ROOT, 'tests/parity/known-box-deltas.json'), 'utf8'));
+const KNOWN_BOXES = LEDGER.known;
+const KNOWN_STATES = LEDGER.states ?? {};
 
 
 /**
@@ -64,6 +66,10 @@ const SIGNATURE = `() => {
       if (INERT[a.name] !== undefined && a.value === INERT[a.name]) continue;
       attrs[a.name] = a.value;
     }
+    // Порядок атрибутов в HTML не значит ничего, а сравнение объектов строкой к нему
+    // чувствительно: у Toggle в состоянии disabled набор тот же, а порядок другой.
+    const sorted = {};
+    for (const k of Object.keys(attrs).sort()) sorted[k] = attrs[k];
     const tag = el.tagName.toLowerCase() === 'g-icon' ? 'span' : el.tagName.toLowerCase();
     // Текст берём СВОЙ, а не накопленный: у контейнера накопленный склеивается по-разному
     // (эталон держит подстановки в отдельных span'ах, между ними в шаблоне есть пробелы),
@@ -97,10 +103,41 @@ const SIGNATURE = `() => {
       cs.borderRadius, cs.fontWeight, cs.fontSize, cs.fontFamily, cs.letterSpacing, cs.lineHeight,
       cs.textTransform, cs.textAlign,
     ].join(' | ');
-    out.push({ tag, attrs, text, paint, box: [q(b.x - rootBox.x), q(b.y - rootBox.y), q(b.width), q(b.height)] });
+    out.push({ tag, attrs: sorted, text, paint, box: [q(b.x - rootBox.x), q(b.y - rootBox.y), q(b.width), q(b.height)] });
   }
   return out;
 }`;
+
+
+/**
+ * Состояния, в которых компонент сверяется дополнительно к дефолтному.
+ *
+ * До этого ВСЕ гейты видели ровно одну конфигурацию пропсов: в контракте девятнадцать
+ * enum-пропсов, и ни одно их значение, кроме дефолтного, не рисовалось нигде. Дефект,
+ * живущий в варианте (не тот тон у бейджа, пропавшая рамка у secondary, другой цвет
+ * загрузки), проходил зелёным по построению.
+ *
+ * Состояния выводятся ИЗ КОНТРАКТА, а не пишутся руками: список вариантов растёт вместе
+ * с компонентом сам. Матрица гоняется в одной теме — она ловит расхождение реализаций,
+ * а тему стережёт снимок дефолтного состояния в обеих.
+ */
+const FLAGS = ['disabled', 'invalid', 'loading', 'open', 'checked', 'resolved', 'bare', 'inverse'];
+
+function statesFor(name) {
+  const c = api.components.find((x) => x.name === name);
+  if (!c) return [];
+  const out = [];
+  for (const p of c.props) {
+    if (Array.isArray(p.options) && p.options.length > 1) {
+      for (const v of p.options.filter((o) => o !== p.default).slice(0, 2)) {
+        out.push([`${p.name}=${v}`, { [p.name]: v }]);
+      }
+    } else if (FLAGS.includes(p.name) && p.type === 'boolean' && p.default !== true) {
+      out.push([`${p.name}`, { [p.name]: true }]);
+    }
+  }
+  return out.slice(0, 8); // потолок: матрица должна оставаться быстрее минуты
+}
 
 for (const name of migrated) {
   for (const theme of ['dark', 'light']) {
@@ -144,4 +181,56 @@ for (const name of migrated) {
       expect(problems, `${name}/${theme}: разметка разошлась с эталоном\n  ${problems.join('\n  ')}`).toEqual([]);
     });
   }
+}
+
+// Матрица состояний: та же сверка, но компонент приведён в НЕдефолтное состояние.
+for (const name of migrated) {
+  const states = statesFor(name);
+  if (!states.length) continue;
+  test(`${name}: состояния совпадают с эталоном (${states.length})`, async ({ page }) => {
+    // Один тест — до шестнадцати загрузок страницы (состояние × две реализации), плюс
+    // первая компиляция харнесса. Дефолтные 30 секунд на это не рассчитаны.
+    test.setTimeout(120_000);
+    const problems = [];
+    // Ошибку открытия НЕ глотаем. Первая версия этой матрицы глотала — и на холодной
+    // сборке харнесса (первая компиляция TSX не укладывалась в короткий таймаут) выдала
+    // «RowMsg: эталон 4 узла, React 0», то есть обвинила компонент в том, чего он не делал.
+    // Гейт, который принимает несостоявшееся измерение за результат, хуже отсутствующего.
+    const sign = async (impl, props) => {
+      await open(page, name, props, { theme: 'dark', impl });
+      return page.evaluate(`(${SIGNATURE})()`);
+    };
+
+    for (const [label, extra] of states) {
+      const known = KNOWN_STATES[`${name}/${label}`];
+      const props = { ...propsFor(name), ...extra };
+      const dc = await sign('dc', props);
+      const react = await sign('react', props);
+      // Объяснённое расхождение обязано ВОСПРОИЗВОДИТЬСЯ: запись, которая перестала быть
+      // правдой, хуже отсутствующей — она выглядит как истина и живёт вечно.
+      if (known) {
+        if (JSON.stringify(dc) === JSON.stringify(react)) {
+          problems.push(`${label}: расхождение из ledger'а больше не воспроизводится — вычеркни строку из tests/parity/known-box-deltas.json`);
+        }
+        continue;
+      }
+      if (dc.length !== react.length) {
+        problems.push(`${label}: другое число узлов (эталон ${dc.length}, React ${react.length})`);
+        continue;
+      }
+      for (let i = 0; i < dc.length; i++) {
+        const a = dc[i];
+        const b = react[i];
+        if (a.tag !== b.tag || JSON.stringify(a.attrs) !== JSON.stringify(b.attrs) || a.text !== b.text) {
+          problems.push(`${label}, узел №${i}: ${JSON.stringify(a.attrs)} «${a.text}» против ${JSON.stringify(b.attrs)} «${b.text}»`);
+          break;
+        }
+        if (a.paint !== b.paint) {
+          problems.push(`${label}, узел №${i} (${a.tag}${a.text ? ` «${a.text}»` : ''}): краска разошлась`);
+          break;
+        }
+      }
+    }
+    expect(problems, `${name}: состояния разошлись с эталоном\n  ${problems.join('\n  ')}`).toEqual([]);
+  });
 }
