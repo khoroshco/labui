@@ -97,10 +97,10 @@ function isIgnorable(url) {
 }
 
 /** Открыть DC-страницу и дождаться, пока рантайм смонтирует корень и стихнет сеть. */
-export async function openDc(page, url) {
+export async function openDc(page, url, { timeout = 15_000 } = {}) {
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('#dc-root')?.children.length > 0, null, {
-    timeout: 15_000,
+    timeout,
   });
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(300); // добить асинхронные маунты и хелперы из хелмета
