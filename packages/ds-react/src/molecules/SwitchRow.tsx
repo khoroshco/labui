@@ -67,6 +67,11 @@ export function SwitchRow({
       aria-checked={on}
       aria-disabled={disabled}
       onKeyDown={(e: KeyboardEvent) => {
+        // Клавиатура вложенной кнопки принадлежит ЕЙ. Событие с ⓘ всплывает сюда, и без
+        // этой строки Enter на подсказке делал ровно наоборот: ряд переключался, а
+        // подсказка не открывалась — preventDefault ниже отменял активацию самой кнопки.
+        // Мышиный путь ряд у себя фильтрует (fromInfo), клавиатурный фильтровать забыли.
+        if (e.target !== e.currentTarget) return;
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
           flip(null);

@@ -66,6 +66,9 @@ export function CheckboxRow({
       aria-disabled={disabled}
       aria-invalid={isError ? true : undefined}
       onKeyDown={(e: KeyboardEvent) => {
+        // То же, что у SwitchRow: событие вложенной ⓘ всплывает в ряд, и без этой строки
+        // Enter на подсказке переключал галочку, а подсказку не открывал вовсе.
+        if (e.target !== e.currentTarget) return;
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
           flip(null);

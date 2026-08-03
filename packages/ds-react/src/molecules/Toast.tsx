@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
+import { useReducedMotion } from '../lib/hooks.js';
 import { Button } from '../atoms/Button.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
@@ -50,12 +51,47 @@ export function Toast({
   const [entered, setEntered] = useState(false);
   const [dx, setDx] = useState(0);
   const [drag, setDrag] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const startX = useRef(0);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const t = setTimeout(() => setEntered(true), 30);
     return () => clearTimeout(t);
   }, []);
+
+  /* ТАЙМЕР ВЕДЁТ JS, А НЕ АНИМАЦИЯ.
+   *
+   * Раньше автозакрытие висело на `animationend` полосы, то есть клоком была анимация.
+   * Под prefers-reduced-motion глобальное правило гасит анимации до 0.01 мс — полоса
+   * добегала мгновенно, и тост исчезал сразу же. Настройка «поменьше движения» отбирала
+   * не движение, а содержание: сообщение уровня danger было нечитаемым в принципе.
+   *
+   * Полоса осталась ПОКАЗАНИЕМ времени, а не его источником. Пауза под курсором есть у
+   * обоих: у полосы правилом ds.css, у отсчёта — состоянием ниже.
+   */
+  const fire = useRef<(() => void) | undefined>(undefined);
+  fire.current = onTimeout ?? onClose;
+  const total = Number(duration) || 0;
+  const left = useRef(total);
+  const seenDuration = useRef(duration);
+  if (duration !== seenDuration.current) {
+    // новая длительность сверху начинает отсчёт заново, а не доигрывает старый остаток
+    seenDuration.current = duration;
+    left.current = Number(duration) || 0;
+  }
+
+  useEffect(() => {
+    if (!total || !fire.current || !entered || leaving || hovered || drag) return;
+    const from = performance.now();
+    const t = setTimeout(() => fire.current?.(), left.current);
+    return () => {
+      clearTimeout(t);
+      // Остаток запоминаем: пауза не должна ни обнулять отсчёт, ни начинать его заново —
+      // иначе тост под курсором живёт вечно, а после ухода курсора — полный срок ещё раз.
+      left.current = Math.max(0, left.current - (performance.now() - from));
+    };
+  }, [total, entered, leaving, hovered, drag]);
 
   const m = LEVELS[level] ?? LEVELS.info;
   const shown = entered && !leaving;
@@ -99,6 +135,10 @@ export function Toast({
           role={critical ? 'alert' : 'status'}
           aria-live={critical ? undefined : 'polite'}
           data-toast="true"
+          // Пауза под курсором. У полосы она в ds.css (animation-play-state), у отсчёта —
+          // здесь: сообщение читают именно сейчас, и уезжать оно не должно (WCAG 2.2.1).
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
           // swipe-to-dismiss: тянется за указателем, дальше 80px — закрытие, иначе пружинный возврат
           onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
             if ((e.target as HTMLElement).closest('button')) return;
@@ -140,7 +180,6 @@ export function Toast({
           {duration && (onTimeout ?? onClose) ? (
             <span
               data-toast-fill="true"
-              onAnimationEnd={() => (onTimeout ?? onClose)?.()}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -150,7 +189,10 @@ export function Toast({
                 transformOrigin: 'left',
                 background: m.color,
                 opacity: 0.55,
-                animationName: 'ds-toast-fill',
+                // Полоса — показание таймера, а не сам таймер. Под reduced-motion она
+                // стоит на месте: убегающая линия и есть то движение, которого просили не
+                // делать, — а факт «время идёт» несёт сам тост, который никуда не исчез.
+                animationName: reduced ? 'none' : 'ds-toast-fill',
                 animationTimingFunction: 'linear',
                 animationFillMode: 'forwards',
                 animationDuration: `${Number(duration) || 0}ms`,
