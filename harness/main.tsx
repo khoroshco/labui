@@ -22,7 +22,15 @@ try {
 // моста такие ветки не видел ни один гейт — они выглядели непроверяемыми, а на деле были
 // просто недосягаемыми. Условное обозначение «@fn» превращается в пустой колбэк здесь и
 // ровно так же в мосте DC (tests/support/browser.js): один диалект на обе реализации.
-for (const [k, v] of Object.entries(props)) if (v === '@fn') props[k] = () => {};
+// Колбэк ещё и ЗАПИСЫВАЕТСЯ: иначе тест видит только «что нарисовано», а не «что
+// произошло и когда». Тосту это принципиально — его дефект был во ВРЕМЕНИ вызова.
+for (const [k, v] of Object.entries(props)) {
+  if (v !== '@fn') continue;
+  props[k] = () => {
+    const w = window as unknown as { __calls?: { prop: string; at: number }[] };
+    (w.__calls ??= []).push({ prop: k, at: performance.now() });
+  };
+}
 
 document.documentElement.setAttribute('data-theme', theme);
 
