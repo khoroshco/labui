@@ -1,5 +1,6 @@
 import { useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
+import { collapsedProps } from '../lib/collapsed.js';
 import { Icon } from '../lib/Icon.js';
 import { useControlled } from '../lib/hooks.js';
 
@@ -111,6 +112,8 @@ export function Disclosure({
       <div
         id={bodyId}
         role="group"
+        // свёрнутое содержимое уходит из таба и из дерева доступности — см. collapsedProps
+        {...collapsedProps(!open)}
         style={{
           display: 'grid',
           gridTemplateRows: open ? '1fr' : '0fr',

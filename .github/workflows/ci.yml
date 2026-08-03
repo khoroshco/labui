@@ -53,6 +53,9 @@ jobs:
           - { title: Smoke и снимки, cmd: 'npm run test:smoke && npm run test:visual' }
           - { title: Паритет, cmd: 'npm run test:parity' }
           - { title: Доступность, cmd: 'npm run test:a11y' }
+          # Витрина — своя поверхность и свой сервер: до этой сюиты её не открывал ни один
+          # браузерный гейт, и она прожила четыре PR с фокусом, уходящим в невидимое.
+          - { title: Витрина, cmd: 'npm run test:showcase' }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,16 +100,25 @@ jobs:
   verify:
     name: Гейты
     runs-on: ubuntu-latest
-    needs: [fast, browser]
+    needs: [fast, browser, changeset]
     if: always()
     steps:
       # Собирает результат остальных джоб в один чек: защита ветки требует именно его.
       # «needs» с if: always() нужен, чтобы падение любой сюиты доехало сюда, а не
       # оставило чек висеть в ожидании.
+      #
+      # Ченджсет тоже здесь. Раньше его джоба жила сама по себе, и красная не блокировала
+      # мёрж вовсе: защита ветки требует один чек, а этого чека она не касалась. То есть
+      # гейт «правка исходников без записи ченджсета» существовал и ничего не держал.
+      # skipped — законный результат: на push в main эта джоба не запускается.
       - name: Итог
         run: |
           if [ "${{ needs.fast.result }}" != "success" ] || [ "${{ needs.browser.result }}" != "success" ]; then
             echo "::error::Гейты красные: линтеры «${{ needs.fast.result }}», браузерные «${{ needs.browser.result }}»"
+            exit 1
+          fi
+          if [ "${{ needs.changeset.result }}" != "success" ] && [ "${{ needs.changeset.result }}" != "skipped" ]; then
+            echo "::error::Ченджсет «${{ needs.changeset.result }}»: правка исходников без записи уедет к потребителю молча"
             exit 1
           fi
           echo "Все гейты зелёные"

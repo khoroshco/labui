@@ -37,32 +37,55 @@ button:focus, select:focus { outline:none; }
 [data-field] { transition:border-color .12s, box-shadow .12s, background .12s, transform .35s var(--ease-spring); }
 [data-field]:active { transform:scale(var(--press-soft)); transition-duration:.12s,.12s,.12s,.1s; }
 /* ============================================================
-   ХОВЕРЫ КОНТРОЛОВ — ТОЛЬКО СТАТИКОЙ.
-   Ховер, заданный через {{ дырку }} в style-hover, компилируется в ПУСТОЕ правило:
-   значение подставляется на этапе парсинга, когда его ещё нет, и больше не обновляется.
-   Так молча умерли ховеры Button, Input, OptionGroup и CycleButton. Поэтому все
-   состояния указателя живут здесь и ключуются data-атрибутами, а не значениями.
+   ХОВЕРЫ КОНТРОЛОВ — СТАТИКОЙ И С !important. Две причины, обе выяснены дорого.
+
+   1. Ховер, заданный через {{ дырку }} в style-hover, компилируется в ПУСТОЕ правило:
+      значение подставляется на этапе парсинга, когда его ещё нет, и больше не
+      обновляется. Поэтому все состояния указателя живут ЗДЕСЬ и ключуются
+      data-атрибутами, а не значениями.
+
+   2. Базовый вид компоненты пишут в АТРИБУТ style, а объявление таблицы стилей
+      проигрывает атрибуту style ПО КАСКАДУ — до специфичности дело не доходит вовсе.
+      Обычное объявление здесь не делало НИЧЕГО: так молча умерли ховеры secondary и
+      ghost кнопки, кнопки с тоном, циклера, опции, рамки поля и заголовка раскрывашки.
+      Знали об этом в одном месте — у [data-opt]:active стоял !important с объяснением, —
+      а в остальных двенадцати правилах поправки не было.
+      !important здесь не «на всякий случай»: это ЕДИНСТВЕННЫЙ способ перебить атрибут
+      style. Его нет там, где свойство инлайном не пишется (opacity, filter): лишний
+      !important мешал бы потребителю переопределять то, что переопределять можно.
+
+   Держит гейт tests/visual/hover.spec.js: он читает правила ОТСЮДА и требует, чтобы
+   каждое доехало до элемента и было ВИДНО глазом — в обеих темах и в обеих реализациях.
    ============================================================ */
-[data-cycle]:not(:disabled):hover { border-color:var(--border-strong); color:var(--text-primary); }
+[data-cycle]:not(:disabled):hover { border-color:var(--border-strong) !important; color:var(--text-primary) !important; }
 /* выбранная опция уже максимально яркая — её ховер не трогает */
-[data-opt]:not(:disabled):not([aria-checked="true"]):hover { color:var(--text-primary); }
-[data-opt][data-inverse="true"]:not(:disabled):not([aria-checked="true"]):hover { color:var(--inverse-text); }
+[data-opt]:not(:disabled):not([aria-checked="true"]):hover { color:var(--text-primary) !important; }
+[data-opt][data-inverse="true"]:not(:disabled):not([aria-checked="true"]):hover { color:var(--inverse-text) !important; }
 [data-btn="primary"]:not(:disabled):not([data-busy="true"]):hover { opacity:.88; }
-[data-btn="secondary"]:not(:disabled):not([data-busy="true"]):hover { border-color:var(--border-strong); background:var(--bg-hover); }
-[data-btn="ghost"]:not(:disabled):not([data-busy="true"]):hover { background:var(--bg-hover); color:var(--text-primary); }
+[data-btn="secondary"]:not(:disabled):not([data-busy="true"]):hover { border-color:var(--border-strong) !important; background:var(--bg-hover) !important; }
+[data-btn="ghost"]:not(:disabled):not([data-busy="true"]):hover { background:var(--bg-hover) !important; color:var(--text-primary) !important; }
 [data-btn="accent"]:not(:disabled):not([data-busy="true"]):hover { filter:brightness(1.06); }
-/* тон перекрывает вариант: у залитых — ярче, у прозрачных — тонировка тоном */
-[data-btn="primary"][data-tone]:not(:disabled):not([data-busy="true"]):hover,
-[data-btn="accent"][data-tone]:not(:disabled):not([data-busy="true"]):hover { opacity:1; filter:brightness(1.08); }
+/* Тон перекрывает вариант: у залитых — ярче, у прозрачных — тонировка тоном.
+   Тона перечислены ПОИМЁННО. Селектор [data-tone] ловил и обычную кнопку: атрибут
+   пишется всегда, включая 'default', — и у самой частой кнопки системы ховер был не тот,
+   что объявлен строкой выше, а в светлой теме никакой вовсе (умножение яркости на почти
+   чёрной заливке не даёт ничего). */
+[data-btn="primary"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="primary"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="accent"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover,
+[data-btn="accent"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover { opacity:1; filter:brightness(1.08); }
 [data-btn="secondary"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover,
-[data-btn="ghost"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover { background:var(--ok-dim); color:var(--ok); }
+[data-btn="ghost"][data-tone="ok"]:not(:disabled):not([data-busy="true"]):hover { background:var(--ok-dim) !important; color:var(--ok) !important; }
 [data-btn="secondary"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover,
-[data-btn="ghost"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover { background:var(--danger-dim); color:var(--danger); }
+[data-btn="ghost"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover { background:var(--danger-dim) !important; color:var(--danger) !important; }
 /* ховер и пресс — только у живого поля: disabled не подсвечивается, а ошибка и фокус не перекрашиваются в серый */
-[data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong); }
+[data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong) !important; }
 [data-field][data-disabled="true"]:active { transform:none; }
 [data-field]:focus-within { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
-[data-field]:focus-within:hover { border-color:var(--accent); }
+/* Ховер сфокусированного поля своего правила не имеет и не нуждается в нём: правило выше
+   исключено через :not(:focus-within), а акцентную рамку сфокусированное поле уже несёт
+   само. Отдельная строка [data-field]:focus-within:hover была ровно этим значением
+   поверх того же значения — мёртвой по построению. */
 [data-field] input:focus-visible, [data-field] select:focus-visible { outline:none; box-shadow:none; }
 [data-row] { transition:transform .35s var(--ease-spring); }
 [data-row]:active { transform:scale(var(--press-soft)); }
@@ -127,8 +150,21 @@ label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
    ленте, а не кнопке, и дрожать вместе с надписью не должно. */
 [data-tab] { transition:transform .35s var(--ease-spring), color .15s ease; }
 [data-tab]:not([aria-disabled="true"]):active { transform:scale(var(--press-label)); }
-[data-disc]:hover:not([data-disabled="true"]) { color:var(--text-secondary); }
-[data-disc="plain"]:hover:not([data-disabled="true"]) { color:var(--text-primary); }
+[data-disc]:hover:not([data-disabled="true"]) { color:var(--text-secondary) !important; }
+[data-disc="plain"]:hover:not([data-disabled="true"]) { color:var(--text-primary) !important; }
+/* ============================================================
+   Три ховера, потерянные вместе с механизмом style-hover эталона.
+   Он компилировался в пустое правило (см. блок ховеров выше), поэтому при переезде
+   состояний в этот файл их сюда просто не перенесли — и в разметке эталона они до сих
+   пор лежат мёртвым атрибутом style-hover. Значения взяты ОТТУДА, а не придуманы здесь:
+   Tabs.dc.html — color:var(--text-primary), RowLabel.dc.html — var(--text-secondary),
+   Input.dc.html — var(--text-primary).
+   ============================================================ */
+[data-tab]:not([aria-disabled="true"]):hover { color:var(--text-primary) !important; }
+/* ⓘ ряда: раскрытая уже светится primary — её ховер не гасит до secondary */
+button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondary) !important; }
+/* единственная кнопка с расширенной зоной внутри поля — очистка значения */
+[data-field] button[data-tap="true"]:hover { color:var(--text-primary) !important; }
 @media (prefers-reduced-motion: reduce) {
   /* пресс-масштаб заменяется гашением: факт нажатия остаётся, перемещения нет */
   [data-disc]:active:not([data-disabled="true"]) { transform:none; opacity:.7; }

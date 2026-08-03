@@ -20,8 +20,9 @@
 
 ```bash
 npm ci
-npm run dev       # витрина на localhost:5173
-npm run verify    # линтеры + unit + smoke + визуальные + доступность
+npm run dev:showcase  # витрина на localhost:5174
+npm run dev           # страницы замороженного эталона на localhost:5173
+npm run verify        # линтеры + unit + smoke + визуальные + паритет + доступность + витрина
 ```
 
 ## Definition of Done

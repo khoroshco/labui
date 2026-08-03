@@ -60,7 +60,8 @@
 
 ```bash
 npm ci
-npm run dev       # витрина на localhost:5173
+npm run dev:showcase  # витрина на localhost:5174
+npm run dev       # страницы замороженного эталона на localhost:5173
 npm run verify    # все гейты разом
 ```
 

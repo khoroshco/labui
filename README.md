@@ -10,10 +10,11 @@
 
 ```bash
 npm ci
-npm run dev
+npm run dev:showcase
 ```
 
-Витрина откроется на `http://localhost:5173/`. Нужен Node из `.nvmrc`.
+Витрина откроется на `http://localhost:5174/`. Страницы замороженного эталона —
+`npm run dev` на `5173`. Нужен Node из `.nvmrc`.
 
 ```bash
 npm run verify    # все гейты разом, ~2 минуты
