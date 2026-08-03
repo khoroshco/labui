@@ -17,7 +17,7 @@
     "api": "node scripts/build-api.mjs",
     "prepare": "node scripts/build-tokens-css.mjs",
     "changeset": "changeset",
-    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:api-react && npm run lint:icons && npm run lint:vocabulary && npm run lint:showcase",
+    "lint": "npm run lint:tokens-source && npm run lint:tokens && npm run lint:props && npm run lint:api && npm run lint:api-react && npm run lint:icons && npm run lint:vocabulary && npm run lint:showcase && npm run lint:showcase-react",
     "lint:icons": "node scripts/build-icons.mjs --check",
     "lint:api": "node scripts/build-api.mjs --check",
     "lint:changeset": "node scripts/check-changeset.mjs",
@@ -38,7 +38,8 @@
     "api:react": "node scripts/build-api-react.mjs",
     "lint:api-react": "node scripts/build-api-react.mjs --check",
     "dev:showcase": "vite --config showcase/vite.config.mjs",
-    "build:showcase": "npm run api:react && vite build --config showcase/vite.config.mjs"
+    "build:showcase": "npm run api:react && vite build --config showcase/vite.config.mjs",
+    "lint:showcase-react": "node scripts/check-showcase-react.mjs"
   },
   "overrides": {
     "brace-expansion": "^5.0.8"

@@ -34,7 +34,7 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Input', p: { icon: "magnifier", clearable: true, value: "осенний", placeholder: "Поиск по кампаниям", style: {"width": "220px"} } },
     { c: 'Input', p: { value: "hvostilapy", invalid: true, style: {"width": "160px"} } },
     { c: 'Input', p: { value: "Осенний сейл", disabled: true, style: {"width": "160px"} } },
-    { c: 'Input', p: { value: "24", suffix: "px", style: {"width": "90px"} } },
+    { c: 'Input', p: { value: 24, suffix: "px", style: {"width": "90px"} } },
     { c: 'Input', p: { prefix: "https://", value: "hvost-i-lapy.ru/sale", style: {"width": "230px"} } },
   ],
   cyclebutton: [
@@ -43,8 +43,8 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'CycleButton', p: { options: demoScaleOpts } },
   ],
   optiongroup: [
-    { c: 'OptionGroup', p: { options: demoTypeOpts, value: "0" } },
-    { c: 'OptionGroup', p: { options: demoAnchorOpts, value: "2" } },
+    { c: 'OptionGroup', p: { options: demoTypeOpts, value: 0 } },
+    { c: 'OptionGroup', p: { options: demoAnchorOpts, value: 2 } },
   ],
   badge: [
     { c: 'Badge', p: { label: "300×250", nums: true } },
@@ -55,9 +55,9 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Badge', p: { label: "erid 2Vtzqx", variant: "quiet", nums: true, icon: "lock" } },
   ],
   pin: [
-    { c: 'Pin', p: { number: "1" } },
+    { c: 'Pin', p: { number: 1 } },
     { c: 'Pin', p: { author: "Марина Ковалёва" } },
-    { c: 'Pin', p: { number: "2", resolved: true } },
+    { c: 'Pin', p: { number: 2, resolved: true } },
     { c: 'Pin', p: { author: "Игорь Волков", hasReply: true } },
   ],
   avatar: [
@@ -73,12 +73,12 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Island', p: { rows: islandLoading } },
   ],
   choicerow: [
-    { c: 'ChoiceRow', p: { label: "Тип выхода", options: demoTypeOpts, value: "0" } },
-    { c: 'ChoiceRow', p: { label: "Якорь героя", options: demoAnchorOpts, value: "2", info: "Якорь — точка, за которую герой держится при пересчёте формата." } },
+    { c: 'ChoiceRow', p: { label: "Тип выхода", options: demoTypeOpts, value: 0 } },
+    { c: 'ChoiceRow', p: { label: "Якорь героя", options: demoAnchorOpts, value: 2, info: "Якорь — точка, за которую герой держится при пересчёте формата." } },
   ],
   slider: [
-    { c: 'Slider', p: { label: "Охранное поле", value: "24", min: "0", max: "64", step: "1", unit: "px" } },
-    { c: 'Slider', p: { label: "Скругление CTA", value: "12", min: "0", max: "32", step: "1", unit: "px", snapStep: "4" } },
+    { c: 'Slider', p: { label: "Охранное поле", value: 24, min: 0, max: 64, step: 1, unit: "px" } },
+    { c: 'Slider', p: { label: "Скругление CTA", value: 12, min: 0, max: 32, step: 1, unit: "px", snapStep: 4 } },
   ],
   toast: [
     { c: 'Toast', p: { text: "12 форматов готовы к выгрузке", level: "ok" } },
@@ -86,13 +86,11 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Toast', p: { text: "erid не заполнен у 3 форматов", level: "warn", actionLabel: "Показать" } },
     { c: 'Toast', p: { text: "Block: вес 412 КБ — площадка отклонит", level: "danger", actionLabel: "Открыть" } },
     { c: 'Button', p: { label: "Показать тост", variant: "secondary", size: "s" } },
-    { c: 'Toast', p: { gap: "8", duration: "8000" } },
   ],
   island: [
     { c: 'Island', p: { rows: islandA } },
     { c: 'Island', p: { rows: islandB } },
-    { c: 'Slider', p: { label: "Кегль лигала", value: "8", min: "6", max: "14", step: "0.5", unit: "pt" } },
+    { c: 'Slider', p: { label: "Кегль лигала", value: 8, min: 6, max: 14, step: 0.5, unit: "pt" } },
     { c: 'Island', p: { rows: islandC } },
-    { c: 'Island', p: {  } },
   ],
 };
