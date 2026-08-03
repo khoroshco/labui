@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { Badge, Icon } from '../packages/ds-react/src/index';
 import { A11Y, AXES, DURATIONS, SHADOWS, TEXT_LEVELS, TOKEN_LAYERS, UX_RULES } from './content';
+import { FONT_SCALE, FONT_WEIGHTS, TYPE_STYLES } from './demoData';
 import type { ComponentSpec } from './Playground';
 
 const SEMANTIC = [
@@ -83,6 +84,73 @@ const Swatch = ({ token, why }: { token: string; why: string }) => (
   </div>
 );
 
+const Sub = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div style={{ display: 'grid', gap: 'var(--sp-2)' }}>
+    <h4 style={{ margin: 0, fontSize: 'var(--fs-l)', fontWeight: 'var(--fw-medium)' }}>{title}</h4>
+    {children}
+  </div>
+);
+
+/** Шкала кеглей, начертания и стили набора. Числа читаются из движка: переписанные руками
+ *  рано или поздно расходятся с tokens.css, и дизайнер копирует несуществующее. */
+function Typography() {
+  const scale = useComputed([...FONT_SCALE]);
+  const weights = useComputed([...FONT_WEIGHTS.map(([t]) => t)]);
+  return (
+    <div style={{ display: 'grid', gap: 'var(--sp-5)' }}>
+      <Sub title="Шкала кеглей">
+        <div style={rowsBox}>
+          {FONT_SCALE.map((token, i) => (
+            <div key={token} style={{ ...rowLine(i), display: 'grid', gridTemplateColumns: '1fr auto 2fr', gap: 'var(--sp-3)', alignItems: 'baseline' }}>
+              <code>{token}</code>
+              <span style={muted} data-nums="true">{scale[token] || '—'}</span>
+              <span style={{ fontSize: `var(${token})`, lineHeight: 'var(--lh-heading)' }}>Аа Bb 123</span>
+            </div>
+          ))}
+        </div>
+      </Sub>
+
+      <Sub title="Начертания">
+        <div style={rowsBox}>
+          {FONT_WEIGHTS.map(([token, role], i) => (
+            <div key={token} style={{ ...rowLine(i), display: 'grid', gridTemplateColumns: '1fr auto 2fr', gap: 'var(--sp-3)', alignItems: 'baseline' }}>
+              <code>{token}</code>
+              <span style={muted} data-nums="true">{weights[token] || '—'}</span>
+              <span style={{ fontWeight: `var(${token})` }}>{role}</span>
+            </div>
+          ))}
+        </div>
+      </Sub>
+
+      <Sub title="Стили набора">
+        <div style={rowsBox}>
+          {TYPE_STYLES.map((t, i) => (
+            <div key={t.name} style={{ ...rowLine(i), display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) 2fr', gap: 'var(--sp-4)', alignItems: 'baseline' }}>
+              <span style={{ display: 'grid', gap: 2 }}>
+                <b style={{ fontWeight: 'var(--fw-medium)' }}>{t.name}</b>
+                <span style={muted}>{t.role}</span>
+              </span>
+              <span
+                style={{
+                  fontSize: t.fs,
+                  fontWeight: t.fw,
+                  lineHeight: t.lh,
+                  letterSpacing: t.ls,
+                  textTransform: t.caps as React.CSSProperties['textTransform'],
+                  color: t.color,
+                  maxWidth: t.measure === 'none' ? undefined : t.measure,
+                }}
+              >
+                {t.sample}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Sub>
+    </div>
+  );
+}
+
 export function Primitives({ id, icons, components }: { id: string; icons: string[]; components: ComponentSpec[] }) {
   const sizes = useComputed([...SPACES, ...RADII, ...HEIGHTS]);
 
@@ -129,17 +197,7 @@ export function Primitives({ id, icons, components }: { id: string; icons: strin
   }
 
   if (id === 'type') {
-    return (
-      <div style={{ display: 'grid', gap: 'var(--sp-2)' }}>
-        {TYPE.map(([token, why]) => (
-          <div key={token} style={{ display: 'flex', gap: 'var(--sp-3)', alignItems: 'baseline' }}>
-            <span style={{ fontSize: `var(${token})`, lineHeight: 'var(--lh-heading)' }}>Съешь ещё этих мягких булок</span>
-            <code style={muted}>{token}</code>
-            <span style={muted}>{why}</span>
-          </div>
-        ))}
-      </div>
-    );
+    return <Typography />;
   }
 
   if (id === 'space' || id === 'radius' || id === 'controlh') {

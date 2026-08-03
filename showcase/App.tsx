@@ -27,7 +27,7 @@ function SectionBody({ section }: { section: Section }) {
     const spec = byName.get(section.component);
     const Component = registry[section.component];
     if (!spec || !Component) return null;
-    return <Playground spec={spec} Component={Component} icons={api.icons} />;
+    return <Playground spec={spec} Component={Component} icons={api.icons} sectionId={section.id} />;
   }
   if (section.id === 'tooltip') return <Tooltip />;
   if (section.id === 'pincanvas') return <PinCanvas />;
@@ -47,13 +47,11 @@ export function App() {
   return (
     <>
       <header
+        className="sb-head"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--sp-4)',
           padding: 'var(--sp-3) var(--sp-5)',
           background: 'var(--bg-base)',
           borderBottom: '0.5px solid var(--border-subtle)',
@@ -77,7 +75,7 @@ export function App() {
         />
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 220px) minmax(0, 1fr)', gap: 'var(--sp-6)', padding: 'var(--sp-6) var(--sp-5)' }}>
+      <div className="sb-shell">
         <nav style={{ position: 'sticky', top: 72, alignSelf: 'start', display: 'grid', gap: 'var(--sp-1)' }}>
           <div
             style={{
