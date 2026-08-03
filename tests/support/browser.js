@@ -7,6 +7,23 @@
 import { openDc, preparePage } from './dc.js';
 
 /**
+ * Увести курсор ЗА пределы окна.
+ *
+ * Без этого «покой» — не покой. Начальное положение курсора у движка — (0,0), и на первом
+ * же хит-тесте элемент, стоящий в левом верхнем углу, оказывается ПОД КУРСОРОМ. Компонент
+ * в харнессе стоит именно там. Пока ховеры были мертвы, это ничего не меняло; как только
+ * они заработали, гейты на Linux начали мерить наведённое состояние: снимок OptionGroup
+ * разошёлся на сотню точек, паритет — на краске опции, а ledger контраста перестал
+ * воспроизводиться. На macOS того же не происходило — то есть расхождение зависело от
+ * платформы, а «зелено у меня» ничего не значило.
+ *
+ * 10000 — заведомо вне любого окна: хит-тест не находит ничего, наведено ничего.
+ */
+export async function parkMouse(page) {
+  await page.mouse.move(10_000, 10_000);
+}
+
+/**
  * Открыть страницу компонента и вернуть копилку ошибок.
  *
  * `impl` выбирает реализацию: 'dc' — замороженный эталон, 'react' — то, что уезжает
@@ -17,6 +34,7 @@ import { openDc, preparePage } from './dc.js';
 export async function open(page, name, props = null, { theme = 'dark', freeze = true, impl = 'dc' } = {}) {
   const bag = preparePage(page);
   await page.emulateMedia({ colorScheme: theme === 'light' ? 'light' : 'dark' });
+  await parkMouse(page);
   if (impl === 'react') {
     const q = props ? `&props=${encodeURIComponent(JSON.stringify(props))}` : '';
     await page.goto(`/harness/?c=${name}&theme=${theme}${q}`, { waitUntil: 'load' });
@@ -28,6 +46,7 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
     // (свёрнутое сообщение ряда), и такое состояние тоже надо уметь сверить. С ожиданием
     // видимости прогон висел до таймаута на совершенно исправном компоненте.
     await page.waitForSelector('#dc-root .sc-host', { state: 'attached' });
+    await parkMouse(page); // положение курсора живёт в документе — после навигации паркуем снова
     // Ждём шрифт: без этого измерения попадают на подменный шрифт, и надпись оказывается
     // на 2.5px шире — сравнение геометрии превращается в лотерею.
     await page.evaluate(() => document.fonts.ready);
@@ -37,6 +56,7 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
     return bag;
   }
   await openDc(page, `/${name}.dc.html`);
+  await parkMouse(page); // положение курсора живёт в документе — после навигации паркуем снова
   await page.evaluate(() => document.fonts.ready);
   if (freeze) await freezeMotion(page);
   await setTheme(page, theme);

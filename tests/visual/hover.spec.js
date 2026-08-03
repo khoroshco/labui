@@ -23,7 +23,7 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { IMPLS, open } from '../support/browser.js';
+import { IMPLS, open, parkMouse } from '../support/browser.js';
 import { ROOT } from '../support/dc.js';
 
 const CSS = fs.readFileSync(path.join(ROOT, 'src/ds.css'), 'utf8');
@@ -408,19 +408,10 @@ for (const impl of IMPLS) {
             c.pseudo ?? ''
           );
 
-        // Курсор ПАРКУЕТСЯ в дальний угол, а не в (0,0): контрол в харнессе часто стоит
-        // ровно в левом верхнем углу, и «покой» снимался бы уже под курсором. Тогда обе
-        // картинки одинаковы, разница нулевая — и проверка заметности молча зеленела бы
-        // на самом ховере, который она обязана мерить. Что угол свободен — проверяем.
-        const vp = page.viewportSize();
-        const park = { x: vp.width - 2, y: vp.height - 2 };
-        await page.mouse.move(park.x, park.y);
-        const parkedOnTarget = await page.evaluate(
-          ([x, y, sel]) => !!document.elementFromPoint(x, y)?.closest(sel),
-          [park.x, park.y, c.target]
-        );
-        expect(parkedOnTarget, `${c.name}: курсору некуда встать вне элемента — покой не снять`).toBe(false);
-
+        // Курсор ЗА окном, а не в (0,0): контрол в харнессе стоит ровно в левом верхнем
+        // углу, и «покой» снимался бы уже под курсором — обе картинки совпали бы, и
+        // проверка заметности молча зеленела бы на том самом ховере, который мерит.
+        await parkMouse(page);
         const rest = await read();
         const restShot = clip ? (await page.screenshot({ clip })).toString('base64') : null;
 
