@@ -39,7 +39,11 @@ if (head.startsWith('changeset-release/')) {
   process.exit(0);
 }
 
-const contractChanges = changed.filter((f) => WATCHED.some((re) => re.test(f)));
+// sb.css — стиль СТРАНИЦЫ витрины: в пакет не уезжает, контракта не меняет.
+const NOT_CONTRACT = [/^src\/sb\.css$/];
+const contractChanges = changed
+  .filter((f) => WATCHED.some((re) => re.test(f)))
+  .filter((f) => !NOT_CONTRACT.some((re) => re.test(f)));
 if (contractChanges.length === 0) {
   console.log('✓ ченджсет не требуется: контракт не менялся');
   process.exit(0);

@@ -6,7 +6,9 @@
  * плейграунде сам, а исчезнувший — исчезает. Рукописных списков пропсов здесь нет.
  */
 import { useState } from 'react';
-import { Badge, Island, type IslandRow } from '../packages/ds-react/src/index';
+import * as DS from '../packages/ds-react/src/index';
+import { Badge, Disclosure, Island, type IslandRow } from '../packages/ds-react/src/index';
+import { EXAMPLES } from './examples';
 import { DEMO, WIDTH } from './demo';
 
 export interface PropSpec {
@@ -32,9 +34,13 @@ interface Props {
   spec: ComponentSpec;
   Component: React.ComponentType<Record<string, unknown>>;
   icons: string[];
+  /** id раздела витрины: под ним лежат статичные примеры */
+  sectionId: string;
 }
 
-export function Playground({ spec, Component, icons }: Props) {
+const registry = DS as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
+
+export function Playground({ spec, Component, icons, sectionId }: Props) {
   const demo = DEMO[spec.name] ?? {};
   const [state, setState] = useState<Record<string, unknown>>(() => ({ ...demo }));
 
@@ -84,6 +90,8 @@ export function Playground({ spec, Component, icons }: Props) {
 
   const passed = { ...demo, ...state };
 
+  const examples = EXAMPLES[sectionId] ?? [];
+
   return (
     <div style={{ display: 'grid', gap: 'var(--sp-4)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--sp-2)' }}>
@@ -93,23 +101,43 @@ export function Playground({ spec, Component, icons }: Props) {
         ) : null}
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '96px',
-          padding: 'var(--sp-5)',
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--r-m)',
-        }}
-      >
-        <div style={{ width: WIDTH[spec.name] ?? 'auto', maxWidth: '100%' }}>
-          <Component {...passed} />
+      {/* Демо и панель пропсов РЯДОМ, как в DC-витрине: щёлкая проп, видишь результат, а
+          не прокручиваешь к нему. На узком экране колонки схлопываются в одну. */}
+      <div className="sb-play">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '140px',
+            padding: 'var(--sp-5)',
+            background: 'var(--bg-surface)',
+            borderRadius: 'var(--r-m)',
+          }}
+        >
+          <div style={{ width: WIDTH[spec.name] ?? 'auto', maxWidth: '100%' }}>
+            <Component {...passed} />
+          </div>
         </div>
+        {rows.length ? <Island rows={rows} /> : <span />}
       </div>
 
-      {rows.length ? <Island rows={rows} /> : null}
+      {examples.length ? (
+        <Disclosure label="Примеры" count={examples.length}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-3)', alignItems: 'center', padding: 'var(--sp-3) 0' }}>
+            {examples.map((ex, i) => {
+              const C = registry[ex.c];
+              if (!C) return null;
+              const wide = ex.c === 'Island' || ex.c === 'Toast' || ex.c === 'EmptyState';
+              return (
+                <div key={i} style={{ width: wide ? '100%' : 'auto', maxWidth: '100%' }}>
+                  <C {...(ex.p as Record<string, unknown>)} />
+                </div>
+              );
+            })}
+          </div>
+        </Disclosure>
+      ) : null}
     </div>
   );
 }

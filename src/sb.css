@@ -18,3 +18,14 @@ main section:nth-of-type(n+6) { animation-delay:225ms; }
 /* Витрина набрана тем же шрифтом, что система: моноширинного в ДС нет вовсе, а <code>
    по умолчанию берёт системный monospace и ломает это правило прямо на первом экране. */
 code, kbd, samp { font-family: var(--font-ui); font-size: var(--fs-s); }
+
+/* Раскладка витрины. Медиа-запросы инлайном не выражаются, поэтому они здесь — это
+   стиль СТРАНИЦЫ, а не компонента: запрет на классы касается компонентов ДС. */
+.sb-shell { display:grid; grid-template-columns:minmax(180px, 220px) minmax(0, 1fr); gap:var(--sp-6); padding:var(--sp-6) var(--sp-5); max-width:1320px; margin:0 auto; }
+.sb-play { display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, 360px); gap:var(--sp-4); align-items:start; }
+.sb-head { display:flex; align-items:center; gap:var(--sp-4); flex-wrap:wrap; }
+@media (max-width: 1000px) {
+  .sb-shell { grid-template-columns:1fr; }
+  .sb-shell nav { position:static; }
+  .sb-play { grid-template-columns:1fr; }
+}
