@@ -17,6 +17,13 @@ try {
   props = {};
 }
 
+// Функции через границу теста не переносятся, а за колбэком у компонентов спрятаны целые
+// ветки разметки: полоса таймера тоста рендерится ТОЛЬКО при onTimeout/onClose. Без этого
+// моста такие ветки не видел ни один гейт — они выглядели непроверяемыми, а на деле были
+// просто недосягаемыми. Условное обозначение «@fn» превращается в пустой колбэк здесь и
+// ровно так же в мосте DC (tests/support/browser.js): один диалект на обе реализации.
+for (const [k, v] of Object.entries(props)) if (v === '@fn') props[k] = () => {};
+
 document.documentElement.setAttribute('data-theme', theme);
 
 const registry = DS as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;

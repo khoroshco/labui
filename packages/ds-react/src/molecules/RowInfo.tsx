@@ -1,5 +1,6 @@
 import type { CSSProperties, MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
+import { collapsedProps } from '../lib/collapsed.js';
 
 export interface RowInfoProps extends PassThrough {
   open?: boolean;
@@ -19,6 +20,8 @@ export function RowInfo({ open = false, text = '', image = '', style,
   return (
     <span
       {...passThrough(rest)}
+      // закрытая подсказка не читается скринридером и не берёт указатель — см. collapsedProps
+      {...collapsedProps(!open)}
       // клик по раскрытой подсказке не должен дёргать действие ряда
       onClick={(e: MouseEvent) => e.stopPropagation()}
       style={{

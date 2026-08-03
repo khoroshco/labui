@@ -120,6 +120,10 @@ export async function freezeMotion(page) {
  */
 export async function setProps(page, props) {
   await page.evaluate((p) => {
+    // «@fn» — пустой колбэк: функции через границу не переносятся, а за колбэком у
+    // компонентов спрятаны целые ветки разметки (полоса таймера тоста рендерится только
+    // при onTimeout/onClose). Тот же диалект понимает React-харнесс.
+    for (const [k, v] of Object.entries(p)) if (v === '@fn') p[k] = () => {};
     window.__testProps = { ...(window.__testProps ?? {}), ...p };
     window.__dcSetProps(window.__dcRootName(), window.__testProps);
   }, props);

@@ -46,7 +46,13 @@ const SIGNATURE = `() => {
     // type="button" — ОСОЗНАННОЕ расхождение с эталоном, а не потеря: без него браузерный
     // дефолт submit отправляет форму потребителя, и переопределить это было нечем.
     // На вид не влияет ничем, поэтому из сравнения исключено явно и с объяснением.
-    'type': 'button' };
+    'type': 'button',
+    // inert="" — второе ОСОЗНАННОЕ расхождение. Свёрнутое содержимое обязано уходить из
+    // таба и из дерева доступности (иначе фокус проваливается в невидимое — так витрина
+    // и ловила таб), а компоненты эталона заморожены тегом ds-reference-v0: чинить их
+    // нельзя. Поэтому атрибут есть только у React. На отрисовку он не влияет ничем.
+    // Записан ЗНАЧЕНИЕМ, а не именем: inert с любым другим значением снова станет виден.
+    'inert': '' };
   for (const el of root.querySelectorAll('*')) {
     // Маунт ряда острова — исключение из пропуска обёрток: сепаратор и тон ховера ds.css
     // рисует именно на нём, то есть это декор, а не леса. В эталоне это .sc-host рантайма,
@@ -61,7 +67,7 @@ const SIGNATURE = `() => {
       // data-dc-tpl и data-sc-name — бухгалтерия рантайма DC (номер шаблона и имя
       // смонтированного компонента), у React аналога нет и быть не должно
       if (/^(data-dc-tpl|data-sc-name|class|style|id|aria-controls|data-track-item)$/.test(a.name)) continue;
-      const meaningful = a.name === 'role' || a.name === 'tabindex' || a.name === 'disabled' || a.name === 'type' || a.name.startsWith('aria-') || a.name.startsWith('data-');
+      const meaningful = a.name === 'role' || a.name === 'tabindex' || a.name === 'disabled' || a.name === 'type' || a.name === 'inert' || a.name.startsWith('aria-') || a.name.startsWith('data-');
       if (!meaningful) continue;
       if (INERT[a.name] !== undefined && a.value === INERT[a.name]) continue;
       attrs[a.name] = a.value;

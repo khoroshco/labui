@@ -1,5 +1,6 @@
 import { useRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
+import { collapsedProps } from '../lib/collapsed.js';
 import { Icon } from '../lib/Icon.js';
 
 export type MsgLevel = 'ok' | 'warn' | 'danger';
@@ -33,6 +34,10 @@ export function RowMsg({ text = '', level = 'ok', style,
   return (
     <span
       {...passThrough(rest)}
+      // Закрытое сообщение уходит из дерева доступности целиком: role=presentation снимал
+      // с него роль, но текст оставался обычным текстом и читался подряд с содержимым ряда.
+      // Уходящий текст при этом остаётся видимым — inert отрисовку не трогает.
+      {...collapsedProps(!open)}
       style={{
         display: 'grid',
         gridTemplateRows: open ? '1fr' : '0fr',

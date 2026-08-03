@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
+import { collapsedProps } from '../lib/collapsed.js';
 import { Button } from '../atoms/Button.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
@@ -76,6 +77,11 @@ export function Toast({
   return (
     <div
       {...passThrough(rest)}
+      // Уходящий тост не берёт фокус: 250 мс схлопывания он ещё виден, и таб успевал
+      // попасть на его кнопку действия — то есть на кнопку, которой сейчас не станет.
+      // Только на выходе: до входа тост инертным не делаем, иначе живая область могла бы
+      // не озвучить сообщение в момент появления.
+      {...collapsedProps(leaving)}
       style={{
         display: 'grid',
         gridTemplateRows: shown ? '1fr' : '0fr',
