@@ -57,3 +57,57 @@ export const TYPE_STYLES = [
     { name: 'Label', role: 'Подпись контрола: лейбл ряда, текст кнопки', fs: 'var(--fs-m)', fw: 'var(--fw-medium)', lh: 'var(--lh-ui)', ls: 'normal', caps: 'none', color: 'var(--text-primary)', measure: 'none', sample: 'Запекать в растр' },
     { name: 'Eyebrow', role: 'Рубрика и бейдж: капс + трекинг', fs: 'var(--fs-xs)', fw: 'var(--fw-medium)', lh: 'var(--lh-ui)', ls: 'var(--ls-eyebrow)', caps: 'uppercase', color: 'var(--text-tertiary)', measure: 'none', sample: 'Уровни яркости' },
   ] as const;
+
+/** Пять именованных групп цвета — как в DC-витрине, с русскими именами и токенами. */
+export const COLOR_GROUPS = [
+        { title: 'Фон', items: [
+          { name: 'Канвас', token: '--bg-canvas', css: 'var(--bg-canvas)' },
+          { name: 'База', token: '--bg-base', css: 'var(--bg-base)' },
+          { name: 'Поверхность', token: '--bg-surface', css: 'var(--bg-surface)' },
+          { name: 'Поднятое', token: '--bg-raised', css: 'var(--bg-raised)' },
+        ]},
+        { title: 'Текст', items: [
+          { name: 'Основной', token: '--text-primary', css: 'var(--text-primary)' },
+          { name: 'Вторичный', token: '--text-secondary', css: 'var(--text-secondary)' },
+          { name: 'Третичный', token: '--text-tertiary', css: 'var(--text-tertiary)' },
+          { name: 'Инверсия', token: '--inverse-bg', css: 'var(--inverse-bg)' },
+        ]},
+        { title: 'Акцент', items: [
+          { name: 'Акцент', token: '--accent', css: 'var(--accent)' },
+          { name: 'Акцент, фон', token: '--accent-dim', css: 'var(--accent-dim)' },
+        ]},
+        { title: 'AI', items: [
+          { name: 'Градиент AI', token: '--ai-grad', css: 'var(--ai-grad)', noValue: true },
+          { name: 'AI, сплошной', token: '--ai', css: 'var(--ai)' },
+        ]},
+        { title: 'Статусы', items: [
+          { name: 'Ок', token: '--ok', css: 'var(--ok)' },
+          { name: 'Внимание', token: '--warn', css: 'var(--warn)' },
+          { name: 'Блок', token: '--danger', css: 'var(--danger)' },
+          { name: 'Инфо', token: '--info', css: 'var(--info)' },
+          { name: 'Ок, фон', token: '--ok-dim', css: 'var(--ok-dim)' },
+          { name: 'Внимание, фон', token: '--warn-dim', css: 'var(--warn-dim)' },
+          { name: 'Блок, фон', token: '--danger-dim', css: 'var(--danger-dim)' },
+        ]},
+      ] as const;
+
+/** Кейфреймы системы: имя → что именно меняется. Перенесено из DC-витрины. */
+export const KEYFRAMES: [string, string][] = [
+  ['ds-fade', 'Простое появление — когда движения не нужно вовсе.'],
+  ['ds-rise', 'Вход снизу: элемент приходит из потока, а не возникает.'],
+  ['ds-appear', 'Пружинное появление мелкого: спиннер, точка, бейдж.'],
+  ['ds-pop-in', 'Карточка растёт из точки привязки: PinCard у пина.'],
+  ['pin-pop', 'Капля пина: ставится в точку клика.'],
+  ['ds-pulse', 'Ожидание без прогресса. Форма — атом Skeleton.'],
+  ['ds-spin', 'Работа идёт, конца не знаем. Только linear.'],
+  ['ds-shake', 'Упор в предел: дальше ввод не идёт. Под reduced-motion — гашение.'],
+  ['ds-toast-fill', 'Остаток времени тоста. Убывает, а не растёт.'],
+];
+
+/** Принципы движения: три колонки по пять правил. */
+export const MOTION_PRINCIPLES: [string, string[]][] = [
+  ['Материал', ['Пружина — из физики, не на глаз: затухающее колебание с овершутом ~4%.', 'Анимируем только transform и opacity; grid-rows у раскрывашек — осознанное исключение.', 'box-shadow не анимируем напрямую — кросс-фейд слоя тени через opacity.', 'transform-origin — из точки привязки: карточка растёт из пина, раскрывашка — сверху.', 'Длительность растёт с размером объекта: мелкий отклик быстрее крупной панели.']],
+  ['Вход и выход', ['Вход и выход асимметричны: вход — пружина или ease-out, выход короче и тише.', 'Выход — полноправное состояние: ничего не исчезает без анимации.', 'Stagger: секции и списки входят каскадом 40–50 мс, не разом.', 'Перестановки — layout-анимацией: сосед съезжает плавно, не телепортом.', 'Связанные изменения — одной последовательностью: поле, сообщение и тонировка меняются согласованно.']],
+  ['Отклик', ['Интерактив — на transitions: прерванная анимация подхватывается из текущей точки, не стартует заново.', 'Скорость наследуется: JS-анимации продолжают движение с текущей velocity, не с нуля.', 'Пресс — единый жест: scale и brightness на всём кликабельном, мгновенно.', 'Анимация не блокирует ввод: состояние меняется сразу, визуал догоняет.', 'prefers-reduced-motion уважается: крупные перемещения и пружины заменяются гашением, цвет и кольцо фокуса остаются.']],
+];
+

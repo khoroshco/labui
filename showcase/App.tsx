@@ -76,13 +76,12 @@ export function App() {
       </header>
 
       <div className="sb-shell">
-        <nav style={{ position: 'sticky', top: 72, alignSelf: 'start', display: 'grid', gap: 'var(--sp-1)' }}>
+        <nav style={{ position: 'sticky', top: 72, alignSelf: 'start', display: 'grid', gap: 'var(--sp-1)', maxHeight: 'calc(100vh - 96px)', overflow: 'auto' }}>
           <div
             style={{
-              fontSize: 'var(--fs-xs)',
+              fontSize: 'var(--fs-l)',
               fontWeight: 'var(--fw-medium)',
-              letterSpacing: 'var(--ls-eyebrow)',
-              color: 'var(--text-tertiary)',
+              color: 'var(--text-primary)',
               marginBottom: 'var(--sp-2)',
             }}
           >
@@ -111,27 +110,27 @@ export function App() {
 
         <main style={{ display: 'grid', gap: 'var(--sp-8)', minWidth: 0 }}>
           {sections.map((s) => (
-            <section key={s.id} id={s.id} style={{ display: 'grid', gap: 'var(--sp-4)', scrollMarginTop: 80 }}>
-              <div style={{ display: 'grid', gap: 'var(--sp-2)' }}>
+            <section key={s.id} id={s.id} style={{ display: 'grid', gap: 'var(--sp-4)', scrollMarginTop: 96 }}>
+              <div style={{ display: 'grid', gap: 'var(--sp-2)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--sp-3)' }}>
                 <h2
                   style={{
                     margin: 0,
                     display: 'flex',
                     alignItems: 'baseline',
                     gap: 'var(--sp-2)',
-                    fontSize: 'var(--fs-h1)',
+                    fontSize: 'var(--fs-h2)',
                     fontWeight: 'var(--fw-black)',
                     letterSpacing: 'var(--ls-heading)',
                   }}
                 >
-                  {s.title}
+                  {s.heading ?? s.title}
                   {s.note ? (
                     <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 'var(--fw-regular)', letterSpacing: 'normal', color: 'var(--text-tertiary)' }}>
                       {s.note}
                     </span>
                   ) : null}
                 </h2>
-                <p style={{ margin: 0, maxWidth: 'var(--measure-text)', color: 'var(--text-secondary)', lineHeight: 'var(--lh-text)' }}>
+                <p style={{ margin: 0, maxWidth: 'var(--measure-text)', color: 'var(--text-body)', lineHeight: 'var(--lh-text)' }}>
                   {s.intro}
                 </p>
               </div>

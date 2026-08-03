@@ -25,6 +25,10 @@ export function Tooltip() {
       <Button icon="trash-bin" variant="ghost" tone="danger" tooltip="Удалить" />
       <Button icon="arrow-down-to-line" variant="secondary" tooltip="Выгрузить" />
       <Button icon="lock" variant="ghost" disabled tooltip="Выключенное подсказку не показывает" />
+      {/* Главное демо раздела: тултип — АТРИБУТ, а не компонент, и работает на чём угодно. */}
+      <span data-tooltip="Работает на любом элементе" style={{ color: 'var(--text-secondary)', borderBottom: '1px dashed var(--border-subtle)' }}>
+        просто текст с подсказкой
+      </span>
     </div>
   );
 }
@@ -56,7 +60,11 @@ export function PinCanvas() {
     >
       {pins.map((p, i) => (
         <span key={i} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }} onClick={(e) => e.stopPropagation()}>
-          <Pin number={i + 1} dot={!!p.text} onClick={() => setOpen(open === i ? null : i)} />
+          {/* Клик слушает обёртка: у Pin нет собственного onClick, и переданный проп
+              молча терялся — тред не открывался никогда. */}
+          <span onClick={() => setOpen(open === i ? null : i)} style={{ display: 'inline-block', cursor: 'pointer' }}>
+            <Pin number={i + 1} hasReply={!!p.text} />
+          </span>
           {draft === i ? (
             <span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 320, display: 'block' }}>
               <PinComposer
