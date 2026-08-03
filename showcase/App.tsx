@@ -1,89 +1,147 @@
 /* Витрина: единственный источник истины по составу и правилам.
  *
- * Состав приезжает из контракта (api.react.json), а контракт выводится из исходников —
- * рукописных списков компонентов и пропсов здесь нет по построению. Раньше витрина была
- * DC-страницей и держала список руками; он расходился с кодом дважды, и оба раза это
- * замечал не человек, а гейт.
+ * Структура — перенос DC-версии один в один: шапка, переключатель уровней по центру,
+ * боковая навигация с нумерацией, разделы в том же порядке и с той же прозой. Это
+ * миграция, а не редизайн: пока две реализации существуют одновременно, сравнивать их
+ * можно только когда они показывают одно и то же.
+ *
+ * Состав компонентов приезжает из контракта (api.react.json), а контракт выводится из
+ * исходников — рукописных списков компонентов и пропсов здесь нет по построению.
  */
 import { useEffect, useState } from 'react';
 import * as DS from '../packages/ds-react/src/index';
 import api from '../api.react.json';
 import { Playground, type ComponentSpec } from './Playground';
 import { Primitives } from './Primitives';
-import { Spec } from './Spec';
-
-const LEVEL_RU: Record<string, string> = {
-  primitives: 'Примитивы',
-  spec: 'Правила',
-  atoms: 'Атомы',
-  molecules: 'Молекулы',
-  organisms: 'Организмы',
-};
+import { PinCanvas, Tooltip } from './Scenes';
+import { LEVELS, SECTIONS, type Section } from './sections';
 
 const registry = DS as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
 const specs = api.components as unknown as ComponentSpec[];
-const LEVELS = ['primitives', 'spec', ...api.levels];
+const byName = new Map(specs.map((c) => [c.name, c]));
+
+const num = (i: number) => String(i + 1).padStart(2, '0');
+
+function SectionBody({ section }: { section: Section }) {
+  if (section.component) {
+    const spec = byName.get(section.component);
+    const Component = registry[section.component];
+    if (!spec || !Component) return null;
+    return <Playground spec={spec} Component={Component} icons={api.icons} />;
+  }
+  if (section.id === 'tooltip') return <Tooltip />;
+  if (section.id === 'pincanvas') return <PinCanvas />;
+  return <Primitives id={section.id} icons={api.icons} components={specs} />;
+}
 
 export function App() {
-  const [level, setLevel] = useState<string>(() => location.hash.slice(1) || 'primitives');
+  const [level, setLevel] = useState(LEVELS[0]!);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  useEffect(() => {
-    location.hash = level;
-  }, [level]);
-
-  const shown = specs.filter((c) => c.level === level);
+  const sections = SECTIONS.filter((s) => s.level === level);
 
   return (
-    <div style={{ maxWidth: 1120, margin: '0 auto', padding: 'var(--sp-6) var(--sp-5) var(--sp-8)' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
-        <h1 style={{ margin: 0, fontSize: 'var(--fs-h1)', fontWeight: 'var(--fw-black)', letterSpacing: 'var(--ls-heading)' }}>
-          Banner Lab DS
-        </h1>
-        <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-xs)' }}>
-          {specs.length} компонентов · {api.package}
+    <>
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--sp-4)',
+          padding: 'var(--sp-3) var(--sp-5)',
+          background: 'var(--bg-base)',
+          borderBottom: '0.5px solid var(--border-subtle)',
+        }}
+      >
+        <b style={{ fontSize: 'var(--fs-l)', fontWeight: 'var(--fw-black)', letterSpacing: 'var(--ls-heading)' }}>
+          Banner&nbsp;Lab
+        </b>
+        <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-xs)' }}>витрина · {specs.length} компонентов</span>
+
+        <span style={{ margin: '0 auto' }}>
+          <DS.Segments options={LEVELS} value={LEVELS.indexOf(level)} onChange={(i: number) => setLevel(LEVELS[i]!)} />
         </span>
-        <span style={{ marginLeft: 'auto' }}>
-          <DS.Segments
-            options={['Тёмная', 'Светлая']}
-            value={theme === 'dark' ? 0 : 1}
-            onChange={(i: number) => setTheme(i === 0 ? 'dark' : 'light')}
-          />
-        </span>
+
+        <DS.Button
+          label={theme === 'dark' ? 'Светлая' : 'Тёмная'}
+          icon={theme === 'dark' ? 'sun' : 'moon'}
+          variant="secondary"
+          size="s"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        />
       </header>
 
-      <nav style={{ marginBottom: 'var(--sp-6)' }}>
-        <DS.Tabs
-          options={LEVELS.map((l) => [
-            LEVEL_RU[l] ?? l,
-            l === 'primitives' || l === 'spec' ? '' : String(specs.filter((c) => c.level === l).length),
-          ])}
-          value={LEVELS.indexOf(level)}
-          onChange={(i: number) => setLevel(LEVELS[i] ?? 'primitives')}
-        />
-      </nav>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 220px) minmax(0, 1fr)', gap: 'var(--sp-6)', padding: 'var(--sp-6) var(--sp-5)' }}>
+        <nav style={{ position: 'sticky', top: 72, alignSelf: 'start', display: 'grid', gap: 'var(--sp-1)' }}>
+          <div
+            style={{
+              fontSize: 'var(--fs-xs)',
+              fontWeight: 'var(--fw-medium)',
+              letterSpacing: 'var(--ls-eyebrow)',
+              color: 'var(--text-tertiary)',
+              marginBottom: 'var(--sp-2)',
+            }}
+          >
+            {level}
+          </div>
+          {sections.map((s, i) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              style={{
+                display: 'flex',
+                gap: 'var(--sp-25)',
+                padding: 'var(--sp-1) 0',
+                color: 'var(--text-secondary)',
+                textDecoration: 'none',
+                fontSize: 'var(--fs-s)',
+              }}
+            >
+              <span data-nums="true" style={{ color: 'var(--text-tertiary)', minWidth: 20 }}>
+                {num(i)}
+              </span>
+              {s.title}
+            </a>
+          ))}
+        </nav>
 
-      <main style={{ display: 'grid', gap: 'var(--sp-8)' }}>
-        {level === 'primitives' ? (
-          <Primitives icons={api.icons} />
-        ) : level === 'spec' ? (
-          <Spec components={specs} />
-        ) : (
-          shown.map((spec) => {
-            const Component = registry[spec.name];
-            if (!Component) return null;
-            return (
-              <section key={spec.name} id={spec.name}>
-                <Playground spec={spec} Component={Component} icons={api.icons} />
-              </section>
-            );
-          })
-        )}
-      </main>
-    </div>
+        <main style={{ display: 'grid', gap: 'var(--sp-8)', minWidth: 0 }}>
+          {sections.map((s) => (
+            <section key={s.id} id={s.id} style={{ display: 'grid', gap: 'var(--sp-4)', scrollMarginTop: 80 }}>
+              <div style={{ display: 'grid', gap: 'var(--sp-2)' }}>
+                <h2
+                  style={{
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 'var(--sp-2)',
+                    fontSize: 'var(--fs-h1)',
+                    fontWeight: 'var(--fw-black)',
+                    letterSpacing: 'var(--ls-heading)',
+                  }}
+                >
+                  {s.title}
+                  {s.note ? (
+                    <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 'var(--fw-regular)', letterSpacing: 'normal', color: 'var(--text-tertiary)' }}>
+                      {s.note}
+                    </span>
+                  ) : null}
+                </h2>
+                <p style={{ margin: 0, maxWidth: 'var(--measure-text)', color: 'var(--text-secondary)', lineHeight: 'var(--lh-text)' }}>
+                  {s.intro}
+                </p>
+              </div>
+              <SectionBody section={s} />
+            </section>
+          ))}
+        </main>
+      </div>
+    </>
   );
 }

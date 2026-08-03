@@ -61,7 +61,9 @@ export function Playground({ spec, Component, icons }: Props) {
         };
       }
       if (p.editor === 'icon') {
-        const list = ['—', ...icons];
+        // Короткий набор, а не все 56: в контроле-ряду они не помещаются, и в DC-витрине
+        // здесь тоже стоял выбранный список. Полная галерея живёт в разделе «Иконки».
+        const list = ['—', 'plus', 'xmark', 'check', 'gear', 'arrow-right', 'trash-bin', 'ellipsis'];
         const idx = Math.max(0, list.indexOf(String(value(p) || '—')));
         return {
           ...common,
@@ -85,12 +87,9 @@ export function Playground({ spec, Component, icons }: Props) {
   return (
     <div style={{ display: 'grid', gap: 'var(--sp-4)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--sp-2)' }}>
-        <h3 style={{ margin: 0, fontSize: 'var(--fs-h3)', fontWeight: 'var(--fw-medium)' }}>{spec.name}</h3>
         <Badge label={spec.status} variant="quiet" tone={spec.status === 'stable' ? 'ok' : 'warn'} />
         {spec.mounts.length ? (
-          <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-xs)' }}>
-            монтирует: {spec.mounts.join(', ')}
-          </span>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--fs-xs)' }}>монтирует: {spec.mounts.join(', ')}</span>
         ) : null}
       </div>
 
