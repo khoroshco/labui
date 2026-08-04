@@ -12,7 +12,12 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # changeset-release/** — ветка релизного PR. Его создаёт action встроенным GITHUB_TOKEN,
+    # а GitHub НЕ запускает workflow на события от этого токена: у релизного PR не было
+    # ни одного чека вовсе, и защита ветки блокировала его навсегда. Чек привязан к SHA,
+    # а не к событию, поэтому прогон по push эту дыру закрывает — и заодно перестаёт быть
+    # правдой утверждение «релиз проходит те же гейты»: теперь оно проверяется.
+    branches: [main, 'changeset-release/**']
 
 permissions:
   contents: read
