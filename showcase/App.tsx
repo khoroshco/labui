@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import * as DS from '../packages/ds-react/src/index';
 import api from '../api.react.json';
+import { BadgeNote, EridIsland, IslandBuilder, IslandRowsNote, ToastNote, ToastStack } from './Live';
 import { Playground, type ComponentSpec } from './Playground';
 import { Primitives } from './Primitives';
 import { PinCanvas, Tooltip } from './Scenes';
@@ -22,12 +23,37 @@ const byName = new Map(specs.map((c) => [c.name, c]));
 
 const num = (i: number) => String(i + 1).padStart(2, '0');
 
+/* Живые демонстрации по разделам. Плейграунд крутит пропсы, а это — поведение во времени:
+   сборка острова, очередь тостов, правило показа ошибки. Статичным примером не показать. */
+const LIVE: Record<string, () => JSX.Element> = {
+  island: () => (
+    <>
+      <IslandRowsNote />
+      <IslandBuilder />
+      <EridIsland />
+    </>
+  ),
+  toast: () => (
+    <>
+      <ToastNote />
+      <ToastStack />
+    </>
+  ),
+  badge: BadgeNote,
+};
+
 function SectionBody({ section }: { section: Section }) {
   if (section.component) {
     const spec = byName.get(section.component);
     const Component = registry[section.component];
     if (!spec || !Component) return null;
-    return <Playground spec={spec} Component={Component} icons={api.icons} sectionId={section.id} />;
+    const Live = LIVE[section.id];
+    return (
+      <div style={{ display: 'grid', gap: 'var(--sp-6)' }}>
+        <Playground spec={spec} Component={Component} icons={api.icons} sectionId={section.id} />
+        {Live ? <Live /> : null}
+      </div>
+    );
   }
   if (section.id === 'tooltip') return <Tooltip />;
   if (section.id === 'pincanvas') return <PinCanvas />;
