@@ -83,7 +83,7 @@ export async function open(page, name, props = null, { theme = 'dark', freeze = 
  * ТИШИНУ MutationObserver'а — и повторяем, пока число узлов не совпадёт с предыдущим
  * замером: пауза между волнами бывает длиннее окна тишины.
  */
-export async function settle(page, { quiet = 120, rounds = 12 } = {}) {
+export async function settle(page, { quiet = 120, rounds = 24 } = {}) {
   let prev = -1;
   for (let i = 0; i < rounds; i++) {
     const count = await page.evaluate(
@@ -105,6 +105,13 @@ export async function settle(page, { quiet = 120, rounds = 12 } = {}) {
         }),
       quiet
     );
+    // Пока в полёте есть запросы, совпадение двух замеров ничего не значит: это пауза
+    // между волнами, а не конец сборки. Ровно на этом гейт и падал на медленной машине —
+    // остров возвращался из open() с 54 узлами вместо 119.
+    if (typeof page.__inflight === 'function' && page.__inflight() > 0) {
+      prev = -1;
+      continue;
+    }
     if (count === prev) return;
     prev = count;
   }

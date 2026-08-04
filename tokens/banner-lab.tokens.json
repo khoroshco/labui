@@ -308,6 +308,11 @@
       "$type": "color",
       "$value": "{primitive.c-yellow-ink}"
     },
+    "focus": {
+      "$type": "color",
+      "$value": "{primitive.c-info-d}",
+      "$description": "цвет индикатора фокуса — СВОЙ, а не accent: кольцо не должно читаться как акцентная заливка, а жёлтый на светлой бумаге даёт 1.52:1 при норме 3:1 для нетекстового индикатора"
+    },
     "accent-dim": {
       "$type": "color",
       "$value": "rgb(var(--k-accent) / .16)",
@@ -687,7 +692,7 @@
     },
     "focus-ring": {
       "$type": "shadow",
-      "$value": "0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent)",
+      "$value": "2px solid var(--focus)",
       "$extensions": {
         "com.bannerlab.css": {
           "expression": true,
@@ -695,9 +700,14 @@
         }
       }
     },
+    "focus-ring-offset": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "зазор между контролом и кольцом — ПРОЗРАЧНЫЙ (outline-offset). Раньше он был залит --bg-base вторым слоем тени, и на карточке вокруг фокуса светилось гало"
+    },
     "focus-ring-inset": {
       "$type": "shadow",
-      "$value": "inset 0 0 0 2px var(--accent)",
+      "$value": "inset 0 0 0 2px var(--focus)",
       "$description": "для контента внутри overflow:hidden (ряды острова)",
       "$extensions": {
         "com.bannerlab.css": {
@@ -764,6 +774,10 @@
       "on-accent": {
         "$type": "color",
         "$value": "{primitive.c-yellow-ink}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{primitive.c-info-l}"
       },
       "accent-dim": {
         "$type": "color",
@@ -987,8 +1001,8 @@
         "ls-eyebrow": "трекинг капс-набора: рубрики и бейджи",
         "dot-unread": "точка-индикатор непрочитанного",
         "touch-target": "минимальный тач-таргет (Apple HIG)",
-        "focus-ring": "фокус-кольцо (kb-модальность): зазор фоном + кольцо акцентом",
-        "focus-ring-inset": "фокус-кольцо (kb-модальность): зазор фоном + кольцо акцентом"
+        "focus-ring": "фокус-кольцо (kb-модальность): значение для outline, зазор задаёт --focus-ring-offset",
+        "focus-ring-inset": "фокус-кольцо внутрь — для контента, обрезанного overflow:hidden"
       }
     }
   }

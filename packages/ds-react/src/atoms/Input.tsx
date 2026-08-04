@@ -116,8 +116,8 @@ export function Input({
           ? 'none'
           : disabled
             ? '1px solid transparent'
-            : `1px solid ${invalid ? 'var(--danger)' : isFocused ? 'var(--accent)' : 'var(--border-subtle)'}`,
-        boxShadow: !bare && isFocused && !invalid ? 'inset 0 0 0 1px var(--accent)' : 'none',
+            : `1px solid ${invalid ? 'var(--danger)' : isFocused ? 'var(--focus)' : 'var(--border-subtle)'}`,
+        boxShadow: !bare && isFocused && !invalid ? 'inset 0 0 0 1px var(--focus)' : 'none',
         borderRadius: bare ? '0' : 'var(--r-s)',
         cursor: disabled ? 'not-allowed' : 'text',
         pointerEvents: bare && disabled ? 'none' : 'auto',

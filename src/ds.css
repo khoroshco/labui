@@ -31,8 +31,15 @@ a:hover { color:var(--accent); }
 button { transition:background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease, filter .18s ease, transform .35s var(--ease-spring); }
 button:active:not(:disabled) { transform:scale(var(--press-strong)); filter:brightness(.94); transition-duration:.18s,.18s,.18s,.18s,.18s,.1s; }
 button:disabled { cursor:not-allowed; }
-/* фокус-кольцо (kb-модальность) — единый токен --focus-ring; ряды острова (overflow:hidden) используют inset-вариант ниже */
-html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible, html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+/* ============================================================
+   ФОКУС-КОЛЬЦО — OUTLINE, а не тень. Зазор обязан быть ПРОЗРАЧНЫМ.
+   Раньше кольцо рисовалось двумя слоями box-shadow, и внутренний слой заливал зазор
+   цветом полотна (--bg-base). Пока контрол стоит на полотне, это незаметно; на карточке
+   (--bg-surface) вокруг фокуса светилось гало размером с кольцо — подделанный фон.
+   outline-offset даёт настоящий зазор и, как и тень, не меняет размер элемента.
+   Ряды острова и слайдер обрезаны overflow:hidden — им остаётся inset-вариант.
+   ============================================================ */
+html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible, html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-ring-offset); box-shadow:none; }
 button:focus, select:focus { outline:none; }
 [data-field] { transition:border-color .12s, box-shadow .12s, background .12s, transform .35s var(--ease-spring); }
 [data-field]:active { transform:scale(var(--press-soft)); transition-duration:.12s,.12s,.12s,.1s; }
@@ -81,7 +88,7 @@ button:focus, select:focus { outline:none; }
 /* ховер и пресс — только у живого поля: disabled не подсвечивается, а ошибка и фокус не перекрашиваются в серый */
 [data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong) !important; }
 [data-field][data-disabled="true"]:active { transform:none; }
-[data-field]:focus-within { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+[data-field]:focus-within { border-color:var(--focus); box-shadow:inset 0 0 0 1px var(--focus); }
 /* Ховер сфокусированного поля своего правила не имеет и не нуждается в нём: правило выше
    исключено через :not(:focus-within), а акцентную рамку сфокусированное поле уже несёт
    само. Отдельная строка [data-field]:focus-within:hover была ровно этим значением
@@ -94,16 +101,18 @@ button:focus, select:focus { outline:none; }
 [data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):hover), [data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):active), html[data-modality="kb"] [data-island] > :not([data-row]):has([data-row]:focus-visible) { background:var(--bg-hover); }
 [data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { background:var(--danger-dim); }
 [data-row] input, [data-row] select, [data-row] textarea { outline:none; box-shadow:none; }
-html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
+html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* Слой-виджет слайдера: кольцо inset, потому что корень слайдера режет overflow'ом — та же причина, что у рядов острова. Геометрия кольца не меняется: слой лежит inset:0. */
 html[data-modality="kb"] [data-slider]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* кольцо ряда — ТОЛЬКО когда внутри реально сфокусирован текстовый ввод; залётный фокус ряда мышью кольца не даёт */
-[data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); border-top-color:transparent; }
+[data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); }
 [data-row]:focus-visible, [data-row]:focus-within { outline:none; }
 html[data-modality="kb"] [data-row]:focus-visible, html[data-modality="kb"] [data-row]:focus-within, html[data-modality="kb"] [data-row] input:focus-visible, html[data-modality="kb"] [data-row] select:focus-visible { outline:none; }
-[data-row]:focus-visible + [data-row], [data-row]:focus-within + [data-row] { border-top-color:transparent; }
-/* ряды-компоненты монтируются в обёртках: гасим сепаратор соседа и через них */
-[data-island] > :has([data-row]:focus-within) + * [data-row], [data-island] > :has([data-row]:focus-within) + * > [class] { border-top-color:transparent; }
+/* Сепаратор рисует ОБЁРТКА-маунт, а не ряд: у ряда границы нет вовсе, и гашение,
+   написанное по нему, не делало ничего — линии перечёркивали inset-кольцо сверху и снизу.
+   Гасим на обёртке сфокусированного ряда и на следующей за ней. */
+html[data-modality="kb"] [data-island] > :has([data-row]:focus-visible),
+html[data-modality="kb"] [data-island] > :has([data-row]:focus-visible) + * { border-top-color:transparent; }
 /* геометрией углов владеет остров: крайние ряды наследуют его радиус (и внутри обёрток) */
 [data-island] > :first-child, [data-island] > :first-child [data-row] { border-top-left-radius:var(--r-m); border-top-right-radius:var(--r-m); }
 [data-island] > :last-child, [data-island] > :last-child [data-row] { border-bottom-left-radius:var(--r-m); border-bottom-right-radius:var(--r-m); }
@@ -235,6 +244,16 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
   /* цветовые/opacity-переходы оставляем живыми (не мгновенными) — они безопасны и помогают ориентироваться */
   button { transition:background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease, filter .18s ease !important; }
   a { transition:color .18s ease !important; }
+  /* ИСКЛЮЧЕНИЯ. Общее правило гасит анимации до 0.01 мс, и там, где анимация — ЕДИНСТВЕННЫЙ
+     носитель смысла, это отбирает не движение, а сообщение.
+     Отказ ввода (упор в maxLength): событие о заблокированном символе браузер не даёт,
+     поэтому кроме этой анимации у поля нет вообще никакой обратной связи. Сам кейфрейм
+     ниже переопределён — вместо перемещения он гасит яркость. */
+  [data-field] { animation-duration:.3s !important; }
+  /* Спиннер кнопки: без вращения остаётся статичная дуга, то есть «идёт работа» не
+     сообщается ничем. Вращение мелкое (14px) и локальное — это существенное движение
+     в смысле prefers-reduced-motion, и оно остаётся. */
+  [data-busy="true"] * { animation-duration:.8s !important; animation-iteration-count:infinite !important; }
 }
 /* ============================================================
    forced-colors (Windows High Contrast): система заменяет цвета автора
@@ -274,6 +293,10 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
   [data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { outline:1px solid Mark; outline-offset:-1px; }
   /* 8. Цвет как единственный носитель смысла — сохраняем принудительно */
   [data-dot], [data-ai-grad] { forced-color-adjust:none; }
+  /* 9. Плавающие поверхности отделены от полотна ТЕНЬЮ, а её режим вырезает: тултип, тост
+     и карточка пина сливались с тем, что под ними. Границу режим переживает — она и
+     становится краем плашки. */
+  [data-tooltip]:not([data-tooltip=""])::before, [data-toast], [data-float] { border:1px solid CanvasText; }
 }
 
 /* Упор в maxLength: ввод молча перестаёт приниматься — событие о заблокированном
