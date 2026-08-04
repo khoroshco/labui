@@ -45,6 +45,19 @@ export const EXAMPLES: Record<string, Example[]> = {
   optiongroup: [
     { c: 'OptionGroup', p: { options: demoTypeOpts, value: 0 } },
     { c: 'OptionGroup', p: { options: demoAnchorOpts, value: 2 } },
+    // Иконочный режим: опция задаётся объектом { icon, title }. Заголовок обязателен —
+    // он и есть ИМЯ опции для скринридера, а заодно текст тултипа.
+    {
+      c: 'OptionGroup',
+      p: {
+        options: [
+          { icon: 'object-align-left', title: 'по левому краю' },
+          { icon: 'object-align-center-horizontal', title: 'по центру' },
+          { icon: 'object-align-right', title: 'по правому краю' },
+        ],
+        value: 1,
+      },
+    },
   ],
   badge: [
     { c: 'Badge', p: { label: "300×250", nums: true } },
