@@ -7,6 +7,7 @@ export interface RowLabelProps extends PassThrough {
   subtitle?: string;
   /** Только факт наличия подсказки; сам текст живёт у ряда. */
   hasInfo?: boolean;
+  /** Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту. */
   open?: boolean;
   onToggle?: () => void;
   style?: CSSProperties;

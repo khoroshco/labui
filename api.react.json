@@ -98,7 +98,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу."
         },
         {
           "name": "disabled",
@@ -151,7 +152,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Фото заполняет каплю целиком; битая ссылка падает на инициалы."
         },
         {
           "name": "size",
@@ -171,7 +173,8 @@
           "type": "boolean",
           "options": null,
           "editor": "boolean",
-          "callback": false
+          "callback": false,
+          "info": "Аватар AI — всегда фирменный градиент, а не фото и не инициалы."
         },
         {
           "name": "inverse",
@@ -371,7 +374,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу."
         },
         {
           "name": "onClick",
@@ -431,7 +435,8 @@
           "type": "boolean",
           "options": null,
           "editor": "boolean",
-          "callback": false
+          "callback": false,
+          "info": "Рамка краснеет тем же --danger, что и сообщение ряда."
         },
         {
           "name": "disabled",
@@ -528,7 +533,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция."
         },
         {
           "name": "infoImage",
@@ -536,7 +542,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Картинка-инструкция внутри раскрывашки — работает вместе с info."
         },
         {
           "name": "msg",
@@ -544,7 +551,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Предупреждение о последствии выбора — не «неверно», а «вот что будет»."
         },
         {
           "name": "msgLevel",
@@ -634,7 +642,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция."
         },
         {
           "name": "infoImage",
@@ -642,7 +651,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Картинка-инструкция внутри раскрывашки — работает вместе с info."
         },
         {
           "name": "onChange",
@@ -771,7 +781,8 @@
           "type": "boolean",
           "options": null,
           "editor": "boolean",
-          "callback": false
+          "callback": false,
+          "info": "Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту."
         },
         {
           "name": "defaultOpen",
@@ -951,7 +962,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Крестик очистки; фокус после очистки остаётся в поле."
         },
         {
           "name": "maxLength",
@@ -967,7 +979,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Рамка краснеет тем же --danger, что и сообщение ряда."
         },
         {
           "name": "disabled",
@@ -1113,7 +1126,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу."
         },
         {
           "name": "disabled",
@@ -1129,7 +1143,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Предупреждение о последствии выбора — не «неверно», а «вот что будет»."
         },
         {
           "name": "msgLevel",
@@ -1149,7 +1164,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция."
         },
         {
           "name": "infoImage",
@@ -1157,7 +1173,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Картинка-инструкция внутри раскрывашки — работает вместе с info."
         },
         {
           "name": "onInput",
@@ -1349,21 +1366,24 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Фото заполняет каплю целиком; битая ссылка падает на инициалы."
         },
         {
           "name": "resolved",
           "type": "boolean",
           "options": null,
           "editor": "boolean",
-          "callback": false
+          "callback": false,
+          "info": "Решённый пин гаснет, но не исчезает: контекст обсуждения остаётся на месте."
         },
         {
           "name": "hasReply",
           "type": "boolean",
           "options": null,
           "editor": "boolean",
-          "callback": false
+          "callback": false,
+          "info": "Точка непрочитанного ответа."
         },
         {
           "name": "style",
@@ -1407,7 +1427,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Решённый пин гаснет, но не исчезает: контекст обсуждения остаётся на месте."
         },
         {
           "name": "author",
@@ -1573,7 +1594,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту."
         },
         {
           "name": "text",
@@ -1645,7 +1667,8 @@
           "options": null,
           "editor": "boolean",
           "default": false,
-          "callback": false
+          "callback": false,
+          "info": "Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту."
         },
         {
           "name": "onToggle",
@@ -1976,7 +1999,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция."
         },
         {
           "name": "infoImage",
@@ -1984,7 +2008,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Картинка-инструкция внутри раскрывашки — работает вместе с info."
         },
         {
           "name": "msg",
@@ -1992,7 +2017,8 @@
           "options": null,
           "editor": "text",
           "default": "",
-          "callback": false
+          "callback": false,
+          "info": "Предупреждение о последствии выбора — не «неверно», а «вот что будет»."
         },
         {
           "name": "msgLevel",

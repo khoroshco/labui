@@ -4,8 +4,11 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 export interface PinProps extends PassThrough {
   number?: number;
   author?: string;
+  /** Фото заполняет каплю целиком; битая ссылка падает на инициалы. */
   src?: string;
+  /** Решённый пин гаснет, но не исчезает: контекст обсуждения остаётся на месте. */
   resolved?: boolean;
+  /** Точка непрочитанного ответа. */
   hasReply?: boolean;
   style?: CSSProperties;
 }

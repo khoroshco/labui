@@ -9,6 +9,7 @@ export interface DisclosureProps extends PassThrough {
   /** Служебное число у подписи — как счётчики Tabs. */
   count?: number | string;
   variant?: 'eyebrow' | 'plain';
+  /** Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту. */
   open?: boolean;
   defaultOpen?: boolean;
   disabled?: boolean;

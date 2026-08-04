@@ -3,6 +3,7 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
 
 export interface RowInfoProps extends PassThrough {
+  /** Состоянием раскрытия владеет родитель: компонент лишь рисует поворот ⓘ и высоту. */
   open?: boolean;
   text?: string;
   /** Строка с «/» или расширением — реальная картинка, иначе плейсхолдер. */

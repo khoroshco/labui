@@ -12,8 +12,11 @@ export interface CheckboxRowProps extends PassThrough {
   checked?: boolean;
   defaultChecked?: boolean;
   disabled?: boolean;
+  /** Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция. */
   info?: string;
+  /** Картинка-инструкция внутри раскрывашки — работает вместе с info. */
   infoImage?: string;
+  /** Предупреждение о последствии выбора — не «неверно», а «вот что будет». */
   msg?: string;
   msgLevel?: MsgLevel;
   onChange?: (checked: boolean) => void;

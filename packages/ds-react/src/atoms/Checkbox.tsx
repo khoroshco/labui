@@ -7,6 +7,7 @@ export interface CheckboxProps extends PassThrough {
   label?: string;
   checked?: boolean;
   defaultChecked?: boolean;
+  /** Рамка краснеет тем же --danger, что и сообщение ряда. */
   invalid?: boolean;
   disabled?: boolean;
   ariaLabel?: string;

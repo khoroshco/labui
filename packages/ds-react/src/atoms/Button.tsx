@@ -20,6 +20,7 @@ export interface ButtonProps extends PassThrough {
   /** По умолчанию button: внутри формы кнопка не должна отправлять её случайно. */
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  /** Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу. */
   loading?: boolean;
   onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   style?: CSSProperties;

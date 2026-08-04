@@ -12,8 +12,11 @@ export interface SwitchRowProps extends PassThrough {
   checked?: boolean;
   defaultChecked?: boolean;
   disabled?: boolean;
+  /** Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция. */
   info?: string;
+  /** Картинка-инструкция внутри раскрывашки — работает вместе с info. */
   infoImage?: string;
+  /** Предупреждение о последствии выбора — не «неверно», а «вот что будет». */
   msg?: string;
   /** У переключателя нет «неверно» — есть последствие выбора. Поэтому только ok и warn. */
   msgLevel?: 'ok' | 'warn';
