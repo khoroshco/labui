@@ -38,12 +38,29 @@ const registry = DS as unknown as Record<string, React.ComponentType<Record<stri
 const Component = registry[name];
 const root = createRoot(document.getElementById('dc-root')!);
 
-if (!Component) {
-  root.render(<div style={{ padding: 16, color: 'var(--danger)' }}>Нет компонента «{name}»</div>);
-} else {
+function draw() {
+  if (!Component) {
+    root.render(<div style={{ padding: 16, color: 'var(--danger)' }}>Нет компонента «{name}»</div>);
+    return;
+  }
   root.render(
     <div className="sc-host">
       <Component {...props} />
     </div>
   );
 }
+
+/**
+ * Мост «новые пропсы сверху» — ровня __dcSetProps у эталона.
+ *
+ * Без него гейт видел компонент ровно в одном наборе пропсов: тот, что приехал в адресе.
+ * А половина идиомы управления (ADR 0011) — про то, что происходит, когда родитель ПРИСЛАЛ
+ * НОВОЕ значение. Проверить это было нечем, и `value`, работающий один раз, прожил
+ * незамеченным в PinComposer.
+ */
+(window as unknown as { __setProps: (patch: Record<string, unknown>) => void }).__setProps = (patch) => {
+  props = { ...props, ...patch };
+  draw();
+};
+
+draw();

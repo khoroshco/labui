@@ -6,6 +6,8 @@ import { useControlled, useTrackActive } from '../lib/hooks.js';
 export type TabItem = [label: string, count?: string];
 
 export interface TabsProps extends PassThrough {
+  /** Набор не задан вовсе — лента показывает демонстрационный. Пустой массив — это данные
+   *  («вкладок нет»), и придумывать за них компонент не имеет права. */
   options?: TabItem[];
   value?: number;
   defaultValue?: number;
@@ -28,7 +30,9 @@ const DEFAULT_TABS: TabItem[] = [
 export function Tabs({ options, value, defaultValue = 0, onChange, style,
   ...rest
 }: TabsProps) {
-  const items = Array.isArray(options) && options.length ? options : DEFAULT_TABS;
+  // Демо-набор — только когда набора НЕТ. Раньше его подставлял и пустой массив: у
+  // потребителя список ещё не загрузился, а лента уверенно показывала «Все форматы 18».
+  const items = Array.isArray(options) ? options : DEFAULT_TABS;
   const [raw, setRaw] = useControlled(value, defaultValue, onChange);
   const n = items.length;
   const active = n ? Math.max(0, Math.min(Number(raw ?? 0), n - 1)) : 0;
@@ -36,7 +40,7 @@ export function Tabs({ options, value, defaultValue = 0, onChange, style,
 
   const keyNav = (e: KeyboardEvent) => {
     const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? 'home' : e.key === 'End' ? 'end' : 0;
-    if (!dir) return;
+    if (!dir || !n) return; // без вкладок переключать нечего, а % 0 даёт NaN
     e.preventDefault();
     const next = dir === 'home' ? 0 : dir === 'end' ? n - 1 : (active + (dir as number) + n) % n;
     setRaw(next);

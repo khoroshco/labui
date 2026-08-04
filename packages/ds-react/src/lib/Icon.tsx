@@ -23,7 +23,11 @@ export function Icon({ name, size = 16, label, style,
   const px = typeof size === 'number' ? `${size}px` : size;
   // Имена приходят и из данных (конфиг рядов, JSON), поэтому неизвестное имя обязано
   // оставить пустое место, а не уронить рендер: у веб-компонента g-icon было так же.
-  const raw = ICONS[name];
+  // Проверка ИМЕННО на строку, а не на истинность: ICONS — обычный объект, и имя вроде
+  // «toString» или «constructor» достаёт с прототипа функцию. Она правдива, до .replace
+  // доходит и роняет рендер целиком — а такое имя ничем не хуже «plus», когда оно
+  // приезжает из чужого JSON.
+  const raw = typeof ICONS[name] === 'string' ? ICONS[name] : '';
   const svg = raw ? raw.replace('<svg ', '<svg style="width:100%;height:100%;display:block" ') : '';
   const aria = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true as const };
   return (

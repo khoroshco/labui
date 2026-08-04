@@ -3,6 +3,8 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled } from '../lib/hooks.js';
 
 export interface CycleButtonProps extends PassThrough {
+  /** Набор не задан вовсе — циклер показывает демонстрационный (PX/REM). Пустой массив —
+   *  это данные («перебирать нечего»), и придумывать за них компонент не имеет права. */
   options?: string[];
   value?: number;
   defaultValue?: number;
@@ -23,15 +25,17 @@ export function CycleButton({
   style,
   ...rest
 }: CycleButtonProps) {
-  const opts = Array.isArray(options) && options.length ? options : ['PX', 'REM'];
+  // Демо-набор — только когда набора НЕТ: пустой массив у потребителя значит «единиц нет»,
+  // а не «покажи PX». Ниже все обращения к нему считаются с оглядкой на нулевую длину.
+  const opts = Array.isArray(options) ? options : ['PX', 'REM'];
   // Идиома общая на все шесть контролов (ADR 0011): задан value — владеет родитель,
   // задан только defaultValue — кнопка ведёт своё. Своя реализация «живой всегда» тут
   // была лечением симптома: замирал циклер не сам по себе, а потому что ряд отдавал ему
   // значение, не отдавая колбэка. Лечится это в композиции, а не расхождением идиом.
-  const [raw, setRaw] = useControlled(value, defaultValue, (next: number) =>
-    onChange?.(next, opts[((next % opts.length) + opts.length) % opts.length] ?? '')
-  );
-  const i = ((raw % opts.length) + opts.length) % opts.length;
+  const n = opts.length;
+  const wrap = (x: number) => (n ? ((x % n) + n) % n : 0);
+  const [raw, setRaw] = useControlled(value, defaultValue, (next: number) => onChange?.(next, opts[wrap(next)] ?? ''));
+  const i = wrap(raw);
 
   return (
     <button
@@ -42,8 +46,8 @@ export function CycleButton({
       onClick={(e: MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (disabled) return;
-        setRaw((i + 1) % opts.length);
+        if (disabled || !n) return; // % 0 даёт NaN, и подпись после клика исчезает навсегда
+        setRaw((i + 1) % n);
       }}
       // живёт внутри кликабельных рядов: гасим mousedown, чтобы не красть фокус у ряда
       onMouseDown={(e: MouseEvent) => {

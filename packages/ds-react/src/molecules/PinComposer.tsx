@@ -38,6 +38,16 @@ export function PinComposer({
   const root = useRef<HTMLDivElement | null>(null);
   const prevFocus = useRef<Element | null>(null);
 
+  // ADR 0011: набор обязан быть живым, но пришедшее СВЕРХУ значение перекрывает черновик —
+  // так родитель подставляет заготовку и очищает поле после отправки. Без этой сверки
+  // useState забирал value ровно один раз, при монтировании, и второй раз проп не доезжал
+  // вовсе: композер выглядел управляемым и им не был. Точно так же устроен Input.
+  const seen = useRef(value);
+  if (value !== seen.current) {
+    seen.current = value;
+    setText(value);
+  }
+
   // Композер появляется ради ввода — поле активно сразу. В витринах фокус не крадём.
   useEffect(() => {
     if (!autofocus) return;
@@ -56,10 +66,16 @@ export function PinComposer({
     };
   }, [autofocus]);
 
+  /**
+   * Отправка. Пустая строка — НЕ сообщение: у пинов это «передумал», и по правилу сценария
+   * пустая отправка удаляет пустой пин. Раньше наружу уходило onSend(''), и экран получал
+   * сообщение без текста — пин оставался на канвасе с пустым тредом.
+   */
   const send = () => {
-    const t = text;
+    const t = text.trim();
     setText('');
-    onSend?.(t);
+    if (t) onSend?.(t);
+    else onCancel?.();
   };
 
   return (
