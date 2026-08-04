@@ -57,6 +57,10 @@ export function PinCard({
       }}
       onClick={onClick}
       data-press="true"
+      // Плавающая поверхность: отделена от полотна ТЕНЬЮ, а Windows High Contrast её
+      // вырезает — карточка сливалась с тем, что под ней. По этому хуку ds.css возвращает
+      // ей край границей, которую режим переживает. У эталона хука нет: он заморожен.
+      data-float="true"
       style={{
         position: 'relative',
         width: isPreview ? 'max-content' : 'auto',
