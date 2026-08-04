@@ -162,6 +162,7 @@ for (const name of migrated) {
       expect(react.length, `${name}: другое число узлов (эталон ${dc.length}, React ${react.length})`).toBe(dc.length);
 
       const problems = [];
+      const reproduced = new Set(); // какие записи ledger'а сегодня ещё правда
       for (let i = 0; i < dc.length; i++) {
         const a = dc[i];
         const b = react[i];
@@ -183,16 +184,37 @@ for (const name of migrated) {
         if (worst <= 1) continue;
         const key = `${name}/${a.tag}/${a.text}`;
         const known = KNOWN_BOXES[key];
+        if (known) reproduced.add(key);
         if (known && worst <= known.upTo) continue;
         problems.push(
           `узел №${i} (${a.tag}${a.text ? ` «${a.text}»` : ''}): рамка ${JSON.stringify(a.box)} против ` +
             `${JSON.stringify(b.box)}, расхождение ${worst}px` + (known ? ` — больше записанных ${known.upTo}px` : '')
         );
       }
+      // Запись, которая перестала воспроизводиться, хуже отсутствующей: она выглядит как
+      // истина и разрешает расхождение, которого уже нет. Сверяем в ОДНОЙ теме — деталь
+      // расхождения (блочная обёртка внутри строчного контейнера) от темы не зависит,
+      // а требовать одинакового поведения в обеих значило бы ловить шум.
+      if (theme === 'dark') {
+        for (const k of Object.keys(KNOWN_BOXES)) {
+          if (!k.startsWith(`${name}/`) || reproduced.has(k)) continue;
+          problems.push(`запись ledger'а «${k}» больше не воспроизводится — вычеркни её из tests/parity/known-box-deltas.json`);
+        }
+      }
       expect(problems, `${name}/${theme}: разметка разошлась с эталоном\n  ${problems.join('\n  ')}`).toEqual([]);
     });
   }
 }
+
+/* Ключи ledger'а обязаны называть ЖИВЫЕ компоненты. Запись про удалённый компонент не
+ * посетит ни один тест: она не покраснеет никогда и переживёт свою правду молча. */
+test('в ledger\'е расхождений нет записей про несуществующие компоненты', () => {
+  const alive = new Set(migrated);
+  const orphans = [...Object.keys(KNOWN_BOXES), ...Object.keys(KNOWN_STATES)].filter(
+    (k) => !alive.has(k.split('/')[0])
+  );
+  expect(orphans, 'осиротевшая запись не воспроизводится и не проверяется — вычеркни её').toEqual([]);
+});
 
 // Матрица состояний: та же сверка, но компонент приведён в НЕдефолтное состояние.
 for (const name of migrated) {

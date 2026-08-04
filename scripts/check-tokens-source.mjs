@@ -9,6 +9,7 @@
  *   — токен объявлен, но нигде не используется — палитра растёт, а система нет;
  *   — собранный src/tokens.css разошёлся с источником.
  */
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { brokenRefs, emit, flatten, readSource, ROOT, unresolved } from './build-tokens-css.mjs';
@@ -81,6 +82,17 @@ if (actual !== expected) {
       : 'src/tokens.css разошёлся с источником — запусти «npm run tokens» (правка в CSS теряется)'
   );
 }
+// 5. tokens.css НЕ ПОД КОНТРОЛЕМ ВЕРСИЙ. Сверка выше в CI тавтологична по построению:
+// prepare пересобирает файл при npm ci раньше, чем гейт до него доходит, — и краснеть
+// ей там не на чем. А вот закоммиченный tokens.css — это второй источник истины, который
+// начнёт расходиться с первым молча. Эта проверка покраснеть может.
+try {
+  const tracked = execFileSync('git', ['ls-files', 'src/tokens.css'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  if (tracked) problems.push('src/tokens.css под контролем версий — это второй источник истины рядом с tokens/banner-lab.tokens.json');
+} catch {
+  /* не репозиторий — проверять нечего */
+}
+
 for (const left of unresolved(expected)) {
   problems.push(`в выводе осталась неразвёрнутая ссылка ${left} — браузер такого значения не понимает`);
 }

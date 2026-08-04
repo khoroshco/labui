@@ -7,7 +7,7 @@
  */
 import { useState } from 'react';
 import * as DS from '../packages/ds-react/src/index';
-import { Badge, Disclosure, Island, type IslandRow } from '../packages/ds-react/src/index';
+import { Badge, Disclosure, Island, type IconName, type IslandRow } from '../packages/ds-react/src/index';
 import { EXAMPLES } from './examples';
 import { DEMO, WIDTH } from './demo';
 
@@ -69,12 +69,17 @@ export function Playground({ spec, Component, icons, sectionId }: Props) {
       if (p.editor === 'icon') {
         // Короткий набор, а не все 56: в контроле-ряду они не помещаются, и в DC-витрине
         // здесь тоже стоял выбранный список. Полная галерея живёт в разделе «Иконки».
-        const list = ['—', 'plus', 'xmark', 'check', 'gear', 'arrow-right', 'trash-bin', 'ellipsis'];
-        const idx = Math.max(0, list.indexOf(String(value(p) || '—')));
+        const list: (IconName | '—')[] = ['—', 'plus', 'xmark', 'check', 'gear', 'arrow-right', 'trash-bin', 'ellipsis'];
+        // Значение пропа приходит из состояния витрины, то есть нетипизированным: сверяем
+        // строку со строкой, а не притворяемся, что это уже имя иконки.
+        const current = String(value(p) || '—');
+        const idx = Math.max(0, list.findIndex((n) => n === current));
         return {
           ...common,
           type: 'segmented',
-          options: list.map((n) => (n === '—' ? { icon: 'square-dashed', title: 'без иконки' } : { icon: n, title: n })),
+          options: list.map((n) =>
+            n === '—' ? { icon: 'square-dashed' as IconName, title: 'без иконки' } : { icon: n, title: n }
+          ),
           value: idx,
           onChange: (i: number) => set(p.name, list[i] === '—' ? '' : list[i]),
         };

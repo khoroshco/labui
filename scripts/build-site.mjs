@@ -58,7 +58,10 @@ fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
 // React-витрина собирается сюда же, в /showcase. Пока их две, старая остаётся корнем:
 // сравнивать их должен человек, а не гейт, и для этого обе обязаны быть открыты.
-execFileSync('npx', ['vite', 'build', '--config', path.join(root, 'showcase/vite.config.mjs')], {
+// Локальный бинарник, а не npx: при неполном node_modules npx молча тянет одноимённый
+// пакет из сети и собирает сайт ЧУЖИМ сборщиком. Правило репозитория, и здесь оно
+// нарушалось — единственное место, где npx оставался.
+execFileSync(path.join(root, 'node_modules/.bin/vite'), ['build', '--config', path.join(root, 'showcase/vite.config.mjs')], {
   stdio: 'inherit',
   cwd: root,
 });

@@ -23,7 +23,7 @@ import { buildFlatMap } from './vite-plugin-flat-ds.mjs';
 import flatDs from './vite-plugin-flat-ds.mjs';
 import { FIXTURES } from '../tests/support/fixtures.js';
 
-const PORT = 5174; // не мешаем открытому npm run dev
+const PORT = 5275; // свой порт: 5173 занимает npm run dev, 5174 — витрина, 5273/5274 — Playwright
 // Корень — от файла, а не от cwd: запуск из подкаталога молча отдавал пустой список URL,
 // а пустой список для pa11y-ci — это успех.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

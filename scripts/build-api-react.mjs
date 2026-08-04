@@ -198,7 +198,9 @@ const api = {
     .sort(),
   components: components.map((c) => ({
     ...c,
-    status: manual.status?.[c.name] ?? 'stable',
+    // «unknown», как в контракте эталона. «stable» по умолчанию — это обещание зрелости,
+    // выданное молча: новый компонент объявлял себя устоявшимся, ничего для этого не сделав.
+    status: manual.status?.[c.name] ?? 'unknown',
     mounts: mounts.get(c.name) ?? [],
     mountedBy: mountedBy.get(c.name) ?? [],
   })),
