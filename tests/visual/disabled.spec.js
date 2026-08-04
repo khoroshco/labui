@@ -29,11 +29,18 @@ const DISABLEABLE = [
   'Disclosure',
 ];
 
+/** Компоненты без чернил: состояние несут заливки, и проверять потолок яркости не на чем. */
+const INKLESS = new Set(['Toggle']);
+
 for (const impl of IMPLS) {
   for (const theme of ['dark', 'light']) {
   for (const name of DISABLEABLE) {
     test(`${name}: в disabled ничто не ярче --text-disabled (${theme}, ${impl})`, async ({ page }) => {
       const props = { disabled: true };
+      // Без подписи кнопка рисует пустой прямоугольник, и гасить в ней нечего: проверка
+      // потолка яркости мерила бы пустоту. Это фикстура, а не поблажка.
+      if (name === 'Button') props.label = 'Выгрузить';
+      if (name === 'ActionRow') props.label = 'Выгрузить';
       if (name === 'Input') props.placeholder = 'Плейсхолдер';
       if (name === 'InputRow') Object.assign(props, { placeholder: 'Плейсхолдер', msg: 'Ошибка', msgLevel: 'danger' });
       if (name === 'CheckboxRow') Object.assign(props, { msg: 'Ошибка', msgLevel: 'danger' });
@@ -57,15 +64,33 @@ for (const impl of IMPLS) {
         for (const el of document.querySelectorAll('#dc-root *')) {
           const cs = getComputedStyle(el);
           if (cs.visibility === 'hidden' || cs.display === 'none' || cs.opacity === '0') continue;
-          // цвет проверяем там, где он что-то красит: свой текст или иконка
+          // Цвет проверяем там, где он что-то красит: свой текст, поле или иконка.
+          // Иконка у эталона — тег <g-icon>, у React — span с инлайновым <svg> внутри, и
+          // цвет несёт именно span (svg рисуется currentColor). Пока условие знало только
+          // про <g-icon>, у шести React-компонентов под проверку не попадало НИЧЕГО:
+          // потолок яркости у выключенных тоггла, чекбокса, кнопки-иконки, ряда-действия
+          // и раскрывашки не сторожил никто, а тест был зелёным.
           const ownText = [...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim());
-          if (ownText || el.tagName === 'G-ICON' || el.tagName === 'INPUT') push(el, cs.color, 'color');
+          const isIcon = el.tagName === 'G-ICON' || el.firstElementChild?.tagName === 'svg';
+          if (ownText || isIcon || el.tagName === 'INPUT') push(el, cs.color, 'color');
           if (el.tagName === 'INPUT') {
             push(el, getComputedStyle(el, '::placeholder').color, '::placeholder');
           }
         }
         return out;
       });
+
+      // Пустой список нарушителей — это НЕ «всё хорошо», это «смотреть было не на что».
+      // Компонент мог отрисовать пустоту, и проверка потолка яркости зеленела бы на ней
+      // вечно: ровно так гейт и выглядел бы, если бы disabled когда-нибудь сломал рендер.
+      // Исключение одно и названо: у тоггла состояние несёт ЗАЛИВКА трека и ползунка,
+      // чернил в нём нет вовсе — гасить нечего по устройству, а не по недосмотру.
+      if (!INKLESS.has(name)) {
+        expect(
+          offenders.length,
+          `${name}/${theme}/${impl}: в выключенном компоненте нечего гасить — проверка мерила пустоту`
+        ).toBeGreaterThan(0);
+      }
 
       const tooBright = offenders.filter((o) => {
         const c = contrast(flatten(parseColor(o.css), bg), bg);
