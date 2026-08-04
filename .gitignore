@@ -12,3 +12,6 @@ packages/*/dist/
 
 # собирается из tokens/banner-lab.tokens.json
 src/tokens.css
+
+# личные разрешения Claude Code: у каждого свои, в репозиторий не едут
+.claude/settings.local.json

@@ -4,8 +4,10 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 export interface AvatarProps extends PassThrough {
   /** Проп называется author, а не name: name зарезервировано под имя компонента. */
   author?: string;
+  /** Фото заполняет каплю целиком; битая ссылка падает на инициалы. */
   src?: string;
   size?: 's' | 'm' | 'l' | 'xl';
+  /** Аватар AI — всегда фирменный градиент, а не фото и не инициалы. */
   ai?: boolean;
   inverse?: boolean;
   bare?: boolean;

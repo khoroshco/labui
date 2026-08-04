@@ -13,6 +13,7 @@ export type PinMessage =
 export interface PinCardProps extends PassThrough {
   messages?: PinMessage[];
   variant?: 'thread' | 'preview';
+  /** Решённый пин гаснет, но не исчезает: контекст обсуждения остаётся на месте. */
   resolved?: boolean;
   author?: string;
   onClick?: () => void;

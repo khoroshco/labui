@@ -24,11 +24,15 @@ export interface IslandRow {
   subtitle?: string;
   checked?: boolean;
   variant?: ButtonVariant;
+  /** Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу. */
   loading?: boolean;
   disabled?: boolean;
+  /** Предупреждение о последствии выбора — не «неверно», а «вот что будет». */
   msg?: string;
   msgLevel?: MsgLevel;
+  /** Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция. */
   info?: string;
+  /** Картинка-инструкция внутри раскрывашки — работает вместе с info. */
   infoImage?: string;
   onInput?: (value: string) => void;
   onFocus?: () => void;

@@ -5,6 +5,7 @@ import { Button, type ButtonVariant } from '../atoms/Button.js';
 export interface ActionRowProps extends PassThrough {
   label?: string;
   variant?: ButtonVariant;
+  /** Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу. */
   loading?: boolean;
   disabled?: boolean;
   onClick?: () => void;

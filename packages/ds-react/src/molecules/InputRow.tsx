@@ -18,11 +18,15 @@ export interface InputRowProps extends PassThrough {
   maxLength?: number;
   /** Табличные цифры по явному хуку: моношрифта в системе нет. */
   nums?: boolean;
+  /** Значение заменяется скелетоном (после 320 мс), ввод блокируется сразу. */
   loading?: boolean;
   disabled?: boolean;
+  /** Предупреждение о последствии выбора — не «неверно», а «вот что будет». */
   msg?: string;
   msgLevel?: MsgLevel;
+  /** Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция. */
   info?: string;
+  /** Картинка-инструкция внутри раскрывашки — работает вместе с info. */
   infoImage?: string;
   onInput?: (value: string) => void;
   onFocus?: () => void;

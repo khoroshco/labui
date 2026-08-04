@@ -12,9 +12,11 @@ export interface InputProps extends PassThrough {
   icon?: IconName | '';
   prefix?: string;
   suffix?: string;
+  /** Крестик очистки; фокус после очистки остаётся в поле. */
   clearable?: boolean;
   /** Жёсткий предел на нативном поле; счётчика нет — предел ощущается остановкой ввода. */
   maxLength?: number;
+  /** Рамка краснеет тем же --danger, что и сообщение ряда. */
   invalid?: boolean;
   disabled?: boolean;
   align?: 'left' | 'right';

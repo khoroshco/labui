@@ -10,7 +10,9 @@ export interface ChoiceRowProps extends PassThrough {
   value?: number;
   defaultValue?: number;
   disabled?: boolean;
+  /** Раскрывашка ⓘ у лейбла: текст плюс необязательная картинка-инструкция. */
   info?: string;
+  /** Картинка-инструкция внутри раскрывашки — работает вместе с info. */
   infoImage?: string;
   onChange?: (index: number) => void;
   style?: CSSProperties;

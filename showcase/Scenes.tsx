@@ -35,11 +35,16 @@ export function Tooltip() {
 
 /** Сценарий: клик по полотну ставит пин с композером, тред открывается по клику на пин. */
 export function PinCanvas() {
-  const [pins, setPins] = useState<{ x: number; y: number; text?: string }[]>([
+  const [pins, setPins] = useState<{ x: number; y: number; text?: string; resolved?: boolean; reply?: string }[]>([
     { x: 28, y: 34, text: 'Логотип уезжает за охранное поле на мобильном.' },
   ]);
   const [open, setOpen] = useState<number | null>(null);
   const [draft, setDraft] = useState<number | null>(null);
+  // Панель канваса: показывать пины, видны ли решённые, очистка. Это ответственность
+  // ЭКРАНА, а не компонента — Pin про своё состояние знает, про режим просмотра нет.
+  const [show, setShow] = useState(true);
+  const [withResolved, setWithResolved] = useState(true);
+  const visible = (p: { resolved?: boolean }) => show && (withResolved || !p.resolved);
 
   return (
     <div
@@ -58,7 +63,7 @@ export function PinCanvas() {
         cursor: 'crosshair',
       }}
     >
-      {pins.map((p, i) => (
+      {pins.map((p, i) => (visible(p) ? (
         <span key={i} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }} onClick={(e) => e.stopPropagation()}>
           {/* Клик слушает обёртка: у Pin нет собственного onClick, и переданный проп
               молча терялся — тред не открывался никогда. */}
@@ -84,14 +89,68 @@ export function PinCanvas() {
             <span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 360, display: 'block' }}>
               <PinCard
                 author="Марина Ковалёва"
-                messages={[{ author: 'Марина Ковалёва', text: p.text }]}
+                resolved={p.resolved}
+                messages={[
+                  { author: 'Марина Ковалёва', text: p.text },
+                  // Ответ AI — обычное сообщение треда с автором-роботом: отдельного
+                  // режима у карточки нет, потому что тред один и тот же.
+                  ...(p.reply ? [{ author: 'AI', text: p.reply, ai: true }] : []),
+                ]}
+                onResolve={() => {
+                  setPins((list) => list.map((it, k) => (k === i ? { ...it, resolved: !it.resolved } : it)));
+                  setOpen(null);
+                }}
                 onClose={() => setOpen(null)}
-                onSend={() => setOpen(null)}
+                onSend={(text: string) => {
+                  setPins((list) => list.map((it, k) => (k === i ? { ...it, reply: text } : it)));
+                  setOpen(null);
+                }}
               />
             </span>
           ) : null}
         </span>
-      ))}
+      ) : null))}
+      {/* Панель канваса. Режим просмотра — ответственность ЭКРАНА: Pin знает про своё
+          состояние и не знает, показывают ли его сейчас. */}
+      <span
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', top: 'var(--sp-3)', insetInlineEnd: 'var(--sp-3)', display: 'flex', gap: 'var(--sp-15)' }}
+      >
+        <Button
+          label={show ? 'Пины видны' : 'Пины скрыты'}
+          icon={show ? 'eye' : 'eye-slash'}
+          variant="secondary"
+          size="xs"
+          onClick={() => setShow((v) => !v)}
+        />
+        <Button
+          label="Решённые"
+          icon={withResolved ? 'check' : 'xmark'}
+          variant="ghost"
+          size="xs"
+          onClick={() => setWithResolved((v) => !v)}
+        />
+        <Button
+          label="Очистить"
+          icon="trash-bin"
+          variant="ghost"
+          tone="danger"
+          size="xs"
+          onClick={() => {
+            setPins([]);
+            setOpen(null);
+            setDraft(null);
+          }}
+        />
+        <Button
+          label={`Отправить в AI · ${pins.filter((x) => !x.resolved && x.text).length}`}
+          variant="primary"
+          size="xs"
+          onClick={() =>
+            setPins((list) => list.map((x) => (x.resolved || !x.text ? x : { ...x, reply: 'Поправил охранное поле и перевыгрузил формат.' })))
+          }
+        />
+      </span>
       <span
         style={{
           position: 'absolute',
