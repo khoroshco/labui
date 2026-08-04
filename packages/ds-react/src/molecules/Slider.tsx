@@ -3,6 +3,9 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { useReducedMotion } from '../lib/hooks.js';
 
+/** Потолок числа засечек: выше этого они сливаются в линию и перестают что-либо говорить. */
+const MAX_TICKS = 64;
+
 export interface SliderProps extends PassThrough {
   label?: string;
   value?: number;
@@ -51,6 +54,11 @@ export function Slider({
     return isNaN(n) ? d : n;
   };
   const d = { min: num(min, 0), max: num(max, 100), step: num(step, 1) || 1, snap: num(snapStep, 0) };
+  // Ширина диапазона — единственный знаменатель во всём компоненте. При max === min она
+  // ноль, и NaN уезжает в ширину заливки, в позицию засечки и в aria-valuenow. Единица
+  // здесь не «примерно правильно», а «делить не на что»: заливка встаёт в 0%, и это
+  // честная картинка вырожденного диапазона.
+  const span = d.max - d.min || 1;
 
   // Перетаскивание и клавиатура обязаны быть живыми, поэтому значение своё всегда, а
   // новый проп его перекрывает. Старт — от min: иначе при min=10 слайдер объявляет
@@ -76,16 +84,20 @@ export function Slider({
     setOwn(num(value, d.min));
   }
   const v = Math.min(d.max, Math.max(d.min, own));
-  const fillPct = ((v - d.min) / (d.max - d.min)) * 100;
+  const fillPct = ((v - d.min) / span) * 100;
 
   const set = useCallback(
     (raw: number, exact?: boolean) => {
-      let next = Math.min(d.max, Math.max(d.min, Math.round(raw / d.step) * d.step));
+      // Шаг и магнит отсчитываются ОТ НАЧАЛА ДИАПАЗОНА, а не от нуля. При min=10 и step=3
+      // округление от нуля давало 12 — значение, которого в шкале нет вовсе, и стрелка
+      // уводила ползунок мимо собственных узлов.
+      const grid = (x: number, unit: number) => d.min + Math.round((x - d.min) / unit) * unit;
+      let next = Math.min(d.max, Math.max(d.min, grid(raw, d.step)));
       if (d.snap && !exact) {
         // магнит: липнет к кратным snap; на таче зона шире
         const coarse = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
         const pull = Math.max(0.6, d.snap / 3) * (coarse ? 2 : 1); // сила магнита — константа ДС, не проп
-        const near = Math.round(next / d.snap) * d.snap;
+        const near = grid(next, d.snap);
         if (Math.abs(next - near) <= pull) next = Math.min(d.max, Math.max(d.min, near));
       }
       setOwn(next);
@@ -175,8 +187,19 @@ export function Slider({
 
   const fromEvent = (e: PointerEvent<HTMLDivElement>) => {
     const r = el.current?.getBoundingClientRect();
-    if (!r) return;
-    set(d.min + ((e.clientX - r.left) / r.width) * (d.max - d.min));
+    // Нулевая ширина бывает у ещё не разложенного контейнера (скрытая вкладка, первый кадр
+    // модалки). Деление на неё даёт NaN, а NaN, попав в состояние, остаётся там навсегда:
+    // ползунок мёртв до перемонтирования.
+    if (!r || !r.width) return;
+    set(d.min + ((e.clientX - r.left) / r.width) * span);
+  };
+
+  const stopDrag = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    over.current = 0;
+    vel.current = 0;
+    forceTick((k) => k + 1);
   };
 
   const editing = edit !== null;
@@ -188,7 +211,11 @@ export function Slider({
       {...passThrough(rest)}
       ref={el}
       onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
-        if (disabled) return;
+        // Тянет ТОЛЬКО основная кнопка. Правая открывает контекстное меню, средняя клеит
+        // из буфера — и то, и другое утаскивало значение к курсору, а отпускание своего
+        // события уже не давало: ползунок оставался «в перетаскивании» без пальца.
+        // У касания и пера button тоже 0, поэтому проверка их не задевает.
+        if (disabled || e.button !== 0) return;
         try {
           e.currentTarget.setPointerCapture(e.pointerId);
         } catch {
@@ -218,12 +245,12 @@ export function Slider({
         lastX.current = e.clientX;
         vel.current = vel.current * 0.65 + (dx / dtMs) * 0.35;
       }}
-      onPointerUp={() => {
-        dragging.current = false;
-        over.current = 0;
-        vel.current = 0;
-        forceTick((n) => n + 1);
-      }}
+      onPointerUp={stopDrag}
+      // Указатель отменяют система и браузер: пришёл системный жест, увели палец за край
+      // экрана, забрали захват. Без этого обработчика ползунок оставался «в перетаскивании»
+      // навсегда и продолжал ловить движение мыши без нажатой кнопки.
+      onPointerCancel={stopDrag}
+      onLostPointerCapture={stopDrag}
       style={{
         position: 'relative',
         height: 'var(--row-h)',
@@ -279,15 +306,19 @@ export function Slider({
         data-ticks="true"
         style={{ position: 'absolute', left: 'var(--sp-35)', right: 'var(--sp-35)', top: '50%', height: 0, pointerEvents: 'none' }}
       >
-        {d.snap
-          ? Array.from({ length: Math.floor((d.max - d.min) / d.snap) + 1 }, (_, i) => {
+        {/* Засечка — ПОДСКАЗКА о шкале, а не обязанность её нарисовать. Дробный магнит
+            (snapStep 0.01 на диапазоне в сотню) давал десять тысяч узлов: вкладка вешалась
+            на ровном месте. Выше предела засечек нет вовсе — магнит при этом работает
+            по-прежнему, потому что он живёт в вычислении значения, а не в разметке. */}
+        {d.snap && Math.floor(span / d.snap) + 1 <= MAX_TICKS
+          ? Array.from({ length: Math.floor(span / d.snap) + 1 }, (_, i) => {
               const dv = d.min + i * d.snap;
               return (
                 <span
                   key={i}
                   style={{
                     position: 'absolute',
-                    left: `${(((dv - d.min) / (d.max - d.min)) * 100).toFixed(1)}%`,
+                    left: `${(((dv - d.min) / span) * 100).toFixed(1)}%`,
                     top: 0,
                     height: dv === v ? '14px' : '7px',
                     transform: 'translate(-0.5px, -50%)',
