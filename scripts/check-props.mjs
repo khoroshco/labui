@@ -13,6 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { components, reactSources, report, ROOT, showcase } from './lib/dc.mjs';
+import { interfacesOf } from './lib/tsx.mjs';
 
 const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 
@@ -51,23 +52,6 @@ for (const c of components()) {
 }
 
 
-/** Разбить список деструктуризации по запятым ВЕРХНЕГО уровня. */
-function splitTop(src) {
-  const out = [];
-  let depth = 0;
-  let start = 0;
-  for (let i = 0; i < src.length; i++) {
-    const ch = src[i];
-    if ('([{'.includes(ch)) depth++;
-    else if (')]}'.includes(ch)) depth--;
-    else if (ch === ',' && depth === 0) {
-      out.push(src.slice(start, i));
-      start = i + 1;
-    }
-  }
-  out.push(src.slice(start));
-  return out;
-}
 
 // ── React: объявлен ⇔ читается, и словарь имён ──────────────────────────────
 // Три гейта (этот, lint:api и словарь имён) читали ТОЛЬКО замороженный эталон — то есть
@@ -77,23 +61,21 @@ const BANNED_NAMES = new Set(['active', 'on', 'onAccent', 'title', 'state', 'fla
 const REACT_BUILTIN = new Set(['children', 'className', 'id', 'style']);
 
 for (const { file, body } of reactSources()) {
-  for (const m of body.matchAll(/export interface (\w+Props)[^{]*\{([\s\S]*?)\n\}/g)) {
-    const [, iface, block] = m;
-    const declared = [...block.matchAll(/^\s{2}(\w+)\??:/gm)].map((x) => x[1]);
-    const fn = new RegExp(`export function \\w+\\(\\{([\\s\\S]*?)\\}: ${iface}`).exec(body);
-    // Имена берём по запятым верхнего уровня: значения по умолчанию могут содержать
-    // объекты, массивы и вызовы, и «первое слово в строке» их не переживает.
+  // Разбор ОДИН на все гейты — scripts/lib/tsx.mjs. Своя копия здесь разошлась с копией
+  // в генераторе контракта: один регексп видел форму записи, которую другой пропускал,
+  // и гейты начали расходиться в том, что считать пропом.
+  for (const { iface, declared: decl, taken } of interfacesOf(body)) {
+    const declared = decl.map((d) => d.name);
     // Не нашли сигнатуру — это НЕ повод пропустить компонент. Раньше здесь был null, и
     // проверка «объявлен ⇔ читается» молча выключалась целиком: достаточно было написать
     // компонент чуть иначе (обёртка, forwardRef, деструктуризация в теле), чтобы гейт
     // перестал смотреть на него вовсе и никогда об этом не сказал.
-    if (!fn) {
+    if (!taken) {
       problems.push(
         `${file} — не найдена сигнатура «export function …({…}: ${iface})»: без неё проверка ` +
           `«объявлен ⇔ читается» выключается молча. Разберите пропсы в сигнатуре или научите гейт новой форме`
       );
     }
-    const taken = fn ? new Set(splitTop(fn[1]).map((part) => /^\s*\.{0,3}\s*(\w+)/.exec(part)?.[1]).filter(Boolean)) : null;
     for (const name of declared) {
       if (BANNED_NAMES.has(name)) {
         problems.push(`${file} — проп «${name}» запрещён словарём имён (CLAUDE.md)`);
