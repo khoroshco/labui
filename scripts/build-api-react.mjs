@@ -23,6 +23,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { reactSources, report, ROOT } from './lib/dc.mjs';
+import { interfacesOf } from './lib/tsx.mjs';
 
 const OUT = path.join(ROOT, 'api.react.json');
 const migrated = JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/ds-react/migrated.json'), 'utf8')).components;
@@ -107,53 +108,29 @@ for (const { file, body } of reactSources()) {
   const level = LEVELS.find((l) => file.includes(`/${l}/`));
   if (!level) continue;
 
-  for (const m of body.matchAll(/export interface (\w+)Props[^{]*\{([\s\S]*?)\n\}/g)) {
-    const [, name, block] = m;
+  // Разбор ОДИН на все гейты — scripts/lib/tsx.mjs. Своя копия здесь и в check-props
+  // разошлась регекспами, и гейты начали расходиться в том, что считать пропом.
+  for (const { name, declared, defaults: rawDefaults } of interfacesOf(body)) {
     if (!migrated.includes(name)) continue;
 
-    // дефолты — из деструктуризации параметров компонента
-    const fn = new RegExp(`export function ${name}\\(\\{([\\s\\S]*?)\\}: ${name}Props`).exec(body);
     const defaults = {};
-    if (fn) {
-      for (const part of splitTop(fn[1])) {
-        const eq = /^\s*(\w+)\s*=\s*([\s\S]+)$/.exec(part);
-        if (eq) {
-          const value = literal(eq[2]);
-          if (value !== undefined) defaults[eq[1]] = value;
-        }
-      }
+    for (const [k, v] of Object.entries(rawDefaults)) {
+      const value = literal(v);
+      if (value !== undefined) defaults[k] = value;
     }
 
-    // свойства: строка вида «  name?: тип;», перед ней может стоять /** описание */
-    const props = [];
-    let doc = '';
-    for (const raw of block.split('\n')) {
-      const line = raw.trimEnd();
-      const jsdoc = /^\s*\/\*\*\s*(.*?)\s*\*\/\s*$/.exec(line);
-      if (jsdoc) {
-        doc = jsdoc[1];
-        continue;
-      }
-      if (/^\s*(\/\/|\/\*|\*)/.test(line)) continue;
-      const prop = /^\s{2}(\w+)\??:\s*(.+);\s*$/.exec(line);
-      if (!prop) {
-        if (line.trim()) doc = '';
-        continue;
-      }
-      const [, pname, rawType] = prop;
-      const type = rawType.trim();
+    const props = declared.map(({ name: pname, type, doc }) => {
       const options = optionsOf(expand(type));
-      props.push({
+      return {
         name: pname,
         type,
         options,
         editor: editorOf(type, options),
         default: defaults[pname],
         callback: /^on[A-Z]/.test(pname),
-        info: doc || undefined,
-      });
-      doc = '';
-    }
+        info: doc,
+      };
+    });
 
     const used = migrated.filter((other) => other !== name && new RegExp(`<${other}[\\s/>]`).test(body));
     mounts.set(name, used);
