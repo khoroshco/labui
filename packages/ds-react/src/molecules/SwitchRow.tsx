@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { forwardRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Toggle } from '../atoms/Toggle.js';
 import { useControlled } from '../lib/hooks.js';
@@ -29,7 +29,7 @@ export interface SwitchRowProps extends PassThrough {
  * tabindex и клавиатура у него собственные, а корень — div: вложенный label порождал бы
  * второе активационное событие с другим target, мимо гейта ⓘ.
  */
-export function SwitchRow({
+export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function SwitchRow({
   label = '',
   subtitle = '',
   checked,
@@ -42,7 +42,7 @@ export function SwitchRow({
   onChange,
   style,
   ...rest
-}: SwitchRowProps) {
+}, ref) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   const [infoOpen, setInfoOpen] = useState(false);
   const hasInfo = !!info;
@@ -63,6 +63,7 @@ export function SwitchRow({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       data-row="true"
       data-disabled={disabled ? 'true' : 'false'}
       tabIndex={disabled ? -1 : 0}
@@ -110,4 +111,4 @@ export function SwitchRow({
       <RowMsg text={msg} level={msgLevel === 'ok' ? 'ok' : 'warn'} />
     </div>
   );
-}
+});

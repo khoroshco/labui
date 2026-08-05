@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled } from '../lib/hooks.js';
 
@@ -15,7 +15,7 @@ export interface CycleButtonProps extends PassThrough {
 }
 
 /** Циклер: пилюля, которая перебирает короткий набор значений по клику. */
-export function CycleButton({
+export const CycleButton = forwardRef<HTMLButtonElement, CycleButtonProps>(function CycleButton({
   options,
   value,
   defaultValue = 0,
@@ -24,7 +24,7 @@ export function CycleButton({
   onChange,
   style,
   ...rest
-}: CycleButtonProps) {
+}, ref) {
   // Демо-набор — только когда набора НЕТ: пустой массив у потребителя значит «единиц нет»,
   // а не «покажи PX». Ниже все обращения к нему считаются с оглядкой на нулевую длину.
   const opts = Array.isArray(options) ? options : ['PX', 'REM'];
@@ -40,6 +40,7 @@ export function CycleButton({
   return (
     <button
       {...passThrough(rest)}
+      ref={ref}
       data-tap="true"
       data-cycle="true"
       disabled={disabled}
@@ -78,4 +79,4 @@ export function CycleButton({
       </span>
     </button>
   );
-}
+});

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 
 export interface SkeletonProps extends PassThrough {
@@ -9,15 +9,16 @@ export interface SkeletonProps extends PassThrough {
 }
 
 /** Скелетон: место контента, пока контента нет. Пульсация — кейфрейм ds-pulse из ds.css. */
-export function Skeleton({ shape = 'line', width, height, style,
+export const Skeleton = forwardRef<HTMLSpanElement, SkeletonProps>(function Skeleton({ shape = 'line', width, height, style,
   ...rest
-}: SkeletonProps) {
+}, ref) {
   const w = width ?? (shape === 'circle' ? '24px' : shape === 'line' ? '140px' : '100%');
   const h = height ?? (shape === 'line' ? '12px' : shape === 'circle' ? (width ?? '24px') : '64px');
   const r = shape === 'circle' ? '50%' : shape === 'rect' ? 'var(--r-s)' : 'var(--r-full)';
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       style={{
         display: 'block',
         width: w,
@@ -30,4 +31,4 @@ export function Skeleton({ shape = 'line', width, height, style,
       }}
     />
   );
-}
+});

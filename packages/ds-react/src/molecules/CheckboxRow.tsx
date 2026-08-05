@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { forwardRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Checkbox } from '../atoms/Checkbox.js';
 import { useControlled } from '../lib/hooks.js';
@@ -28,7 +28,7 @@ export interface CheckboxRowProps extends PassThrough {
  * можно потребовать исправить, поэтому здесь есть полная валидация, включая danger.
  * Отдельно от SwitchRow, потому что различие не в виде контрола, а в смысле.
  */
-export function CheckboxRow({
+export const CheckboxRow = forwardRef<HTMLDivElement, CheckboxRowProps>(function CheckboxRow({
   label = '',
   subtitle = '',
   checked,
@@ -41,7 +41,7 @@ export function CheckboxRow({
   onChange,
   style,
   ...rest
-}: CheckboxRowProps) {
+}, ref) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   const [infoOpen, setInfoOpen] = useState(false);
   const hasInfo = !!info;
@@ -60,6 +60,7 @@ export function CheckboxRow({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       data-row="true"
       data-invalid={isError ? 'true' : 'false'}
       data-disabled={disabled ? 'true' : 'false'}
@@ -106,4 +107,4 @@ export function CheckboxRow({
       <RowMsg text={msg} level={msgLevel} />
     </div>
   );
-}
+});

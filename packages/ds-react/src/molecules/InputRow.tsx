@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type MouseEvent } from 'react';
+import { forwardRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { Input } from '../atoms/Input.js';
@@ -36,7 +36,7 @@ export interface InputRowProps extends PassThrough {
 }
 
 /** Ряд с текстовым вводом: лейбл слева, значение справа, необязательный циклер единиц. */
-export function InputRow({
+export const InputRow = forwardRef<HTMLDivElement, InputRowProps>(function InputRow({
   label = '',
   value = '',
   placeholder = '',
@@ -56,7 +56,7 @@ export function InputRow({
   onOptionChange,
   style,
   ...rest
-}: InputRowProps) {
+}, ref) {
   const [infoOpen, setInfoOpen] = useState(false);
   const spin = useSpin(loading);
   const hasInfo = !!info;
@@ -101,6 +101,7 @@ export function InputRow({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       data-row="true"
       // тон невалидного ряда рисует обёртка-маунт по data-invalid (ds.css)
       data-invalid={invalid ? 'true' : 'false'}
@@ -165,4 +166,4 @@ export function InputRow({
       <RowMsg text={msg} level={msgLevel} />
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type MouseEvent } from 'react';
+import { forwardRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { OptionGroup, type OptionItem } from '../atoms/OptionGroup.js';
 import { RowInfo } from './RowInfo.js';
@@ -25,7 +25,7 @@ export interface ChoiceRowProps extends PassThrough {
  * Колбэк уходит вниз ТОЛЬКО если ряд получил свой: иначе группа встаёт в управляемый
  * режим без хозяина и замирает.
  */
-export function ChoiceRow({
+export const ChoiceRow = forwardRef<HTMLDivElement, ChoiceRowProps>(function ChoiceRow({
   label = '',
   options = [],
   value,
@@ -36,7 +36,7 @@ export function ChoiceRow({
   onChange,
   style,
   ...rest
-}: ChoiceRowProps) {
+}, ref) {
   const [infoOpen, setInfoOpen] = useState(false);
   const hasInfo = !!info;
   const open = hasInfo && infoOpen;
@@ -44,6 +44,7 @@ export function ChoiceRow({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       data-row="true"
       data-disabled={disabled ? 'true' : 'false'}
       style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 var(--sp-15) 0 var(--sp-4)', ...style }}
@@ -83,4 +84,4 @@ export function ChoiceRow({
       </span>
     </div>
   );
-}
+});

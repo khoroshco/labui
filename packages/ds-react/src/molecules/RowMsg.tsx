@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react';
+import { forwardRef, useRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
 import { Icon } from '../lib/Icon.js';
@@ -18,9 +18,9 @@ export interface RowMsgProps extends PassThrough {
  * как выглядела открытой. Поэтому последний показанный уровень и текст запоминаются:
  * иначе ok проваливался в ветку danger и на 200 мс краснел, а текст исчезал мгновенно.
  */
-export function RowMsg({ text = '', level = 'ok', style,
+export const RowMsg = forwardRef<HTMLSpanElement, RowMsgProps>(function RowMsg({ text = '', level = 'ok', style,
   ...rest
-}: RowMsgProps) {
+}, ref) {
   const open = !!text && (level === 'danger' || level === 'warn');
   const shownLevel = useRef<MsgLevel>('danger');
   const shownMsg = useRef('');
@@ -34,6 +34,7 @@ export function RowMsg({ text = '', level = 'ok', style,
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       // Закрытое сообщение уходит из дерева доступности целиком: role=presentation снимал
       // с него роль, но текст оставался обычным текстом и читался подряд с содержимым ряда.
       // Уходящий текст при этом остаётся видимым — inert отрисовку не трогает.
@@ -70,4 +71,4 @@ export function RowMsg({ text = '', level = 'ok', style,
       </span>
     </span>
   );
-}
+});

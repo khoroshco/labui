@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { OptionGroup } from '../atoms/OptionGroup.js';
 
@@ -11,12 +11,13 @@ export interface SegmentsProps extends PassThrough {
 }
 
 /** Тонкая обёртка над OptionGroup (pill + inverse): поведение скользящей пилюли живёт в одном месте. */
-export function Segments({ options, value, defaultValue = 0, onChange, style,
+export const Segments = forwardRef<HTMLDivElement, SegmentsProps>(function Segments({ options, value, defaultValue = 0, onChange, style,
   ...rest
-}: SegmentsProps) {
+}, ref) {
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       style={{
         display: 'inline-flex',
         background: 'var(--bg-surface)',
@@ -36,4 +37,4 @@ export function Segments({ options, value, defaultValue = 0, onChange, style,
       />
     </div>
   );
-}
+});

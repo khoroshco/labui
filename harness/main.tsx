@@ -38,14 +38,27 @@ const registry = DS as unknown as Record<string, React.ComponentType<Record<stri
 const Component = registry[name];
 const root = createRoot(document.getElementById('dc-root')!);
 
+/* Проверка прокидывания ref. Гейты видят разметку и стили, но ref не атрибут — в DOM его
+ * нет вовсе, и ошибка «ref принял, но никуда не поставил» прошла бы молча. Харнесс вешает
+ * ref и кладёт тег полученного узла в window.__refTag: тест сверяет его с корнем. */
+const wantRef = params.get('ref') === '1';
+
 function draw() {
   if (!Component) {
     root.render(<div style={{ padding: 16, color: 'var(--danger)' }}>Нет компонента «{name}»</div>);
     return;
   }
+  const extra = wantRef
+    ? {
+        ref: (node: unknown) => {
+          const w = window as unknown as { __refTag?: string | null };
+          w.__refTag = node && (node as HTMLElement).tagName ? (node as HTMLElement).tagName.toLowerCase() : null;
+        },
+      }
+    : {};
   root.render(
     <div className="sc-host">
-      <Component {...props} />
+      <Component {...props} {...extra} />
     </div>
   );
 }

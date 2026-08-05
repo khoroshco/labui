@@ -1,4 +1,5 @@
-import { useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { forwardRef, useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
@@ -35,7 +36,7 @@ export interface InputProps extends PassThrough {
  * набор обязан быть живым, даже когда родитель ещё не принял его. Значение сверху
  * задаёт начальное и перекрывает своё, когда приходит новым.
  */
-export function Input({
+export const Input = forwardRef<HTMLLabelElement, InputProps>(function Input({
   value,
   defaultValue = '',
   ariaLabel,
@@ -56,7 +57,7 @@ export function Input({
   onInput,
   style,
   ...rest
-}: InputProps) {
+}, ref) {
   // Текстовый ввод — единственный контрол, который ВСЕГДА ведёт своё значение: набор
   // обязан быть живым, даже когда родитель ещё не принял его. Строгая управляемость
   // (`value ?? own`) делала поле мёртвым, если проп пришёл без onInput, — ровно то, что
@@ -101,7 +102,10 @@ export function Input({
   return (
     <label
       {...passThrough(rest)}
-      ref={box}
+      ref={(el) => {
+        box.current = el;
+        setRef(ref, el);
+      }}
       // data-field — хук ds.css: пресс поля, forced-colors и общие переходы
       data-field={bare ? undefined : 'true'}
       data-disabled={disabled ? 'true' : 'false'}
@@ -249,4 +253,4 @@ export function Input({
       ) : null}
     </label>
   );
-}
+});

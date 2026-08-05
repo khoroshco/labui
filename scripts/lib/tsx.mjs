@@ -61,13 +61,19 @@ export function interfacesOf(body) {
       doc = '';
     }
 
-    const fn = new RegExp(`export function ${name}\\(\\{([\\s\\S]*?)\\}: ${name}Props`).exec(body);
+    // Две законные формы объявления компонента. Вторая появилась вместе с прокидыванием
+    // ref: forwardRef забирает типы в дженерик, и аннотации «: NameProps» в сигнатуре
+    // больше нет. Гейт «объявлен ⇔ читается» честно покраснел на всех 27 компонентах
+    // сразу — ровно за этим он и был научен не пропускать ненайденную сигнатуру молча.
+    const fn =
+      new RegExp(`export function ${name}\\(\\{([\\s\\S]*?)\\}: ${name}Props`).exec(body) ??
+      new RegExp(`export const ${name} = forwardRef<[^>]*>\\(function ${name}\\(\\{([\\s\\S]*?)\\},\\s*ref\\)`).exec(body);
     const taken = fn
-      ? new Set(splitTop(fn[1]).map((part) => /^\s*\.{0,3}\s*(\w+)/.exec(part)?.[1]).filter(Boolean))
+      ? new Set(splitTop(fn[1] ?? fn[2]).map((part) => /^\s*\.{0,3}\s*(\w+)/.exec(part)?.[1]).filter(Boolean))
       : null;
     const defaults = {};
     if (fn) {
-      for (const part of splitTop(fn[1])) {
+      for (const part of splitTop(fn[1] ?? fn[2])) {
         const eq = /^\s*(\w+)\s*=\s*([\s\S]+)$/.exec(part);
         if (eq) defaults[eq[1]] = eq[2];
       }

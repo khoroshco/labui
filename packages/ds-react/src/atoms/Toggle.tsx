@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties, type KeyboardEvent } from 'react';
+import { forwardRef, useEffect, type CSSProperties, type KeyboardEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled } from '../lib/hooks.js';
 
@@ -15,7 +15,7 @@ export interface ToggleProps extends PassThrough {
   style?: CSSProperties;
 }
 
-export function Toggle({
+export const Toggle = forwardRef<HTMLLabelElement, ToggleProps>(function Toggle({
   label = '',
   checked,
   defaultChecked = false,
@@ -25,7 +25,7 @@ export function Toggle({
   onChange,
   style,
   ...rest
-}: ToggleProps) {
+}, ref) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export function Toggle({
   return (
     <label
       {...passThrough(rest)}
+      ref={ref}
       tabIndex={bare || disabled ? -1 : 0}
       // bare: семантику несёт родительский ряд — прячем свою роль, чтобы SR не читал два свитча
       role={bare ? undefined : 'switch'}
@@ -110,4 +111,4 @@ export function Toggle({
       ) : null}
     </label>
   );
-}
+});

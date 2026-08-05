@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { forwardRef, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Avatar } from '../atoms/Avatar.js';
 import { Button } from '../atoms/Button.js';
@@ -20,7 +21,7 @@ export interface PinComposerProps extends PassThrough {
 }
 
 /** Композер комментария: поле и круглая кнопка-стрелка. Enter отправляет, Esc отменяет. */
-export function PinComposer({
+export const PinComposer = forwardRef<HTMLDivElement, PinComposerProps>(function PinComposer({
   author = '',
   authorSrc = '',
   placeholder = 'Комментарий…',
@@ -33,7 +34,7 @@ export function PinComposer({
   onCancel,
   style,
   ...rest
-}: PinComposerProps) {
+}, ref) {
   const [text, setText] = useState(value);
   const root = useRef<HTMLDivElement | null>(null);
   const prevFocus = useRef<Element | null>(null);
@@ -81,7 +82,10 @@ export function PinComposer({
   return (
     <div
       {...passThrough(rest)}
-      ref={root}
+      ref={(el) => {
+        root.current = el;
+        setRef(ref, el);
+      }}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -114,4 +118,4 @@ export function PinComposer({
       <Button icon="arrow-right" size="s" variant="primary" tooltip={sendLabel} onClick={send} />
     </div>
   );
-}
+});

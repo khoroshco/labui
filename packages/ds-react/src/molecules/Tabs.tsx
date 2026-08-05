@@ -1,4 +1,5 @@
-import type { CSSProperties, KeyboardEvent } from 'react';
+import { forwardRef, type CSSProperties, type KeyboardEvent } from 'react';
+import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled, useTrackActive } from '../lib/hooks.js';
 
@@ -27,9 +28,9 @@ const DEFAULT_TABS: TabItem[] = [
  * Список вкладок ОДИН на компонент: и разметка, и кламп берут его отсюда. Когда запасной
  * набор жил отдельно, кламп считал по пустому списку и замораживал контрол при живых кликах.
  */
-export function Tabs({ options, value, defaultValue = 0, onChange, style,
+export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs({ options, value, defaultValue = 0, onChange, style,
   ...rest
-}: TabsProps) {
+}, ref) {
   // Демо-набор — только когда набора НЕТ. Раньше его подставлял и пустой массив: у
   // потребителя список ещё не загрузился, а лента уверенно показывала «Все форматы 18».
   const items = Array.isArray(options) ? options : DEFAULT_TABS;
@@ -52,6 +53,7 @@ export function Tabs({ options, value, defaultValue = 0, onChange, style,
       {...passThrough(rest)}
       ref={(el) => {
         box.current = el;
+        setRef(ref, el);
       }}
       role="tablist"
       onKeyDown={keyNav}
@@ -109,4 +111,4 @@ export function Tabs({ options, value, defaultValue = 0, onChange, style,
       })}
     </div>
   );
-}
+});

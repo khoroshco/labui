@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Avatar } from '../atoms/Avatar.js';
 import { Button } from '../atoms/Button.js';
@@ -30,7 +30,7 @@ export interface PinCardProps extends PassThrough {
  * Это поповер, а не модалка: жёсткий focus-trap был бы регрессом (из Tab не выйти).
  * Клавиатурный выход — Esc и клик мимо; возврат фокуса делает PinComposer.
  */
-export function PinCard({
+export const PinCard = forwardRef<HTMLDivElement, PinCardProps>(function PinCard({
   messages = [],
   variant = 'thread',
   resolved = false,
@@ -41,7 +41,7 @@ export function PinCard({
   onClose,
   style,
   ...rest
-}: PinCardProps) {
+}, ref) {
   const isPreview = variant === 'preview';
   const hasResolve = !!onResolve && !isPreview;
   const hasComposer = !!onSend && !isPreview && !resolved;
@@ -49,6 +49,7 @@ export function PinCard({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       tabIndex={isPreview ? undefined : -1}
       onKeyDown={(e: KeyboardEvent) => {
         if (e.key === 'Escape' && onClose) {
@@ -184,4 +185,4 @@ export function PinCard({
       )}
     </div>
   );
-}
+});

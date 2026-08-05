@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { forwardRef, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
 import { useReducedMotion } from '../lib/hooks.js';
@@ -35,7 +35,7 @@ const LEVELS: Record<ToastLevel, { icon: IconName; color: string }> = {
  * Вход и выход — ОДИН механизм (переход обёртки): раньше поверх него крутилась ещё и
  * css-анимация, и два движения боролись за transform.
  */
-export function Toast({
+export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast({
   text = '',
   level = 'info',
   actionLabel = '',
@@ -47,7 +47,7 @@ export function Toast({
   onTimeout,
   style,
   ...rest
-}: ToastProps) {
+}, ref) {
   const [entered, setEntered] = useState(false);
   const [dx, setDx] = useState(0);
   const [drag, setDrag] = useState(false);
@@ -113,6 +113,7 @@ export function Toast({
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       // Уходящий тост не берёт фокус: 250 мс схлопывания он ещё виден, и таб успевал
       // попасть на его кнопку действия — то есть на кнопку, которой сейчас не станет.
       // Только на выходе: до входа тост инертным не делаем, иначе живая область могла бы
@@ -216,4 +217,4 @@ export function Toast({
       </div>
     </div>
   );
-}
+});

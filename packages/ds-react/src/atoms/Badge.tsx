@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 
@@ -30,15 +30,16 @@ const TONES: Record<BadgeTone, { c: string; dim: string; solidBg: string; solidF
   info: { c: 'var(--info)', dim: 'var(--info-dim)', solidBg: 'var(--info)', solidFg: 'var(--on-tone)', quiet: 'var(--info)' },
 };
 
-export function Badge({ label = '', icon, nums, variant = 'soft', tone = 'neutral', style,
+export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge({ label = '', icon, nums, variant = 'soft', tone = 'neutral', style,
   ...rest
-}: BadgeProps) {
+}, ref) {
   const t = TONES[tone] ?? TONES.neutral;
   const quiet = variant === 'quiet';
   const solid = variant === 'solid';
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       data-nums={nums ? 'true' : undefined}
       style={{
         display: 'inline-flex',
@@ -65,4 +66,4 @@ export function Badge({ label = '', icon, nums, variant = 'soft', tone = 'neutra
       <span style={{ position: 'relative', top: '0.5px', marginRight: 'calc(-1 * var(--ls-eyebrow))' }}>{label}</span>
     </span>
   );
-}
+});

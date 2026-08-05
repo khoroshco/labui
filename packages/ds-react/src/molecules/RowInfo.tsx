@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
 
@@ -14,13 +14,14 @@ export interface RowInfoProps extends PassThrough {
 const IS_URL = /\/|\.(png|jpe?g|webp|gif|svg)/i;
 
 /** Раскрывашка подсказки ряда: grid-rows с пружиной, без прозрачности у выхода. */
-export function RowInfo({ open = false, text = '', image = '', style,
+export const RowInfo = forwardRef<HTMLSpanElement, RowInfoProps>(function RowInfo({ open = false, text = '', image = '', style,
   ...rest
-}: RowInfoProps) {
+}, ref) {
   const isUrl = !!image && IS_URL.test(image);
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       // закрытая подсказка не читается скринридером и не берёт указатель — см. collapsedProps
       {...collapsedProps(!open)}
       // клик по раскрытой подсказке не должен дёргать действие ряда
@@ -96,4 +97,4 @@ export function RowInfo({ open = false, text = '', image = '', style,
       </span>
     </span>
   );
-}
+});
