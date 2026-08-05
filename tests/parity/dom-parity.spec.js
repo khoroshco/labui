@@ -46,7 +46,9 @@ const SIGNATURE = `() => {
     // type="button" — ОСОЗНАННОЕ расхождение с эталоном, а не потеря: без него браузерный
     // дефолт submit отправляет форму потребителя, и переопределить это было нечем.
     // На вид не влияет ничем, поэтому из сравнения исключено явно и с объяснением.
-    'type': 'button',
+    // Два дефолтных значения одного атрибута: 'button' у <button> (иначе форма
+    // отправляется) и 'text' у <input> (дефолт браузера). Оба на вид не влияют ничем.
+    'type': ['button', 'text'],
     // inert="" — второе ОСОЗНАННОЕ расхождение. Свёрнутое содержимое обязано уходить из
     // таба и из дерева доступности (иначе фокус проваливается в невидимое — так витрина
     // и ловила таб), а компоненты эталона заморожены тегом ds-reference-v0: чинить их
@@ -74,7 +76,8 @@ const SIGNATURE = `() => {
       if (/^(data-dc-tpl|data-sc-name|class|style|id|aria-controls|data-track-item)$/.test(a.name)) continue;
       const meaningful = a.name === 'role' || a.name === 'tabindex' || a.name === 'disabled' || a.name === 'type' || a.name === 'inert' || a.name.startsWith('aria-') || a.name.startsWith('data-');
       if (!meaningful) continue;
-      if (INERT[a.name] !== undefined && a.value === INERT[a.name]) continue;
+      const inert = INERT[a.name];
+      if (inert !== undefined && (Array.isArray(inert) ? inert.includes(a.value) : inert === a.value)) continue;
       attrs[a.name] = a.value;
     }
     // Порядок атрибутов в HTML не значит ничего, а сравнение объектов строкой к нему

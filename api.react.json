@@ -925,6 +925,77 @@
           "info": "Имя для скринридера, когда подпись лежит СНАРУЖИ компонента."
         },
         {
+          "name": "name",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя поля: без него нет ни FormData, ни автозаполнения, ни менеджера паролей."
+        },
+        {
+          "name": "type",
+          "type": "'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number'",
+          "options": [
+            "text",
+            "email",
+            "password",
+            "tel",
+            "url",
+            "search",
+            "number"
+          ],
+          "editor": "enum",
+          "default": "text",
+          "callback": false,
+          "info": "Тип нативного поля. Не «оформление», а поведение: клавиатура на таче, точка входа для менеджера паролей, нативная валидация почты."
+        },
+        {
+          "name": "autoComplete",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "inputMode",
+          "type": "'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'url' | 'search'",
+          "options": [
+            "text",
+            "numeric",
+            "decimal",
+            "tel",
+            "email",
+            "url",
+            "search"
+          ],
+          "editor": "enum",
+          "callback": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "describedBy",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Связь с описанием и сообщением об ошибке: их рисует ряд, а знать о них — полю."
+        },
+        {
           "name": "placeholder",
           "type": "string",
           "options": null,
@@ -1080,6 +1151,14 @@
           "editor": "text",
           "default": "",
           "callback": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя поля для FormData и автозаполнения."
         },
         {
           "name": "placeholder",
@@ -1238,6 +1317,14 @@
           "editor": null,
           "default": [],
           "callback": false
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "options": null,
+          "editor": null,
+          "callback": false,
+          "info": "Ряды, которых нет в конфиге: остров даёт им ту же обёртку-маунт, что и своим."
         },
         {
           "name": "style",

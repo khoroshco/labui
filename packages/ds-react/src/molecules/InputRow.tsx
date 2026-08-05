@@ -1,4 +1,4 @@
-import { forwardRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import { forwardRef, useId, useState, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { Input } from '../atoms/Input.js';
@@ -11,6 +11,8 @@ import { RowMsg, type MsgLevel } from './RowMsg.js';
 export interface InputRowProps extends PassThrough {
   label?: string;
   value?: string;
+  /** Имя поля для FormData и автозаполнения. */
+  name?: string;
   placeholder?: string;
   /** Любой набор значений для кнопки-циклера, не только единицы. */
   options?: string[];
@@ -39,6 +41,7 @@ export interface InputRowProps extends PassThrough {
 export const InputRow = forwardRef<HTMLDivElement, InputRowProps>(function InputRow({
   label = '',
   value = '',
+  name,
   placeholder = '',
   options,
   optionIndex = 0,
@@ -58,6 +61,12 @@ export const InputRow = forwardRef<HTMLDivElement, InputRowProps>(function Input
   ...rest
 }, ref) {
   const [infoOpen, setInfoOpen] = useState(false);
+  // Сообщение валидации СВЯЗЫВАЕТСЯ с полем. Без aria-describedby скринридер на возврате
+  // в поле говорит «erid, недопустимое значение» и не говорит ПОЧЕМУ: текст ошибки лежит
+  // рядом в разметке и полю неизвестен. Подсказка ⓘ связывается тем же способом.
+  const uid = useId();
+  const msgId = `${uid}-msg`;
+  const infoId = `${uid}-info`;
   const spin = useSpin(loading);
   const hasInfo = !!info;
   const open = hasInfo && infoOpen;
@@ -131,6 +140,8 @@ export const InputRow = forwardRef<HTMLDivElement, InputRowProps>(function Input
                   bare
                   align="right"
                   ariaLabel={label}
+                  name={name}
+                  describedBy={[msg ? msgId : '', open ? infoId : ''].filter(Boolean).join(' ')}
                   value={value}
                   placeholder={placeholder}
                   maxLength={maxLength}
@@ -162,8 +173,8 @@ export const InputRow = forwardRef<HTMLDivElement, InputRowProps>(function Input
           )}
         </span>
       </span>
-      <RowInfo open={open} text={info} image={infoImage} />
-      <RowMsg text={msg} level={msgLevel} />
+      <RowInfo id={infoId} open={open} text={info} image={infoImage} />
+      <RowMsg id={msgId} text={msg} level={msgLevel} />
     </div>
   );
 });

@@ -7,6 +7,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build as buildTokens } from './build-tokens-css.mjs';
 
@@ -22,6 +23,12 @@ fs.rmSync(dist, { recursive: true, force: true });
 const tsc = path.join(root, 'node_modules', '.bin', 'tsc');
 if (!fs.existsSync(tsc)) throw new Error('typescript не установлен — запусти npm ci');
 execFileSync(tsc, ['-p', path.join(pkg, 'tsconfig.build.json')], { stdio: 'inherit', cwd: root });
+// ВТОРАЯ сборка — CommonJS. Jest по умолчанию работает в CJS, и на пакете без require-входа
+// потребитель получает ERR_REQUIRE_ESM ещё до первого теста. Пометка "type":"commonjs"
+// внутри dist/cjs нужна потому, что корневой package.json объявляет модуль ESM, и без неё
+// Node читает .js в этой папке как ESM.
+execFileSync(tsc, ['-p', path.join(pkg, 'tsconfig.build.cjs.json')], { stdio: 'inherit', cwd: root });
+fs.writeFileSync(path.join(dist, 'cjs/package.json'), JSON.stringify({ type: 'commonjs' }, null, 2) + '\n');
 
 // Глобальные правила (фокус, пресс, тултипы, forced-colors, reduced-motion, кейфреймы)
 // инлайном не выражаются и едут файлом — как и было в эталоне.
@@ -55,6 +62,18 @@ const expected = JSON.parse(fs.readFileSync(path.join(pkg, 'migrated.json'), 'ut
 // то, что делает узел компонентом для React: функция или экзотический тип с $$typeof.
 const isComponent = (x) => typeof x === 'function' || (!!x && typeof x === 'object' && '$$typeof' in x);
 const missing = expected.filter((name) => !isComponent(mod[name]));
+
+// Обе точки входа обязаны РЕАЛЬНО грузиться, а не значиться в package.json. Потребитель
+// приходит через любую: Vite и Next — через import, Jest по умолчанию — через require.
+// Проверка «файл существует» здесь бесполезна: ломается не наличие, а разрешение путей.
+const cjs = createRequire(import.meta.url)(path.join(dist, 'cjs/index.js'));
+const missingCjs = expected.filter((name) => !isComponent(cjs[name]));
+if (missingCjs.length) throw new Error(`dist/cjs/index.js не экспортирует: ${missingCjs.join(', ')}`);
+
+// Директива обязана быть ПЕРВОЙ строкой: Next.js App Router читает именно её, и без неё
+// сборка потребителя падает на первом импорте — серверный компонент не тянет хуки.
+const head = fs.readFileSync(path.join(dist, 'index.js'), 'utf8').trimStart().slice(0, 14);
+if (!/^['"]use client['"]/.test(head)) throw new Error(`dist/index.js начинается не с «use client», а с «${head}»`);
 if (missing.length) {
   throw new Error(`dist/index.js не экспортирует: ${missing.join(', ')}`);
 }
