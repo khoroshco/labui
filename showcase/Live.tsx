@@ -48,8 +48,11 @@ export function IslandBuilder() {
   const [rows, setRows] = useState<IslandRow[]>(() => SEED.map((r, i) => ({ ...r, key: `seed-${i}` })));
   const seq = useRef(0);
 
-  const patch = (i: number, p: Partial<IslandRow>) =>
-    setRows((list) => list.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  // Приведение честное: правка относится к ряду, тип которого уже известен по позиции.
+  // Само это место — довод в пользу размеченного объединения: раньше Partial<IslandRow>
+  // принимал что угодно, и «maxLength у переключателя» проходило без единого замечания.
+  const patch = (i: number, p: Record<string, unknown>) =>
+    setRows((list) => list.map((r, j) => (j === i ? ({ ...r, ...p } as IslandRow) : r)));
   const move = (i: number, d: number) =>
     setRows((list) => {
       const j = i + d;

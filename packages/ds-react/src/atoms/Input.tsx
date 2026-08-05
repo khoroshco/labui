@@ -8,6 +8,17 @@ export interface InputProps extends PassThrough {
   defaultValue?: string;
   /** Имя для скринридера, когда подпись лежит СНАРУЖИ компонента. */
   ariaLabel?: string;
+  /** Имя поля: без него нет ни FormData, ни автозаполнения, ни менеджера паролей. */
+  name?: string;
+  /** Тип нативного поля. Не «оформление», а поведение: клавиатура на таче, точка входа
+   *  для менеджера паролей, нативная валидация почты. */
+  type?: 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number';
+  autoComplete?: string;
+  inputMode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'url' | 'search';
+  required?: boolean;
+  readOnly?: boolean;
+  /** Связь с описанием и сообщением об ошибке: их рисует ряд, а знать о них — полю. */
+  describedBy?: string;
   placeholder?: string;
   /** Аффиксы — только у field-режима. */
   icon?: IconName | '';
@@ -40,6 +51,13 @@ export const Input = forwardRef<HTMLLabelElement, InputProps>(function Input({
   value,
   defaultValue = '',
   ariaLabel,
+  name,
+  type = 'text',
+  autoComplete,
+  inputMode,
+  required = false,
+  readOnly = false,
+  describedBy,
   placeholder = '',
   icon = '',
   prefix = '',
@@ -162,7 +180,14 @@ export const Input = forwardRef<HTMLLabelElement, InputProps>(function Input({
       <input
         value={val}
         disabled={disabled}
+        name={name}
+        type={type}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
+        required={required || undefined}
+        readOnly={readOnly || undefined}
         aria-label={ariaLabel || undefined}
+        aria-describedby={describedBy || undefined}
         aria-invalid={invalid ? true : undefined}
         placeholder={placeholder}
         maxLength={lim > 0 ? lim : undefined}
