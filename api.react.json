@@ -1398,6 +1398,14 @@
           "callback": false
         },
         {
+          "name": "ariaLabelledBy",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Ссылка на подпись, а не её копия: имя группы живёт в одном месте."
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "options": null,
@@ -1733,6 +1741,14 @@
           "callback": false
         },
         {
+          "name": "labelId",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Идентификатор текста подписи: по нему на ряд ссылается группа опций или поле."
+        },
+        {
           "name": "subtitle",
           "type": "string",
           "options": null,
@@ -1787,6 +1803,14 @@
       "level": "molecules",
       "file": "packages/ds-react/src/molecules/RowMsg.tsx",
       "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Идентификатор ТЕКСТА: по нему на сообщение ссылается контрол через aria-describedby."
+        },
         {
           "name": "text",
           "type": "string",

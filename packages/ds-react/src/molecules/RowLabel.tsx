@@ -4,6 +4,8 @@ import { Icon } from '../lib/Icon.js';
 
 export interface RowLabelProps extends PassThrough {
   label?: string;
+  /** Идентификатор текста подписи: по нему на ряд ссылается группа опций или поле. */
+  labelId?: string;
   subtitle?: string;
   /** Только факт наличия подсказки; сам текст живёт у ряда. */
   hasInfo?: boolean;
@@ -14,7 +16,7 @@ export interface RowLabelProps extends PassThrough {
 }
 
 /** Лейбл ряда с необязательной ⓘ. Раскрытием подсказки владеет ряд. */
-export const RowLabel = forwardRef<HTMLSpanElement, RowLabelProps>(function RowLabel({ label = '', subtitle = '', hasInfo = false, open = false, onToggle, style,
+export const RowLabel = forwardRef<HTMLSpanElement, RowLabelProps>(function RowLabel({ label = '', labelId, subtitle = '', hasInfo = false, open = false, onToggle, style,
   ...rest
 }, ref) {
   return (
@@ -34,6 +36,7 @@ export const RowLabel = forwardRef<HTMLSpanElement, RowLabelProps>(function RowL
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--sp-15)' }}>
         <span
+          id={labelId}
           style={{
             fontSize: 'var(--fs-m)',
             lineHeight: 'var(--lh-ui)',

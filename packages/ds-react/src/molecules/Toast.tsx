@@ -52,6 +52,21 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast({
   const [dx, setDx] = useState(0);
   const [drag, setDrag] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [focusedIn, setFocusedIn] = useState(false);
+  // Окно потеряло фокус — человек ушёл в другую вкладку, и сообщение, истекшее там,
+  // потеряно (WCAG 2.2.1). Base UI паузит по тому же признаку.
+  const [windowActive, setWindowActive] = useState(true);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const on = () => setWindowActive(true);
+    const off = () => setWindowActive(false);
+    window.addEventListener('focus', on);
+    window.addEventListener('blur', off);
+    return () => {
+      window.removeEventListener('focus', on);
+      window.removeEventListener('blur', off);
+    };
+  }, []);
   const startX = useRef(0);
   const reduced = useReducedMotion();
 
@@ -82,7 +97,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast({
   }
 
   useEffect(() => {
-    if (!total || !fire.current || !entered || leaving || hovered || drag) return;
+    if (!total || !fire.current || !entered || leaving || hovered || focusedIn || !windowActive || drag) return;
     const from = performance.now();
     const t = setTimeout(() => fire.current?.(), left.current);
     return () => {
@@ -91,7 +106,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast({
       // иначе тост под курсором живёт вечно, а после ухода курсора — полный срок ещё раз.
       left.current = Math.max(0, left.current - (performance.now() - from));
     };
-  }, [total, entered, leaving, hovered, drag]);
+  }, [total, entered, leaving, hovered, focusedIn, windowActive, drag]);
 
   const m = LEVELS[level] ?? LEVELS.info;
   const shown = entered && !leaving;
@@ -140,6 +155,16 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast({
           // здесь: сообщение читают именно сейчас, и уезжать оно не должно (WCAG 2.2.1).
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
+          // Фокус внутри тоста — человек читает или тянется к действию: отсчёт стоит.
+          onFocusCapture={() => setFocusedIn(true)}
+          onBlurCapture={() => setFocusedIn(false)}
+          // Escape закрывает: сообщение обязано убираться с клавиатуры, а не только мышью.
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && dismiss) {
+              e.stopPropagation();
+              dismiss();
+            }
+          }}
           // swipe-to-dismiss: тянется за указателем, дальше 80px — закрытие, иначе пружинный возврат
           onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
             if ((e.target as HTMLElement).closest('button')) return;

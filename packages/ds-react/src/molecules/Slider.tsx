@@ -289,6 +289,19 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(function Slider({
         aria-valuetext={`${d.step % 1 ? v.toFixed(1) : v}${unit ? ` ${unit}` : ''}`}
         onKeyDown={(e: KeyboardEvent) => {
           if (disabled) return;
+          if (e.ctrlKey || e.altKey || e.metaKey) return; // системные сочетания — браузеру
+          // Home/End и PageUp/PageDown — часть паттерна WAI-ARIA для слайдера, и их не было
+          // вовсе: с клавиатуры до краёв диапазона приходилось идти шагами.
+          if (e.key === 'Home' || e.key === 'End') {
+            e.preventDefault();
+            set(e.key === 'Home' ? d.min : d.max, true);
+            return;
+          }
+          if (e.key === 'PageUp' || e.key === 'PageDown') {
+            e.preventDefault();
+            set(v + (e.key === 'PageUp' ? 1 : -1) * d.step * 10, true);
+            return;
+          }
           const dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
           if (!dir) return;
           e.preventDefault();

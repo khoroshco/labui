@@ -23,9 +23,21 @@ export function useControlled<T>(
   defaultValue: T,
   onChange?: (next: T) => void
 ): [T, (next: T) => void, boolean] {
-  const controlled = value !== undefined;
-  const [own, setOwn] = useState<T>(defaultValue);
-  const current = controlled ? (value as T) : own;
+  // Режим фиксируется на МОНТИРОВАНИИ и больше не пересчитывается. Пока он вычислялся
+  // каждый рендер, потребитель, у которого значение однажды стало undefined (условный
+  // рендер, сброс формы, `?? undefined` в маппинге), получал не «контрол повёл своё», а
+  // «контрол показал defaultValue, замороженный при монтировании» — состояние, которого
+  // не было ни у кого на экране. Приём взят у Base UI (useControlled).
+  const { current: controlled } = useRef(value !== undefined);
+  const [own, setOwn] = useState<T>(controlled ? (value as T) : defaultValue);
+  // Управляемый контрол, оставшийся без значения, продолжает показывать последнее
+  // пришедшее сверху, а не откатывается назад: это ближе к правде, чем любой из дефолтов.
+  const seen = useRef(value);
+  if (controlled && value !== undefined && value !== seen.current) {
+    seen.current = value;
+    setOwn(value);
+  }
+  const current = controlled ? (value ?? own) : own;
   const set = useCallback(
     (next: T) => {
       if (!controlled) setOwn(next);
@@ -33,6 +45,20 @@ export function useControlled<T>(
     },
     [controlled, onChange]
   );
+
+  if (process.env.NODE_ENV !== 'production') {
+    // Смена режима — почти всегда ошибка потребителя, и молча она проявляется как
+    // «контрол перестал слушаться» или «контрол потерял значение».
+    const now = value !== undefined;
+    if (now !== controlled) {
+      console.warn(
+        `[@khoroshco/ds] Контрол сменил режим управления: был ${controlled ? 'управляемым' : 'неуправляемым'}, ` +
+          `стал ${now ? 'управляемым' : 'неуправляемым'}. Режим фиксируется на монтировании — ` +
+          `выберите один: value + onChange либо defaultValue.`
+      );
+    }
+  }
+
   return [current, set, controlled];
 }
 

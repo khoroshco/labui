@@ -1,4 +1,4 @@
-import { forwardRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { forwardRef, useId, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Toggle } from '../atoms/Toggle.js';
 import { useControlled } from '../lib/hooks.js';
@@ -45,6 +45,12 @@ export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function Swi
 }, ref) {
   const [on, setOn] = useControlled(checked, defaultChecked, onChange);
   const [infoOpen, setInfoOpen] = useState(false);
+  // Сообщение и подсказка СВЯЗЫВАЮТСЯ с носителем роли. Раньше они были просто текстом
+  // рядом: вернувшись в ряд, диктор говорил «выключено» и молчал о том, почему ряд красный.
+  // Ссылку на закрытую ⓘ не даём — она под inert, и диктор прочёл бы то, чего нет.
+  const uid = useId();
+  const msgId = `${uid}-msg`;
+  const infoId = `${uid}-info`;
   const hasInfo = !!info;
   const open = hasInfo && infoOpen;
 
@@ -55,8 +61,10 @@ export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function Swi
 
   const flip = (e: MouseEvent | null) => {
     if (disabled || fromInfo(e)) return;
-    // мышиный клик снимает фокус с ряда: действие мгновенное, кольцо — только с клавиатуры
-    if (e && e.detail > 0 && e.currentTarget) (e.currentTarget as HTMLElement).blur();
+    // Фокус НЕ снимаем. Раньше мышиный клик уводил его в body, и следующий Tab начинал
+    // обход с начала документа. Кольцо и так закрыто двумя замками: правилом
+    // html[data-modality="kb"] в ds.css и тем, что :focus-visible на div[tabindex] от
+    // мышиного клика не срабатывает вовсе. Base UI по той же причине фокус не трогает.
     setOn(!on);
   };
 
@@ -68,6 +76,7 @@ export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function Swi
       data-disabled={disabled ? 'true' : 'false'}
       tabIndex={disabled ? -1 : 0}
       role="switch"
+      aria-describedby={[msg ? msgId : '', open ? infoId : ''].filter(Boolean).join(' ') || undefined}
       aria-checked={on}
       aria-disabled={disabled}
       onKeyDown={(e: KeyboardEvent) => {
@@ -76,7 +85,11 @@ export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function Swi
         // подсказка не открывалась — preventDefault ниже отменял активацию самой кнопки.
         // Мышиный путь ряд у себя фильтрует (fromInfo), клавиатурный фильтровать забыли.
         if (e.target !== e.currentTarget) return;
-        if (e.key === ' ' || e.key === 'Enter') {
+        // Enter НЕ наш. У нативного чекбокса он отправляет форму, а переключает пробел;
+        // перехватывая обе клавиши и гася событие, ряд забирал у формы потребителя
+        // отправку с клавиатуры. Правило подсмотрено у Base UI, где ради него написан
+        // отдельный блок: Enter гасит активацию и кликает сабмиттер формы.
+        if (e.key === ' ') {
           e.preventDefault();
           flip(null);
         }
@@ -105,10 +118,10 @@ export const SwitchRow = forwardRef<HTMLDivElement, SwitchRowProps>(function Swi
         <RowLabel label={label} subtitle={subtitle} hasInfo={hasInfo} open={open} onToggle={() => setInfoOpen((v) => !v)} />
         <Toggle bare checked={on} disabled={disabled} />
       </span>
-      <RowInfo open={open} text={info} image={infoImage} />
+      <RowInfo id={infoId} open={open} text={info} image={infoImage} />
       {/* У тоггла ОШИБКИ не бывает: оба состояния валидны. Но предупреждение бывает —
           оно говорит не «неверно», а «вот последствие выбора». */}
-      <RowMsg text={msg} level={msgLevel === 'ok' ? 'ok' : 'warn'} />
+      <RowMsg id={msgId} text={msg} level={msgLevel === 'ok' ? 'ok' : 'warn'} />
     </div>
   );
 });

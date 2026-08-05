@@ -41,7 +41,9 @@ export const Disclosure = forwardRef<HTMLDivElement, DisclosureProps>(function D
   const open = !disabled && rawOpen;
   const eyebrow = variant === 'eyebrow';
   const hasCount = count !== undefined && count !== null && count !== '';
-  const bodyId = useId();
+  const uid = useId();
+  const bodyId = `${uid}-body`;
+  const headId = `${uid}-head`;
 
   return (
     <div
@@ -52,8 +54,11 @@ export const Disclosure = forwardRef<HTMLDivElement, DisclosureProps>(function D
         data-disc={eyebrow ? 'eyebrow' : 'plain'}
         data-disabled={disabled ? 'true' : 'false'}
         disabled={disabled}
+        id={headId}
         aria-expanded={open}
-        aria-controls={bodyId}
+        // Ссылка только на РАСКРЫТОЕ: свёрнутая панель уходит под inert, и aria-controls
+        // на неё указывал в никуда. Приём из Base UI (CollapsibleTrigger).
+        aria-controls={open ? bodyId : undefined}
         // мгновенное действие мышью не оставляет фокус-кольца; клавиатурный Tab — оставляет
         onMouseDown={(e: MouseEvent) => e.preventDefault()}
         onClick={() => {
@@ -114,7 +119,11 @@ export const Disclosure = forwardRef<HTMLDivElement, DisclosureProps>(function D
       </button>
       <div
         id={bodyId}
+        // Группа с ИМЕНЕМ: диктор объявляет, что именно раскрыто. Base UI ставит здесь
+        // role=region; у нас роль обязана совпадать с замороженным эталоном, а имя решает
+        // ту же задачу — анонимность, а не выбор роли, была дефектом.
         role="group"
+        aria-labelledby={headId}
         // свёрнутое содержимое уходит из таба и из дерева доступности — см. collapsedProps
         {...collapsedProps(!open)}
         style={{

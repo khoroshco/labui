@@ -56,7 +56,11 @@ export const Checkbox = forwardRef<HTMLLabelElement, CheckboxProps>(function Che
       aria-invalid={invalid ? true : undefined}
       aria-label={label ? undefined : ariaLabel}
       onKeyDown={(e: KeyboardEvent) => {
-        if (e.key === ' ' || e.key === 'Enter') {
+        // Enter НЕ наш. У нативного чекбокса он отправляет форму, а переключает пробел;
+        // перехватывая обе клавиши и гася событие, ряд забирал у формы потребителя
+        // отправку с клавиатуры. Правило подсмотрено у Base UI, где ради него написан
+        // отдельный блок: Enter гасит активацию и кликает сабмиттер формы.
+        if (e.key === ' ') {
           e.preventDefault();
           flip();
         }
