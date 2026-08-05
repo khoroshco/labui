@@ -19,8 +19,12 @@ export function splitTop(src) {
   let start = 0;
   for (let i = 0; i < src.length; i++) {
     const ch = src[i];
-    if ('([{<'.includes(ch)) depth++;
-    else if (')]}>'.includes(ch)) depth--;
+    // Угловые скобки НЕ считаем: стрелка «=>» в значении по умолчанию уводила глубину в
+    // минус, и запятые верхнего уровня переставали быть точками разреза — дефолт соседа
+    // терялся, а гейт краснел на ДРУГОМ пропе. Дженерики от этого не страдают: внутри них
+    // запятых верхнего уровня нет по построению.
+    if ('([{'.includes(ch)) depth++;
+    else if (')]}'.includes(ch)) depth--;
     else if (ch === ',' && depth === 0) {
       out.push(src.slice(start, i));
       start = i + 1;
@@ -42,22 +46,68 @@ export function interfacesOf(body) {
   const out = [];
   for (const m of body.matchAll(/export interface (\w+)Props[^{]*\{([\s\S]*?)\n\}/g)) {
     const [, name, block] = m;
+    // Разбор членов интерфейса. Однострочный регексп терял проп МОЛЧА на шести законных
+    // формах: многострочный union, многострочный колбэк, многострочный объектный тип,
+    // хвостовой комментарий, readonly, необязательный метод. Поэтому собираем объявление
+    // по строкам до «;» на нулевой глубине скобок — как это делает язык.
     const declared = [];
     let doc = '';
-    for (const raw of block.split('\n')) {
-      const line = raw.trimEnd();
-      const jsdoc = /^\s*\/\*\*\s*(.*?)\s*\*\/\s*$/.exec(line);
-      if (jsdoc) {
-        doc = jsdoc[1];
+    let buf = '';
+    let depth = 0;
+    const lines = block.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].replace(/\s+$/, '');
+      if (!buf) {
+        // JSDoc — одной строкой или блоком: подсказка ⓘ у пропа не должна исчезать
+        // только оттого, что её перенесли на три строки.
+        const oneLine = /^\s*\/\*\*\s*(.*?)\s*\*\/\s*$/.exec(line);
+        if (oneLine) {
+          doc = oneLine[1];
+          continue;
+        }
+        if (/^\s*\/\*\*/.test(line)) {
+          const parts = [line.replace(/^\s*\/\*\*/, '')];
+          while (!/\*\//.test(parts[parts.length - 1]) && i + 1 < lines.length) parts.push(lines[++i]);
+          doc = parts
+            .join('\n')
+            .replace(/\*\//, '')
+            .split('\n')
+            .map((x) => x.replace(/^\s*\*\s?/, '').trim())
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          continue;
+        }
+        if (/^\s*(\/\/|\/\*|\*)/.test(line)) continue;
+        if (!line.trim()) {
+          doc = '';
+          continue;
+        }
+      }
+      // хвостовой комментарий: «name?: string; // почему» — в языке это конец объявления
+      const noTail = line.replace(/\s*\/\/.*$/, '');
+      buf += (buf ? ' ' : '') + noTail.trim();
+      for (const ch of noTail) {
+        if ('([{<'.includes(ch)) depth++;
+        else if (')]}>'.includes(ch)) depth--;
+      }
+      if (depth > 0 || !/;\s*$/.test(buf)) continue;
+      const body = buf.replace(/;\s*$/, '').trim();
+      buf = '';
+      depth = 0;
+      // Индексная сигнатура — не проп: у неё нет имени, и в контракт ей нечего дать.
+      if (/^\[/.test(body)) {
+        doc = '';
         continue;
       }
-      if (/^\s*(\/\/|\/\*|\*)/.test(line)) continue;
-      const prop = /^\s{2}(\w+)\??:\s*(.+);\s*$/.exec(line);
-      if (!prop) {
-        if (line.trim()) doc = '';
+      // «readonly name?: T» и «name?(): T» — те же пропсы, что и обычные.
+      const m2 = /^(?:readonly\s+)?(\w+)\??\s*(\(.*)$/.exec(body) ?? /^(?:readonly\s+)?(\w+)\??:\s*([\s\S]+)$/.exec(body);
+      if (!m2) {
+        doc = '';
         continue;
       }
-      declared.push({ name: prop[1], type: prop[2].trim(), doc: doc || undefined });
+      const type = m2[2].startsWith('(') ? m2[2].replace(/^\((.*?)\)\s*:\s*/, '($1) => ') : m2[2];
+      declared.push({ name: m2[1], type: type.trim(), doc: doc || undefined });
       doc = '';
     }
 
@@ -82,3 +132,12 @@ export function interfacesOf(body) {
   }
   return out;
 }
+
+/**
+ * Имена, запрещённые словарём (CLAUDE.md, docs/design-system.md). Список ОДИН на оба
+ * гейта: ручная копия в check-props разошлась с источником ровно на слово «error» —
+ * в эталоне оно ловилось, в React-компонент его можно было завести беспрепятственно.
+ */
+export const BANNED_NAMES = new Set([
+  'active', 'on', 'onAccent', 'title', 'state', 'flat', 'snap', 'separator', 'embedded', 'error',
+]);

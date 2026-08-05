@@ -40,7 +40,7 @@ ExtraBlack 800–950. Без неё браузер возьмёт системн
 **Тема — атрибут на корне.** Базовая тёмная; светлая — `data-theme="light"` на `<html>`.
 
 **`ds.css` трогает глобальные селекторы:** `html`, `body`, `*`, `button`, `a`,
-`::placeholder` и `[aria-disabled] *`. Это осознанно — там живёт то, что инлайном не
+`::placeholder`, `input`/`select`/`textarea` (только `font-family`), `::view-transition-old(root)`/`::view-transition-new(root)` и `[aria-disabled] *`. Это осознанно — там живёт то, что инлайном не
 выражается (фокус, пресс, тултипы, `forced-colors`, `prefers-reduced-motion`, кейфреймы,
 сепараторы острова), — но если у сервиса есть свой глобальный ресет, порядок подключения
 решает.

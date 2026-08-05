@@ -256,7 +256,7 @@ export function Primitives({ id, icons, components }: { id: string; icons: strin
           <b style={{ fontWeight: 'var(--fw-medium)' }}>Приём двух каналов</b>
           <span style={{ color: 'var(--text-secondary)' }}>
             Весь текст, границы и наложения выведены из двух «чернильных» каналов — <code>--ink</code> и{' '}
-            <code>--danger-dim</code> — через запись <code>rgb(var(--ink) / .48)</code>. Поэтому светлая
+            <code>--tint</code> — через запись <code>rgb(var(--ink) / .48)</code>. Поэтому светлая
             тема переопределяет два токена вместо двенадцати.
           </span>
         </div>
@@ -505,7 +505,7 @@ export function Primitives({ id, icons, components }: { id: string; icons: strin
             <span>
               <Badge label={c.status} variant="quiet" tone={c.status === 'stable' ? 'ok' : 'warn'} />
             </span>
-            <span style={muted}>{c.mounts.length ? `монтирует: ${c.mounts.join(', ')}` : ''}</span>
+            <span style={muted}>{c.mounts.length ? `${c.mounts.join(', ')}` : ''}</span>
           </div>
         ))}
       </div>

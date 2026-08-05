@@ -207,13 +207,21 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(function Slider({
   const numText = editing ? (edit as string) : String(d.step % 1 ? v.toFixed(1) : v);
   const hasCycle = Array.isArray(options) && options.length > 0;
 
+  // Слитый ref МЕМОИЗИРОВАН. Инлайновый колбэк пересоздаётся на каждый рендер, и React
+  // честно зовёт старый с null, а новый с узлом — наружу уезжала череда «узел, null,
+  // узел». Для react-hook-form (заявленная причина, по которой ref вообще прокинут)
+  // ref(null) снимает поле с учёта: оно «размонтировалось» на каждое нажатие клавиши.
+  const mergedRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      el.current = node;
+      setRef(ref, node);
+    },
+    [ref]
+  );
   return (
     <div
       {...passThrough(rest)}
-      ref={(node) => {
-        el.current = node;
-        setRef(ref, node);
-      }}
+      ref={mergedRef}
       onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
         // Тянет ТОЛЬКО основная кнопка. Правая открывает контекстное меню, средняя клеит
         // из буфера — и то, и другое утаскивало значение к курсору, а отпускание своего

@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, forwardRef, useRef, useState, type ClipboardEvent, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
@@ -99,13 +99,21 @@ export const Input = forwardRef<HTMLLabelElement, InputProps>(function Input({
   const font = 'var(--font-ui)';
   const fs = 'var(--fs-m)';
 
+  // Слитый ref МЕМОИЗИРОВАН. Инлайновый колбэк пересоздаётся на каждый рендер, и React
+  // честно зовёт старый с null, а новый с узлом — наружу уезжала череда «узел, null,
+  // узел». Для react-hook-form (заявленная причина, по которой ref вообще прокинут)
+  // ref(null) снимает поле с учёта: оно «размонтировалось» на каждое нажатие клавиши.
+  const mergedRef = useCallback(
+    (el: HTMLLabelElement | null) => {
+      box.current = el;
+      setRef(ref, el);
+    },
+    [ref]
+  );
   return (
     <label
       {...passThrough(rest)}
-      ref={(el) => {
-        box.current = el;
-        setRef(ref, el);
-      }}
+      ref={mergedRef}
       // data-field — хук ds.css: пресс поля, forced-colors и общие переходы
       data-field={bare ? undefined : 'true'}
       data-disabled={disabled ? 'true' : 'false'}

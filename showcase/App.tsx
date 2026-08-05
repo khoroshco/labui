@@ -50,7 +50,7 @@ function SectionBody({ section }: { section: Section }) {
     const Live = LIVE[section.id];
     return (
       <div style={{ display: 'grid', gap: 'var(--sp-6)' }}>
-        <Playground spec={spec} Component={Component} icons={api.icons} sectionId={section.id} />
+        <Playground spec={spec} Component={Component} sectionId={section.id} />
         {Live ? <Live /> : null}
       </div>
     );

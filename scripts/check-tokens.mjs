@@ -60,7 +60,7 @@ for (const { file, body } of reactSources()) {
 // ds.css живёт по тем же правилам в части цвета и движения: это глобальные состояния
 // системы, а не место для «просто подкрасить».
 const dsCss = fs.readFileSync(path.join(ROOT, 'src/ds.css'), 'utf8').replace(/@font-face\s*\{[^}]*\}/g, '');
-for (const { re, what } of RULES.slice(0, 4)) {
+for (const { re, what } of RULES) {
   for (const m of dsCss.matchAll(re)) {
     const line = dsCss.slice(0, m.index).split('\n').length;
     problems.push(`src/ds.css:~${line} — ${what}: ${JSON.stringify(m[0])}`);

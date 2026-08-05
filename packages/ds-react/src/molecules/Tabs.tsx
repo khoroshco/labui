@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type KeyboardEvent } from 'react';
+import { useCallback, forwardRef, type CSSProperties, type KeyboardEvent } from 'react';
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { useControlled, useTrackActive } from '../lib/hooks.js';
@@ -48,13 +48,21 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs({ option
     box.current?.querySelectorAll('button')[next]?.focus();
   };
 
+  // Слитый ref МЕМОИЗИРОВАН. Инлайновый колбэк пересоздаётся на каждый рендер, и React
+  // честно зовёт старый с null, а новый с узлом — наружу уезжала череда «узел, null,
+  // узел». Для react-hook-form (заявленная причина, по которой ref вообще прокинут)
+  // ref(null) снимает поле с учёта: оно «размонтировалось» на каждое нажатие клавиши.
+  const mergedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      box.current = el;
+      setRef(ref, el);
+    },
+    [ref]
+  );
   return (
     <div
       {...passThrough(rest)}
-      ref={(el) => {
-        box.current = el;
-        setRef(ref, el);
-      }}
+      ref={mergedRef}
       role="tablist"
       onKeyDown={keyNav}
       style={{ display: 'flex', gap: 'var(--sp-5)', borderBottom: '1px solid var(--border-subtle)', position: 'relative', ...style }}
