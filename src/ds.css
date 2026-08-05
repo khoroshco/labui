@@ -3,11 +3,10 @@
 @font-face { font-family:'Unica 77'; src:url('fonts/Unica77LLCyr-Medium.otf') format('opentype'); font-weight:451 700; font-style:normal; }
 @font-face { font-family:'Unica 77'; src:url('fonts/Unica77LLCyr-ExtraBlack.otf') format('opentype'); font-weight:800 950; font-style:normal; }
 html, body { margin:0; padding:0; background:var(--bg-base); color:var(--text-primary); font-family:var(--font-ui); font-weight:var(--fw-regular); font-size:var(--fs-m); line-height:var(--lh-text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
-/* Оптика числового набора. У цифр нет выносных элементов, поэтому их чернильное пятно
-   сидит выше в строковом боксе, чем у прозы: замер по глифам Unica при --lh-ui даёт
-   разницу ~0.7px. Признак тот же, что у табличных цифр — хук data-nums: одно объявление
-   «это числовой набор» включает и равную ширину знаков, и свою оптическую компенсацию.
-   Значение контекстно (зависит от кегля и интерлиньяжа) и потому литерал, не токен. */
+/* Табличные цифры — по явному хуку data-nums: у Unica tnum делает табличным и ПРОБЕЛ
+   (в инпутах разъезжались даже плейсхолдеры). Оптическая компенсация числового набора
+   живёт НЕ здесь, а в компоненте: она зависит от содержимого (Input.tsx), и правило
+   файла об этом ничего не знает. */
 input, select, textarea, button { font-family:inherit; }
 /* табличные цифры — ТОЛЬКО по явному хуку data-nums: у Unica tnum делает табличным и ПРОБЕЛ (в инпутах разъезжались даже плейсхолдеры) */
 [data-nums], [data-nums] input { font-variant-numeric:tabular-nums; }
@@ -39,7 +38,7 @@ button:disabled { cursor:not-allowed; }
    outline-offset даёт настоящий зазор и, как и тень, не меняет размер элемента.
    Ряды острова и слайдер обрезаны overflow:hidden — им остаётся inset-вариант.
    ============================================================ */
-html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible, html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-ring-offset); box-shadow:none; }
+html[data-modality="kb"] button:focus-visible, html[data-modality="kb"] a:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-ring-offset); box-shadow:none; }
 button:focus, select:focus { outline:none; }
 [data-field] { transition:border-color .12s, box-shadow .12s, background .12s, transform .35s var(--ease-spring); }
 [data-field]:active { transform:scale(var(--press-soft)); transition-duration:.12s,.12s,.12s,.1s; }
@@ -88,26 +87,30 @@ button:focus, select:focus { outline:none; }
 /* ховер и пресс — только у живого поля: disabled не подсвечивается, а ошибка и фокус не перекрашиваются в серый */
 [data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong) !important; }
 [data-field][data-disabled="true"]:active { transform:none; }
-[data-field]:focus-within { border-color:var(--focus); box-shadow:inset 0 0 0 1px var(--focus); }
+/* !important по той же причине, что у ховеров: рамку и тень компонент пишет инлайном.
+   Без пометки правило было мёртвым, и переезд на --focus доехал только до React —
+   эталон продолжал рисовать фокус поля жёлтым (~1.6:1 на белой карточке при норме 3:1).
+   :not([data-invalid]) — ошибка важнее фокуса и цветом не перекрашивается. */
+[data-field]:focus-within:not([data-invalid="true"]) { border-color:var(--focus) !important; box-shadow:inset 0 0 0 1px var(--focus) !important; }
 /* Ховер сфокусированного поля своего правила не имеет и не нуждается в нём: правило выше
    исключено через :not(:focus-within), а акцентную рамку сфокусированное поле уже несёт
    само. Отдельная строка [data-field]:focus-within:hover была ровно этим значением
    поверх того же значения — мёртвой по построению. */
-[data-field] input:focus-visible, [data-field] select:focus-visible { outline:none; box-shadow:none; }
+[data-field] input:focus-visible { outline:none; box-shadow:none; }
 [data-row] { transition:transform .35s var(--ease-spring); }
 [data-row]:active { transform:scale(var(--press-soft)); }
 /* ховер/пресс/kb-фокус ряда: тон всегда несёт обёртка-маунт (зона под рядом), сам ряд не красится — при scale-прессе и пружинном возврате края не мигают */
 [data-island] > :not([data-row]) { transition:background .15s ease; }
 [data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):hover), [data-island] > :not([data-row]):has([data-row]:not([data-disabled="true"]):active), html[data-modality="kb"] [data-island] > :not([data-row]):has([data-row]:focus-visible) { background:var(--bg-hover); }
 [data-island] > :not([data-row]):has([data-row][data-invalid="true"]) { background:var(--danger-dim); }
-[data-row] input, [data-row] select, [data-row] textarea { outline:none; box-shadow:none; }
+[data-row] input, [data-row] textarea { outline:none; box-shadow:none; }
 html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* Слой-виджет слайдера: кольцо inset, потому что корень слайдера режет overflow'ом — та же причина, что у рядов острова. Геометрия кольца не меняется: слой лежит inset:0. */
 html[data-modality="kb"] [data-slider]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* кольцо ряда — ТОЛЬКО когда внутри реально сфокусирован текстовый ввод; залётный фокус ряда мышью кольца не даёт */
 [data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); }
 [data-row]:focus-visible, [data-row]:focus-within { outline:none; }
-html[data-modality="kb"] [data-row]:focus-visible, html[data-modality="kb"] [data-row]:focus-within, html[data-modality="kb"] [data-row] input:focus-visible, html[data-modality="kb"] [data-row] select:focus-visible { outline:none; }
+html[data-modality="kb"] [data-row]:focus-visible, html[data-modality="kb"] [data-row]:focus-within, html[data-modality="kb"] [data-row] input:focus-visible { outline:none; }
 /* Сепаратор рисует ОБЁРТКА-маунт, а не ряд: у ряда границы нет вовсе, и гашение,
    написанное по нему, не делало ничего — линии перечёркивали inset-кольцо сверху и снизу.
    Гасим на обёртке сфокусированного ряда и на следующей за ней. */
@@ -145,9 +148,10 @@ html[data-modality="kb"] [role="slider"]:focus-visible { outline:none; box-shado
 label[tabindex], [data-row][tabindex] { transition:transform .35s var(--ease-spring); }
 label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
 [data-row][tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active { transform:scale(var(--press-label)); }
-@media (pointer: coarse) { input, select { font-size:var(--fs-l) !important; } }
-/* Нумерованный список в документации: номер — служебный тон и кегль, он ориентир,
-   а не содержание, и не должен конкурировать с фразой. ::marker инлайном не задать. */
+/* Кегль ввода на таче — ТОЛЬКО у полей системы. Раньше селектор был глобальным, и
+   !important переопределял кегль ЛЮБОГО инпута потребителя, включая инлайновый: отбить
+   можно было только своим !important. Система не вправе так распоряжаться чужой формой. */
+@media (pointer: coarse) { [data-field] input, [data-field] select, [data-row] input, [data-slider] ~ * input { font-size:var(--fs-l) !important; } }
 /* Раскрывашка секции: пресс есть у каждого интерактивного элемента системы.
    Заголовок широкий, поэтому масштаб мельче края шкалы (.99 у plain против .97 у
    компактной рубрики) — иначе крупный блок «дышит» слишком заметно. */
@@ -199,7 +203,7 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
 [data-hit="l"]::after { left:-12px; right:-12px; }
 /* тултип: атрибут data-tooltip на любом элементе; задержка 450 мс, на таче скрыт; браузерный title не используем */
 [data-tooltip] { position:relative; }
-[data-tooltip]:not([data-tooltip=""])::before { content:attr(data-tooltip); position:absolute; bottom:calc(100% + 7px); inset-inline-start:50%; transform:translateX(-50%) translateY(3px) scale(.96); background:var(--inverse-bg); color:var(--inverse-text); font-family:var(--font-ui); font-weight:var(--fw-medium); font-size:var(--fs-xs); line-height:1; padding:6px 6px 5px; border-radius:var(--r-s); white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .12s ease, transform .15s var(--ease-in); z-index:200; box-shadow:var(--shadow-sm); }
+[data-tooltip]:not([data-tooltip=""])::before { content:attr(data-tooltip); position:absolute; bottom:calc(100% + 7px); inset-inline-start:50%; transform:translateX(-50%) translateY(3px) scale(.96); background:var(--inverse-bg); color:var(--inverse-text); font-family:var(--font-ui); font-weight:var(--fw-medium); font-size:var(--fs-xs); line-height:var(--lh-flat); padding:6px 6px 5px; border-radius:var(--r-s); white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .12s ease, transform .15s var(--ease-in); z-index:200; box-shadow:var(--shadow-sm); }
 [data-tooltip]:not([data-tooltip=""]):hover::before, html[data-modality="kb"] [data-tooltip]:not([data-tooltip=""]):focus-visible::before { opacity:1; transform:translateX(-50%) translateY(0) scale(1); transition:opacity .15s ease, transform .3s var(--ease-spring); transition-delay:.45s; }
 @media (pointer: coarse) { [data-tooltip]::before { display:none; } }
 /* плавная смена темы: View Transitions (GPU-кроссфейд, ставит логика) с фолбэком на data-theme-anim */
@@ -286,7 +290,9 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
   /* 5. Скользящая пилюля OptionGroup/Segments: выбранная опция читается заливкой Highlight */
   [data-pill] { background:Highlight !important; }
   [data-opt][aria-checked="true"] { color:Canvas !important; }
-  [data-opt]:active { background:transparent !important; }
+  /* Специфичность должна быть НЕ НИЖЕ живого правила ниже по файлу: с равным !important
+     побеждает более специфичный селектор, и сброс не срабатывал вовсе. */
+  [data-opt]:not(:disabled):active { background:transparent !important; }
   /* 6. Disabled — системный GrayText */
   button:disabled, [data-row][data-disabled="true"], [data-row][data-disabled="true"] * { color:GrayText !important; }
   /* 7. Тон зоны под рядом (ховер/ошибка) вырезан — ошибку показываем рамкой */

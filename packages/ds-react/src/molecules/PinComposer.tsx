@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, forwardRef, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Avatar } from '../atoms/Avatar.js';
@@ -79,13 +79,21 @@ export const PinComposer = forwardRef<HTMLDivElement, PinComposerProps>(function
     else onCancel?.();
   };
 
+  // Слитый ref МЕМОИЗИРОВАН. Инлайновый колбэк пересоздаётся на каждый рендер, и React
+  // честно зовёт старый с null, а новый с узлом — наружу уезжала череда «узел, null,
+  // узел». Для react-hook-form (заявленная причина, по которой ref вообще прокинут)
+  // ref(null) снимает поле с учёта: оно «размонтировалось» на каждое нажатие клавиши.
+  const mergedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      root.current = el;
+      setRef(ref, el);
+    },
+    [ref]
+  );
   return (
     <div
       {...passThrough(rest)}
-      ref={(el) => {
-        root.current = el;
-        setRef(ref, el);
-      }}
+      ref={mergedRef}
       style={{
         display: 'flex',
         alignItems: 'center',

@@ -98,7 +98,6 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Toast', p: { text: "Ревизия r15 собирается…", level: "info" } },
     { c: 'Toast', p: { text: "erid не заполнен у 3 форматов", level: "warn", actionLabel: "Показать" } },
     { c: 'Toast', p: { text: "Block: вес 412 КБ — площадка отклонит", level: "danger", actionLabel: "Открыть" } },
-    { c: 'Button', p: { label: "Показать тост", variant: "secondary", size: "s" } },
   ],
   island: [
     { c: 'Island', p: { rows: islandA } },

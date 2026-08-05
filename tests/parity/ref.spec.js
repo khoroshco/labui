@@ -8,8 +8,9 @@
  * он не атрибут, разметка с ним и без него одинакова, снимок тем более. Ошибка вида «ref
  * приняли, но никуда не поставили» прошла бы молча и обнаружилась бы у потребителя.
  *
- * Сверяем не «ref не пустой», а ТЕГ: узел обязан быть корнем компонента, а не любым
- * элементом внутри. Корень — первый элемент внутри .sc-host.
+ * Сверяем ТОЖДЕСТВО узла, а не имя тега: ref, уехавший на внутренний элемент того же тега
+ * (корень острова против обёртки первого ряда — оба div), при сверке по тегу проходил.
+ * Сравнение делается ВНУТРИ страницы: через границу теста узел не переносится.
  */
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
@@ -24,6 +25,7 @@ const migrated = JSON.parse(readFileSync(path.join(ROOT, 'packages/ds-react/migr
 test('каждый компонент отдаёт ref своего корня', async ({ page }) => {
   test.setTimeout(180_000);
   const problems = [];
+  let checked = 0;
   for (const name of migrated) {
     const props = sharedProps(name, api);
     const q = `&props=${encodeURIComponent(JSON.stringify(props))}`;
@@ -31,14 +33,24 @@ test('каждый компонент отдаёт ref своего корня',
     await page.waitForSelector('#dc-root .sc-host', { state: 'attached' });
     await parkMouse(page);
     const got = await page.evaluate(() => {
-      const w = window;
-      const root = document.querySelector('#dc-root .sc-host')?.firstElementChild;
-      return { ref: w.__refTag ?? null, root: root ? root.tagName.toLowerCase() : null };
+      const node = window.__refNode ?? null;
+      const root = document.querySelector('#dc-root .sc-host')?.firstElementChild ?? null;
+      return {
+        same: !!node && node === root,
+        ref: node ? `${node.tagName?.toLowerCase()}${node.className ? '.' + String(node.className).slice(0, 20) : ''}` : 'ничего',
+        root: root ? root.tagName.toLowerCase() : null,
+      };
     });
-    if (!got.root) continue; // компонент имеет право отрисовать пусто (RowMsg без сообщения)
-    if (got.ref !== got.root) {
-      problems.push(`${name}: ref отдал «${got.ref ?? 'ничего'}», а корень — «${got.root}»`);
+    if (!got.root) {
+      // Пусто — не повод пропустить молча: компонент, который однажды перестанет рисовать
+      // корень, ушёл бы из гейта без следа. Считаем это находкой и требуем объяснения.
+      problems.push(`${name}: компонент не отрисовал корня — проверять ref не на чем`);
+      continue;
     }
+    checked += 1;
+    if (!got.same) problems.push(`${name}: ref отдал «${got.ref}», а корень — «${got.root}»`);
   }
+  // Страховка от тихой пустоты: гейт обязан знать, скольких он проверил.
+  expect(checked, 'проверено меньше компонентов, чем перенесено — часть выпала из гейта молча').toBe(migrated.length);
   expect(problems, 'ref обязан приезжать на корень компонента:\n  ' + problems.join('\n  ')).toEqual([]);
 });

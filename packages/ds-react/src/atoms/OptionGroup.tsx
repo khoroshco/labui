@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, forwardRef, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
@@ -55,13 +55,21 @@ export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function
     btns?.[next]?.focus();
   };
 
+  // Слитый ref МЕМОИЗИРОВАН. Инлайновый колбэк пересоздаётся на каждый рендер, и React
+  // честно зовёт старый с null, а новый с узлом — наружу уезжала череда «узел, null,
+  // узел». Для react-hook-form (заявленная причина, по которой ref вообще прокинут)
+  // ref(null) снимает поле с учёта: оно «размонтировалось» на каждое нажатие клавиши.
+  const mergedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      box.current = el;
+      setRef(ref, el);
+    },
+    [ref]
+  );
   return (
     <div
       {...passThrough(rest)}
-      ref={(el) => {
-        box.current = el;
-        setRef(ref, el);
-      }}
+      ref={mergedRef}
       role="radiogroup"
       aria-label={ariaLabel || undefined}
       onKeyDown={keyNav}

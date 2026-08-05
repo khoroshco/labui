@@ -245,7 +245,7 @@ export function EridIsland() {
       value: text,
       nums: true,
       placeholder: 'токен маркировки',
-      msgLevel: level === 'ok' ? 'ok' : level,
+      msgLevel: level,
       msg:
         level === 'warn'
           ? 'Без erid формат получит пометку «требует внимания» на приёмке'

@@ -33,14 +33,13 @@ export interface ComponentSpec {
 interface Props {
   spec: ComponentSpec;
   Component: React.ComponentType<Record<string, unknown>>;
-  icons: string[];
   /** id раздела витрины: под ним лежат статичные примеры */
   sectionId: string;
 }
 
 const registry = DS as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
 
-export function Playground({ spec, Component, icons, sectionId }: Props) {
+export function Playground({ spec, Component, sectionId }: Props) {
   const demo = DEMO[spec.name] ?? {};
   const [state, setState] = useState<Record<string, unknown>>(() => ({ ...demo }));
 

@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { components, reactSources, report, ROOT, showcase } from './lib/dc.mjs';
-import { interfacesOf } from './lib/tsx.mjs';
+import { BANNED_NAMES, interfacesOf } from './lib/tsx.mjs';
 
 const api = JSON.parse(fs.readFileSync(path.join(ROOT, 'api.json'), 'utf8'));
 
@@ -57,7 +57,7 @@ for (const c of components()) {
 // Три гейта (этот, lint:api и словарь имён) читали ТОЛЬКО замороженный эталон — то есть
 // физически не могли покраснеть от новой работы. В React-компонент можно было завести
 // проп title (имя прямо запрещено словарём) или объявить проп и не читать его.
-const BANNED_NAMES = new Set(['active', 'on', 'onAccent', 'title', 'state', 'flat', 'snap', 'separator', 'embedded']);
+
 const REACT_BUILTIN = new Set(['children', 'className', 'id', 'style']);
 
 for (const { file, body } of reactSources()) {
@@ -82,6 +82,18 @@ for (const { file, body } of reactSources()) {
       }
       if (taken && !taken.has(name) && !REACT_BUILTIN.has(name)) {
         problems.push(`${file} — проп «${name}» объявлен в ${iface}, но не разбирается компонентом: канал есть, а действия нет`);
+        continue;
+      }
+      // Разобран ≠ прочитан. Шапка обещает «объявлен → обязан читаться», а проверялось
+      // только попадание в деструктуризацию: проп можно было объявить, разобрать и
+      // не тронуть — все гейты зелёные. Ищем упоминание в ТЕЛЕ после сигнатуры.
+      if (taken && !REACT_BUILTIN.has(name)) {
+        const start = body.indexOf(`}: ${iface}`) + 1 || body.indexOf(`${iface}>(function`) + 1;
+        const rest = start ? body.slice(start) : body;
+        const used = new RegExp(`\\b${name}\\b`).test(rest.replace(new RegExp(`^[\\s\\S]*?\\bref\\)`), ''));
+        if (!used) {
+          problems.push(`${file} — проп «${name}» разобран, но нигде не читается: канал есть, действия нет`);
+        }
       }
     }
   }

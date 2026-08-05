@@ -35,12 +35,27 @@ const token = (page, name, prop = 'color') =>
 
 for (const theme of ['dark', 'light']) {
   test(`кольцо фокуса контрастно обеим поверхностям ≥ ${AA_NON_TEXT}:1 (${theme})`, async ({ page }) => {
-    await open(page, 'Button', null, { theme });
+    await open(page, 'Button', { label: 'Выгрузить' }, { theme });
     // Несуществующий токен разворачивается в наследуемый цвет и проверка зеленеет на
     // пустоте: сперва убеждаемся, что он вообще объявлен.
     const declared = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--focus').trim());
     expect(declared, 'у фокуса обязан быть СВОЙ токен: кольцо не может делить цвет с акцентной заливкой').not.toBe('');
-    const ring = parseColor(await token(page, '--focus'));
+
+    // Мерим НАРИСОВАННОЕ кольцо, а не токен. Проверка на токене зеленела, когда цвет
+    // подменяли на уровне --focus-ring: кольцо становилось цветом полотна (контраст 1:1),
+    // индикатора фокуса не было вовсе, а все 135 тестов доступности проходили. Гейт обязан
+    // мерить следствие — то, что видит человек.
+    const btn = page.locator('#dc-root [data-btn]');
+    await page.keyboard.press('Tab'); // клавиатурная модальность
+    await btn.focus();
+    const painted = await btn.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { color: cs.outlineColor, width: parseFloat(cs.outlineWidth), style: cs.outlineStyle };
+    });
+    expect(painted.width, 'кольцо не нарисовано вовсе').toBeGreaterThan(0);
+    expect(painted.style, 'невидимый стиль обводки — это отсутствие кольца').not.toBe('none');
+    expect(painted.color, 'кольцо обязано быть набрано токеном фокуса, а не чем придётся').toBe(await token(page, '--focus'));
+    const ring = parseColor(painted.color);
     for (const surface of ['--bg-base', '--bg-surface', '--bg-float']) {
       const bg = parseColor(await token(page, surface, 'background-color'));
       const ratio = contrast(flatten(ring, bg), bg);

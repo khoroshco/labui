@@ -51,8 +51,11 @@ function draw() {
   const extra = wantRef
     ? {
         ref: (node: unknown) => {
-          const w = window as unknown as { __refTag?: string | null };
-          w.__refTag = node && (node as HTMLElement).tagName ? (node as HTMLElement).tagName.toLowerCase() : null;
+          // Кладём САМ УЗЕЛ, а не его тег. Сверка по имени тега пропускает ref, уехавший
+          // на внутренний элемент того же тега (корень острова против обёртки ряда — оба
+          // div): гейт зеленел на дефекте, ради которого написан.
+          const w = window as unknown as { __refNode?: unknown };
+          w.__refNode = node ?? null;
         },
       }
     : {};
