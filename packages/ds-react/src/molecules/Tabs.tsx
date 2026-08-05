@@ -40,6 +40,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs({ option
   const { box, rect } = useTrackActive(active, [n]);
 
   const keyNav = (e: KeyboardEvent) => {
+    // Модификатор означает системное сочетание: Ctrl+стрелка — вкладки браузера,
+    // Alt+стрелка — история. preventDefault не глядя на них съедал и то, и другое.
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
     const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? 'home' : e.key === 'End' ? 'end' : 0;
     if (!dir || !n) return; // без вкладок переключать нечего, а % 0 даёт NaN
     e.preventDefault();

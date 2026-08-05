@@ -37,7 +37,7 @@ const KNOWN_STATES = LEDGER.states ?? {};
  *   — <g-icon> и React-иконка — один и тот же инлайновый svg с одинаковой рамкой;
  *   — data-track-item — хук нового трекера подложки, у эталона аналога нет.
  */
-const SIGNATURE = `() => {
+const SIGNATURE = `(component) => {
   const root = document.querySelector('#dc-root');
   const rootBox = root.getBoundingClientRect();
   const out = [];
@@ -70,12 +70,34 @@ const SIGNATURE = `() => {
     const cs = getComputedStyle(el);
     if (cs.display === 'none') continue;
     const attrs = {};
+    let wired = false; // у узла есть связь ARIA — сам он значим, но связь не сравнивается
     for (const a of el.attributes) {
       // data-dc-tpl и data-sc-name — бухгалтерия рантайма DC (номер шаблона и имя
       // смонтированного компонента), у React аналога нет и быть не должно
       if (/^(data-dc-tpl|data-sc-name|class|style|id|aria-controls|data-track-item)$/.test(a.name)) continue;
+      // aria-describedby / aria-labelledby / aria-controls — ПЯТОЕ осознанное расхождение.
+      // Это связи между узлами, и их значения — идентификаторы, сгенерированные React:
+      // сравнивать их с эталоном нечем даже теоретически. Сами связи эталон получить не
+      // может (заморожен тегом ds-reference-v0), а без них диктор на возврате в поле
+      // говорит «недопустимое значение» и не говорит почему. Держит их отдельный гейт —
+      // tests/a11y/wiring.spec.js, который проверяет, что ссылка ведёт в существующий
+      // узел с ожидаемым текстом. Здесь мы их только не сравниваем.
+      // Значение — сгенерированный идентификатор, сравнивать его с эталоном нечем, да и
+      // самой связи у эталона нет. Но узел, у которого этот атрибут единственный, нельзя
+      // просто выбросить: он тут же перестанет считаться значимым и выпадет из переписи
+      // (эталон 11 узлов, React 10). Поэтому связь не сравниваем, а узел помечаем значимым.
+      const WIRING = a.name === 'aria-describedby' || a.name === 'aria-labelledby' || a.name === 'aria-controls';
+      // ЖИВАЯ ОБЛАСТЬ СООБЩЕНИЯ — шестое осознанное расхождение, и только у RowMsg.
+      // Эталон объявляет ошибку через role=alert / aria-live=assertive. Три невалидных
+      // ряда давали три объявления в один тик: они перебивали друг друга и всё, что
+      // диктор читал, а при возврате в поле не звучало ничего — связи с контролом не было.
+      // React связывает сообщение с контролом (aria-describedby) и живой области не имеет.
+      // Эталон заморожен и связь получить не может. Правильность связи держит
+      // tests/a11y/wiring.spec.js; здесь мы её только не сравниваем, и ТОЛЬКО у RowMsg.
+      if (component === 'RowMsg' && (a.name === 'aria-live' || (a.name === 'role' && (a.value === 'alert' || a.value === 'status')))) continue;
       const meaningful = a.name === 'role' || a.name === 'tabindex' || a.name === 'disabled' || a.name === 'type' || a.name === 'inert' || a.name.startsWith('aria-') || a.name.startsWith('data-');
       if (!meaningful) continue;
+      if (WIRING) { wired = true; continue; }
       const inert = INERT[a.name];
       if (inert !== undefined && (Array.isArray(inert) ? inert.includes(a.value) : inert === a.value)) continue;
       attrs[a.name] = a.value;
@@ -104,7 +126,7 @@ const SIGNATURE = `() => {
       cs.backgroundImage !== 'none' ||
       cs.boxShadow !== 'none' ||
       parseFloat(cs.borderTopWidth) + parseFloat(cs.borderRightWidth) + parseFloat(cs.borderBottomWidth) + parseFloat(cs.borderLeftWidth) > 0;
-    if (!Object.keys(attrs).length && !text && !paints && (tag === 'div' || tag === 'span')) continue;
+    if (!Object.keys(attrs).length && !text && !paints && !wired && (tag === 'div' || tag === 'span')) continue;
     const b = el.getBoundingClientRect();
     // КРАСКА сравнивается точно. До этого её не сверял НИКТО: style из подписи выброшен
     // (в React все стили инлайновые, то есть вся палитра лежит именно там), а бюджет
@@ -158,9 +180,9 @@ for (const name of migrated) {
     test(`${name} · ${theme}: разметка и геометрия совпадают с эталоном`, async ({ page }) => {
       const props = propsFor(name);
       await open(page, name, props, { theme, impl: 'dc' });
-      const dc = await page.evaluate(`(${SIGNATURE})()`);
+      const dc = await page.evaluate(`(${SIGNATURE})(${JSON.stringify(name)})`);
       await open(page, name, props, { theme, impl: 'react' });
-      const react = await page.evaluate(`(${SIGNATURE})()`);
+      const react = await page.evaluate(`(${SIGNATURE})(${JSON.stringify(name)})`);
 
       expect(react.length, `${name}: другое число узлов (эталон ${dc.length}, React ${react.length})`).toBe(dc.length);
 
@@ -243,7 +265,7 @@ for (const name of migrated) {
     // Гейт, который принимает несостоявшееся измерение за результат, хуже отсутствующего.
     const sign = async (impl, props) => {
       await open(page, name, props, { theme: 'dark', impl });
-      return page.evaluate(`(${SIGNATURE})()`);
+      return page.evaluate(`(${SIGNATURE})(${JSON.stringify(name)})`);
     };
 
     for (const [label, extra] of states) {

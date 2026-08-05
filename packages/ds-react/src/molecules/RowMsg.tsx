@@ -6,6 +6,8 @@ import { Icon } from '../lib/Icon.js';
 export type MsgLevel = 'ok' | 'warn' | 'danger';
 
 export interface RowMsgProps extends PassThrough {
+  /** Идентификатор ТЕКСТА: по нему на сообщение ссылается контрол через aria-describedby. */
+  id?: string;
   text?: string;
   level?: MsgLevel;
   style?: CSSProperties;
@@ -18,7 +20,7 @@ export interface RowMsgProps extends PassThrough {
  * как выглядела открытой. Поэтому последний показанный уровень и текст запоминаются:
  * иначе ok проваливался в ветку danger и на 200 мс краснел, а текст исчезал мгновенно.
  */
-export const RowMsg = forwardRef<HTMLSpanElement, RowMsgProps>(function RowMsg({ text = '', level = 'ok', style,
+export const RowMsg = forwardRef<HTMLSpanElement, RowMsgProps>(function RowMsg({ id, text = '', level = 'ok', style,
   ...rest
 }, ref) {
   const open = !!text && (level === 'danger' || level === 'warn');
@@ -50,8 +52,19 @@ export const RowMsg = forwardRef<HTMLSpanElement, RowMsgProps>(function RowMsg({
         <span
           // ошибка озвучивается при появлении; закрытое сообщение живой областью быть
           // перестаёт — иначе уходящий текст переозвучивался бы после исправления
-          role={!open ? 'presentation' : level === 'danger' ? 'alert' : 'status'}
-          aria-live={!open ? 'off' : level === 'danger' ? 'assertive' : 'polite'}
+          id={id}
+          /* Закрытое сообщение остаётся presentation, как было: оно под inert, роль ему
+             не нужна, а совпадение с эталоном в состоянии покоя сохраняется.
+             ОТКРЫТОЕ живой областью БОЛЬШЕ НЕ ЯВЛЯЕТСЯ. */
+          role={!open ? 'presentation' : undefined}
+          aria-live={!open ? 'off' : undefined}
+          /* ЖИВОЙ ОБЛАСТИ ЗДЕСЬ НЕТ, и это решение, а не пропуск. Три невалидных ряда в
+             острове давали три assertive-объявления в один тик: они перебивали друг друга
+             и всё, что диктор читал в этот момент, а вернувшись в поле, человек не слышал
+             ничего — текст с контролом связан не был. Теперь связь есть (aria-describedby):
+             ошибка звучит при фокусе, ровно одна за раз, и звучит ПОВТОРНО при возврате.
+             Живая область так не умеет: прозвучала один раз и исчезла. Тем же путём идёт
+             Base UI — «assertive» не встречается у них во всей библиотеке. */
           style={{
             display: 'flex',
             alignItems: 'flex-start',

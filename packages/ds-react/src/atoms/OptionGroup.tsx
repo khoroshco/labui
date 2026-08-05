@@ -15,6 +15,8 @@ export interface OptionGroupProps extends PassThrough {
   value?: number;
   defaultValue?: number;
   ariaLabel?: string;
+  /** Ссылка на подпись, а не её копия: имя группы живёт в одном месте. */
+  ariaLabelledBy?: string;
   disabled?: boolean;
   onChange?: (index: number) => void;
   style?: CSSProperties;
@@ -34,6 +36,7 @@ export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function
   value,
   defaultValue = 0,
   ariaLabel,
+  ariaLabelledBy,
   disabled = false,
   onChange,
   style,
@@ -46,6 +49,9 @@ export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function
 
   const keyNav = (e: KeyboardEvent) => {
     if (disabled) return;
+    // Модификатор означает системное сочетание: Ctrl+стрелка — вкладки браузера,
+    // Alt+стрелка — история. preventDefault не глядя на них съедал и то, и другое.
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
     const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
     if (!dir || !n) return;
     e.preventDefault();
@@ -72,6 +78,7 @@ export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function
       ref={mergedRef}
       role="radiogroup"
       aria-label={ariaLabel || undefined}
+      aria-labelledby={ariaLabelledBy || undefined}
       onKeyDown={keyNav}
       style={{ display: 'inline-flex', gap: 'var(--sp-05)', position: 'relative', ...style }}
     >

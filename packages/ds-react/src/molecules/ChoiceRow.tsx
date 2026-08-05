@@ -1,4 +1,4 @@
-import { forwardRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import { forwardRef, useId, useState, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { OptionGroup, type OptionItem } from '../atoms/OptionGroup.js';
 import { RowInfo } from './RowInfo.js';
@@ -38,6 +38,11 @@ export const ChoiceRow = forwardRef<HTMLDivElement, ChoiceRowProps>(function Cho
   ...rest
 }, ref) {
   const [infoOpen, setInfoOpen] = useState(false);
+  // Имя группы. Без него диктор говорит «Растр, переключатель, 1 из 2» — а ЧЕГО, неизвестно:
+  // лейбл ряда лежит в двух узлах и группе неизвестен. axe этого не ловит, имя у radiogroup
+  // формально необязательно. Приём взят у Base UI: RadioGroup берёт aria-labelledby у
+  // подписи поля, а не копирует её текстом.
+  const labelId = `${useId()}-label`;
   const hasInfo = !!info;
   const open = hasInfo && infoOpen;
 
@@ -62,7 +67,7 @@ export const ChoiceRow = forwardRef<HTMLDivElement, ChoiceRowProps>(function Cho
           cursor: hasInfo && !disabled ? 'pointer' : 'default',
         }}
       >
-        <RowLabel label={label} hasInfo={hasInfo} open={open} onToggle={() => setInfoOpen((v) => !v)} style={{ flex: 'none' }} />
+        <RowLabel labelId={labelId} label={label} hasInfo={hasInfo} open={open} onToggle={() => setInfoOpen((v) => !v)} style={{ flex: 'none' }} />
         {/* Ряд 52px, группа 36px: сверху и снизу оставалось по 8px ничьей зоны, и клик
             туда доставался ряду. Зона контрола растянута на высоту ряда и клики наружу
             не пускает — промах мимо опции не делает чужого действия. */}
@@ -71,6 +76,7 @@ export const ChoiceRow = forwardRef<HTMLDivElement, ChoiceRowProps>(function Cho
           style={{ display: 'flex', alignItems: 'center', alignSelf: 'stretch', cursor: 'default' }}
         >
           <OptionGroup
+            ariaLabelledBy={labelId}
             options={options}
             value={value}
             defaultValue={defaultValue}
