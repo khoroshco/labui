@@ -123,4 +123,20 @@ for (const c of [...components(), ...showcase()]) {
   }
 }
 
+/* У <button> браузерный дефолт type="submit": кнопка внутри формы ПОТРЕБИТЕЛЯ отправляет
+ * её. Публичный Button это знал и ставил type сам, а шесть внутренних кнопок — таб,
+ * раскрывашка, опция группы, циклер, ⓘ ряда, крестик очистки — нет. Клик по табу
+ * отправлял форму, и код потребителя при этом выглядел безупречно. Трёх из шести спасал
+ * preventDefault, написанный для других целей, — то есть случайно. */
+for (const { file, body } of reactSources()) {
+  for (const m of body.matchAll(/<button\b/g)) {
+    const end = body.indexOf('>', m.index);
+    // «type={type}» с дефолтом 'button' — тоже ответ: проп есть, значение безопасно.
+    if (!/\btype=/.test(body.slice(m.index, body.indexOf('</button', m.index)))) {
+      const line = body.slice(0, m.index).split('\n').length;
+      problems.push(`${file}:${line} — <button> без type: внутри формы потребителя браузер по умолчанию отправит её`);
+    }
+  }
+}
+
 process.exit(report('контракт пропсов', problems));

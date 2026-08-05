@@ -231,6 +231,7 @@ export const Input = forwardRef<HTMLLabelElement, InputProps>(function Input({
       ) : null}
       {showClear ? (
         <button
+            type="button"
           data-tap="true"
           data-tooltip="Очистить"
           aria-label="Очистить"

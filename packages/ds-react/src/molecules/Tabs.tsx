@@ -85,6 +85,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs({ option
         const selected = i === active;
         return (
           <button
+            type="button"
             key={i}
             data-hit="l"
             data-tab="true"
