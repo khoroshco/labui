@@ -39,7 +39,13 @@ fs.writeFileSync(path.join(dist, 'cjs/package.json'), JSON.stringify({ type: 'co
 // получал молчаливый откат на системный шрифт, а вместе с ним другие метрики и уехавшую
 // оптику. Теперь честно: шрифт подключает потребитель, а пакет об этом говорит.
 const dsCss = fs.readFileSync(path.join(root, 'src/ds.css'), 'utf8');
-const withoutFonts = dsCss.replace(/^@font-face\s*\{[^}]*\}\s*$/gmu, '').replace(/^\n{2,}/gm, '\n');
+// Токены подключает сам ШИПАЕМЫЙ ds.css. Порядок импортов — забываемая вещь, а цена
+// забывания здесь не «поедет мелочь»: без переменных инлайновые стили компонентов не
+// дают ни поверхностей, ни рамок, ни шрифта, и страница превращается в голый текст.
+// В ИСХОДНИКЕ такой строки быть не может: там ds.css грузится тегом <link>, а голое имя
+// пакета браузер разрешить не умеет — страницы эталона от этого ложатся (проверено).
+const withTokens = `@import '@khoroshco/tokens/tokens.css';\n${dsCss}`;
+const withoutFonts = withTokens.replace(/^@font-face\s*\{[^}]*\}\s*$/gmu, '').replace(/^\n{2,}/gm, '\n');
 
 fs.writeFileSync(
   path.join(dist, 'ds.css'),

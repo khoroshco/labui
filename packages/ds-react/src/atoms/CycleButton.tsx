@@ -39,6 +39,7 @@ export const CycleButton = forwardRef<HTMLButtonElement, CycleButtonProps>(funct
 
   return (
     <button
+            type="button"
       {...passThrough(rest)}
       ref={ref}
       data-tap="true"

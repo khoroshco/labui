@@ -46,6 +46,7 @@ export const RowLabel = forwardRef<HTMLSpanElement, RowLabelProps>(function RowL
         </span>
         {hasInfo ? (
           <button
+            type="button"
             data-tap="true"
             aria-expanded={open}
             aria-label={open ? 'Скрыть подсказку' : 'Показать подсказку'}
