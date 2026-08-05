@@ -4,8 +4,6 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 5273;
 export const BASE_URL = `http://localhost:${PORT}`;
 // Витрина — ОТДЕЛЬНЫЙ сервер: у неё своя сборка (свой корень, свой base) и своя страница.
-// До сих пор витрину не открывал ни один браузерный гейт, и она прожила четыре PR с
-// нерабочим сценарием, мусорными примерами и фокусом, уходящим в свёрнутое.
 const SHOWCASE_PORT = 5274;
 export const SHOWCASE_URL = `http://localhost:${SHOWCASE_PORT}`;
 
