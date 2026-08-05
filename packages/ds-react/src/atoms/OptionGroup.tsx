@@ -97,6 +97,7 @@ export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function
         const active = j === sel;
         return (
           <button
+            type="button"
             key={j}
             data-opt="true"
             data-hit="xs"

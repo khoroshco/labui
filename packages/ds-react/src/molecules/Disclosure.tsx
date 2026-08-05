@@ -48,6 +48,7 @@ export const Disclosure = forwardRef<HTMLDivElement, DisclosureProps>(function D
       {...passThrough(rest)}
       ref={ref} style={{ display: 'flex', flexDirection: 'column', ...style }}>
       <button
+            type="button"
         data-disc={eyebrow ? 'eyebrow' : 'plain'}
         data-disabled={disabled ? 'true' : 'false'}
         disabled={disabled}
