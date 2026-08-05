@@ -1,4 +1,5 @@
-import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 import { useControlled, useTrackActive } from '../lib/hooks.js';
@@ -26,7 +27,7 @@ export interface OptionGroupProps extends PassThrough {
  * Ничьих пикселей внутри группы нет: зазор между опциями принадлежит кнопкам
  * (хук data-hit в ds.css расширяет хит-зону на половину зазора).
  */
-export function OptionGroup({
+export const OptionGroup = forwardRef<HTMLDivElement, OptionGroupProps>(function OptionGroup({
   pill = false,
   inverse = false,
   options = [],
@@ -37,7 +38,7 @@ export function OptionGroup({
   onChange,
   style,
   ...rest
-}: OptionGroupProps) {
+}, ref) {
   const n = options.length;
   const [raw, setRaw] = useControlled(value, defaultValue, onChange);
   const sel = n ? Math.max(0, Math.min(Number(raw ?? 0), n - 1)) : 0;
@@ -59,6 +60,7 @@ export function OptionGroup({
       {...passThrough(rest)}
       ref={(el) => {
         box.current = el;
+        setRef(ref, el);
       }}
       role="radiogroup"
       aria-label={ariaLabel || undefined}
@@ -138,4 +140,4 @@ export function OptionGroup({
       })}
     </div>
   );
-}
+});

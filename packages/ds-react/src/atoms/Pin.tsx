@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { forwardRef, useEffect, useState, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 
 export interface PinProps extends PassThrough {
@@ -21,9 +21,9 @@ export interface PinProps extends PassThrough {
  * Обводка — box-shadow, а не border: border съедал бы 1.5px внутреннего размера и ломал
  * радиус угла привязки.
  */
-export function Pin({ number = 1, author = '', src = '', resolved, hasReply, style,
+export const Pin = forwardRef<HTMLSpanElement, PinProps>(function Pin({ number = 1, author = '', src = '', resolved, hasReply, style,
   ...rest
-}: PinProps) {
+}, ref) {
   const [broken, setBroken] = useState(false);
   useEffect(() => setBroken(false), [src]);
 
@@ -43,6 +43,7 @@ export function Pin({ number = 1, author = '', src = '', resolved, hasReply, sty
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       style={{
         position: 'relative',
         display: 'inline-flex',
@@ -106,4 +107,4 @@ export function Pin({ number = 1, author = '', src = '', resolved, hasReply, sty
       ) : null}
     </span>
   );
-}
+});

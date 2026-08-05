@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactElement } from 'react';
+import { forwardRef, type CSSProperties, type ReactElement } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { ActionRow } from '../molecules/ActionRow.js';
 import { CheckboxRow } from '../molecules/CheckboxRow.js';
@@ -61,12 +61,13 @@ export interface IslandProps extends PassThrough {
  * есть», ряд форвардил бы их дальше, и атом встал бы в управляемый режим со значением из
  * статичного конфига — то есть без хозяина, и замер.
  */
-export function Island({ rows = [], style,
+export const Island = forwardRef<HTMLDivElement, IslandProps>(function Island({ rows = [], style,
   ...rest
-}: IslandProps) {
+}, ref) {
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       data-island="true"
       style={{
         display: rows.length ? 'flex' : 'none',
@@ -168,4 +169,4 @@ export function Island({ rows = [], style,
       })}
     </div>
   );
-}
+});

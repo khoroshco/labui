@@ -50,7 +50,11 @@ const mod = await import(pathToFileURL(entry).href);
 // Список сверяется с составом, а не с числом: «не меньше 27» зеленело бы и на пакете,
 // который экспортирует 27 хелперов и ни одного компонента.
 const expected = JSON.parse(fs.readFileSync(path.join(pkg, 'migrated.json'), 'utf8')).components;
-const missing = expected.filter((name) => typeof mod[name] !== 'function');
+// Компонент — это функция ЛИБО объект-обёртка forwardRef: с прокидыванием ref все 27
+// стали вторым, и проверка «typeof === function» честно объявила пакет пустым. Проверяем
+// то, что делает узел компонентом для React: функция или экзотический тип с $$typeof.
+const isComponent = (x) => typeof x === 'function' || (!!x && typeof x === 'object' && '$$typeof' in x);
+const missing = expected.filter((name) => !isComponent(mod[name]));
 if (missing.length) {
   throw new Error(`dist/index.js не экспортирует: ${missing.join(', ')}`);
 }

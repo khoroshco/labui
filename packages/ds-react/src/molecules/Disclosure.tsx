@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { forwardRef, useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { collapsedProps } from '../lib/collapsed.js';
 import { Icon } from '../lib/Icon.js';
@@ -25,7 +25,7 @@ export interface DisclosureProps extends PassThrough {
  * Движение взято у RowMsg один в один: grid-rows, вход .3s ease-out, выход короче
  * (.2s ease-in), без прозрачности — содержимое не мигает, а именно раскрывается.
  */
-export function Disclosure({
+export const Disclosure = forwardRef<HTMLDivElement, DisclosureProps>(function Disclosure({
   label = '',
   count,
   variant = 'eyebrow',
@@ -36,7 +36,7 @@ export function Disclosure({
   children,
   style,
   ...rest
-}: DisclosureProps) {
+}, ref) {
   const [rawOpen, setOpen] = useControlled(openProp, defaultOpen, onToggle);
   const open = !disabled && rawOpen;
   const eyebrow = variant === 'eyebrow';
@@ -45,7 +45,8 @@ export function Disclosure({
 
   return (
     <div
-      {...passThrough(rest)} style={{ display: 'flex', flexDirection: 'column', ...style }}>
+      {...passThrough(rest)}
+      ref={ref} style={{ display: 'flex', flexDirection: 'column', ...style }}>
       <button
         data-disc={eyebrow ? 'eyebrow' : 'plain'}
         data-disabled={disabled ? 'true' : 'false'}
@@ -127,4 +128,4 @@ export function Disclosure({
       </div>
     </div>
   );
-}
+});

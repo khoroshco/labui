@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 import { useSpin } from '../lib/hooks.js';
@@ -45,7 +45,7 @@ const TONES = {
   danger: { c: 'var(--danger)', dim: 'var(--danger-dim)', on: 'var(--on-tone)' },
 } as const;
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   label = '',
   variant = 'primary',
   size = 'm',
@@ -59,7 +59,7 @@ export function Button({
   onClick,
   style,
   ...rest
-}: ButtonProps) {
+}, ref) {
   // анти-мерцание: клики блокируются сразу, спиннер живёт по таймингам ДС
   const spin = useSpin(loading);
   const s = SIZES[size] ?? SIZES.m;
@@ -95,6 +95,7 @@ export function Button({
   return (
     <button
       {...passThrough(rest)}
+      ref={ref}
       // Без type браузерный дефолт — submit: кнопка внутри <form> отправляет её. Значение
       // «button» безопасно по умолчанию, а submit потребитель просит явно.
       type={type}
@@ -169,4 +170,4 @@ export function Button({
       ) : null}
     </button>
   );
-}
+});

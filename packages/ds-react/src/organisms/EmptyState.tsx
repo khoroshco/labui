@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Button } from '../atoms/Button.js';
 import { Icon, type IconName } from '../lib/Icon.js';
@@ -26,7 +26,7 @@ const VARIANTS = {
   error: { icon: 'circle-exclamation' as IconName, bg: 'var(--danger-dim)', color: 'var(--danger)', action: 'arrows-rotate-right' as IconName },
 };
 
-export function EmptyState({
+export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(function EmptyState({
   variant = 'empty',
   label = '',
   subtitle = '',
@@ -35,11 +35,12 @@ export function EmptyState({
   onAction,
   style,
   ...rest
-}: EmptyStateProps) {
+}, ref) {
   const v = VARIANTS[variant] ?? VARIANTS.empty;
   return (
     <div
       {...passThrough(rest)}
+      ref={ref}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -98,4 +99,4 @@ export function EmptyState({
       ) : null}
     </div>
   );
-}
+});

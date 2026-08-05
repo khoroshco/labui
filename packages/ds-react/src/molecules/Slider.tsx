@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { CycleButton } from '../atoms/CycleButton.js';
 import { useReducedMotion } from '../lib/hooks.js';
@@ -32,7 +33,7 @@ export interface SliderProps extends PassThrough {
  * точны: значение ложится ровно туда, куда его поставили, иначе шаг мельче силы магнита
  * не двигает ползунок вообще.
  */
-export function Slider({
+export const Slider = forwardRef<HTMLDivElement, SliderProps>(function Slider({
   label = '',
   value,
   defaultValue = 0,
@@ -48,7 +49,7 @@ export function Slider({
   onOptionChange,
   style,
   ...rest
-}: SliderProps) {
+}, ref) {
   const num = (x: unknown, d: number) => {
     const n = Number(x);
     return isNaN(n) ? d : n;
@@ -209,7 +210,10 @@ export function Slider({
   return (
     <div
       {...passThrough(rest)}
-      ref={el}
+      ref={(node) => {
+        el.current = node;
+        setRef(ref, node);
+      }}
       onPointerDown={(e: PointerEvent<HTMLDivElement>) => {
         // Тянет ТОЛЬКО основная кнопка. Правая открывает контекстное меню, средняя клеит
         // из буфера — и то, и другое утаскивало значение к курсору, а отпускание своего
@@ -435,4 +439,4 @@ export function Slider({
       </div>
     </div>
   );
-}
+});

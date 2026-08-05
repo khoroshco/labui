@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent } from 'react';
+import { forwardRef, type CSSProperties, type MouseEvent } from 'react';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon } from '../lib/Icon.js';
 
@@ -14,12 +14,13 @@ export interface RowLabelProps extends PassThrough {
 }
 
 /** Лейбл ряда с необязательной ⓘ. Раскрытием подсказки владеет ряд. */
-export function RowLabel({ label = '', subtitle = '', hasInfo = false, open = false, onToggle, style,
+export const RowLabel = forwardRef<HTMLSpanElement, RowLabelProps>(function RowLabel({ label = '', subtitle = '', hasInfo = false, open = false, onToggle, style,
   ...rest
-}: RowLabelProps) {
+}, ref) {
   return (
     <span
       {...passThrough(rest)}
+      ref={ref}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -89,4 +90,4 @@ export function RowLabel({ label = '', subtitle = '', hasInfo = false, open = fa
       ) : null}
     </span>
   );
-}
+});
