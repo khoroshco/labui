@@ -22,6 +22,7 @@
     "parity/ref.spec.js": 1,
     "showcase/focus.spec.js": 6,
     "showcase/modal.spec.js": 12,
+    "showcase/pins.spec.js": 5,
     "smoke/all-components.spec.js": 30,
     "smoke/consumer-api.spec.js": 4,
     "smoke/controlled.spec.js": 4,
