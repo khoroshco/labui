@@ -1,9 +1,17 @@
 name: Витрина
 
-# Витрина — статический сайт, поэтому едет на Pages сама, на каждый пуш в main.
+# Витрина — статический сайт, поэтому едет на Pages сама, после каждого зелёного CI на main.
 # Никаких VPS и доменов: обслуживание есть, выгоды нет.
+#
+# ЗАПУСК ПОСЛЕ CI, А НЕ ПАРАЛЛЕЛЬНО С НИМ. Здесь стоял `on: push` и собственный
+# `npm run verify` — то есть те же гейты бежали ОДНОВРЕМЕННО с CI по тому же коммиту,
+# а не после него. Убрать прогон в лоб было нельзя ровно поэтому: без него витрина
+# начала бы деплоиться до того, как гейты договорят. Ожидание завершения CI решает
+# обе задачи разом — и «сломанное на витрину не уезжает» остаётся правдой.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -18,12 +26,18 @@ concurrency:
 
 jobs:
   deploy:
+    # Красный CI на витрину не уезжает.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # ИМЕННО тот коммит, который прошёл гейты: по умолчанию checkout в workflow_run
+          # берёт вершину ветки по умолчанию, а она могла уехать за время прогона.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -32,9 +46,13 @@ jobs:
 
       - run: npm ci
 
-      # Витрина — публичное лицо системы: сломанное на неё не уезжает.
-      - run: npx playwright install --with-deps chromium
-      - run: npm run verify
+      # Гейты уже прошли — на этом же SHA, в прогоне CI, который нас и запустил.
+      # Сборка сайта и гейт белого листа тоже живут в CI (джоба «Линтеры, типы, юниты»),
+      # поэтому здесь сборка только повторяется ради артефакта, а не проверяет.
+      - name: Какой прогон гейтов впустил эту витрину
+        run: |
+          echo "CI:  ${{ github.event.workflow_run.html_url || 'ручной запуск' }}"
+          echo "SHA: ${{ github.event.workflow_run.head_sha || github.sha }}"
 
       # Плоская раскладка — требование рантайма, а не прихоть сборки: см. CLAUDE.md.
       - run: npm run build:site
