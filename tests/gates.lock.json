@@ -18,7 +18,6 @@
     "a11y/wiring.spec.js": 5,
     "parity/behaviour.spec.js": 18,
     "parity/dom-parity.spec.js": 78,
-    "parity/react-parity.spec.js": 55,
     "parity/ref.spec.js": 1,
     "showcase/focus.spec.js": 6,
     "smoke/all-components.spec.js": 30,
@@ -31,7 +30,7 @@
     "visual/hover.spec.js": 86,
     "visual/optical.spec.js": 9,
     "visual/reduced-motion.spec.js": 2,
-    "visual/snapshots.spec.js": 81,
+    "visual/snapshots.spec.js": 163,
     "visual/structure.spec.js": 8
   },
   "units": 60,
@@ -44,14 +43,6 @@
     "tests/parity/dom-parity.spec.js": {
       "timeout": [
         120000
-      ]
-    },
-    "tests/parity/react-parity.spec.js": {
-      "maxDiffPixels": [
-        900
-      ],
-      "threshold": [
-        0.02
       ]
     },
     "tests/parity/ref.spec.js": {

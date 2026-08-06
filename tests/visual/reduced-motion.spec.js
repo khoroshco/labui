@@ -17,24 +17,42 @@ import { ROOT } from '../support/dc.js';
 
 const DIR = path.join(ROOT, 'tests/__screenshots__');
 
-/** Пары «обычный снимок → reduced-motion» для текущей платформы. */
+/**
+ * Пары «обычный снимок → reduced-motion» для текущей платформы, по ОБЕИМ реализациям.
+ *
+ * Каталог обходится рекурсивно, потому что эталоны разложены по реализациям (`dc/`,
+ * `react/`). Плоское чтение каталога после этой раскладки нашло НОЛЬ пар — и проверка
+ * ниже сравнивала бы пустоту, оставаясь зелёной. Ровно за этим здесь стоит счётчик:
+ * он и покраснел.
+ */
 function pairs() {
   const platform = process.platform === 'darwin' ? 'darwin' : 'linux';
-  return fs
-    .readdirSync(DIR)
-    .filter((f) => f.endsWith(`-dark-chromium-${platform}.png`))
-    .map((f) => ({
-      name: f.replace(`-dark-chromium-${platform}.png`, ''),
-      dark: path.join(DIR, f),
-      reduced: path.join(DIR, f.replace('-dark-', '-reduced-motion-')),
-    }))
-    .filter((p) => fs.existsSync(p.reduced));
+  const out = [];
+  const walk = (dir, prefix) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) {
+        walk(path.join(dir, e.name), prefix ? `${prefix}/${e.name}` : e.name);
+        continue;
+      }
+      if (!e.name.endsWith(`-dark-chromium-${platform}.png`)) continue;
+      const reduced = path.join(dir, e.name.replace('-dark-', '-reduced-motion-'));
+      if (!fs.existsSync(reduced)) continue;
+      out.push({
+        name: `${prefix}/${e.name.replace(`-dark-chromium-${platform}.png`, '')}`,
+        dark: path.join(dir, e.name),
+        reduced,
+      });
+    }
+  };
+  walk(DIR, '');
+  return out;
 }
 
 const ALL = pairs();
 
 test('пары снимков есть — иначе гейт сравнивает пустоту', () => {
-  expect(ALL.length).toBeGreaterThan(20);
+  // Обе реализации: 27 компонентов у эталона плюс столько же у пакета.
+  expect(ALL.length, 'пар не найдено — эталоны лежат не там, где их ищут').toBeGreaterThan(40);
 });
 
 test('reduced-motion не меняет картинку в покое', async ({ page }) => {
