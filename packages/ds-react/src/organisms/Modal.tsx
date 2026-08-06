@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -123,6 +124,11 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
   const titleId = `${reactId}-title`;
   const descId = `${reactId}-desc`;
   const popup = useRef<HTMLDivElement | null>(null);
+  // Узел окна живёт в СОСТОЯНИИ, а не только в ref: слой монтируется на кадр позже
+  // открытия (портал ждёт, пока станет известен document.body — см. lib/Layer.tsx), и
+  // эффект, зависевший от «окно смонтировано», отрабатывал по пустому ref. Фокус
+  // оставался на <body>, Escape до обработчика не доходил, ловушка таба не работала.
+  const [popupEl, setPopupEl] = useState<HTMLDivElement | null>(null);
   const returnTo = useRef<HTMLElement | null>(null);
   const reduced = useReducedMotion();
 
@@ -153,6 +159,16 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
     return () => clearTimeout(t);
   }, [open, mounted]);
 
+  /* УХОДЯЩЕЕ окно — это `mounted && !open`, а не «ещё не показано».
+   *
+   * Разница стоила рабочей модалки. Пока inert стоял по признаку «не показано», он
+   * оказывался и на ПЕРВОМ кадре открытия — том самом, на котором окно ищет, куда
+   * поставить фокус. Внутри inert фокусировать нечего: фокус оставался на <body>, Escape
+   * до обработчика окна не доходил, ловушка таба не работала. Снаружи это выглядело как
+   * «окно открылось и ни на что не реагирует».
+   */
+  const leaving = mounted && !open;
+
   const close = useCallback(
     (reason: ModalReason) => {
       if (!controlled) setOwnOpen(false);
@@ -160,6 +176,19 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
     },
     [controlled, onOpenChange]
   );
+
+  /* КТО ОТКРЫЛ — запоминаем ДО того, как фон станет inert.
+   *
+   * Порядок здесь не стилистический. Как только соседу по body ставится `inert`, браузер
+   * снимает фокус со всего, что внутри, — то есть с кнопки, которой окно и открыли. Эффект,
+   * читавший activeElement после этого, получал <body>, и «вернуть фокус туда, откуда
+   * пришли» возвращало его в никуда. Layout-эффект выполняется раньше любого обычного,
+   * поэтому кнопка запоминается ещё живой.
+   */
+  useLayoutEffect(() => {
+    if (!mounted) return;
+    returnTo.current = (document.activeElement as HTMLElement) ?? null;
+  }, [mounted]);
 
   // ── фон выключается: inert + aria-hidden соседям по body ─────────────────────
   useEffect(() => {
@@ -206,15 +235,18 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
     };
   }, [mounted]);
 
-  // ── фокус: внутрь при открытии, назад при закрытии ──────────────────────────
+  // ── фокус внутрь: ровно тогда, когда узел появился ──────────────────────────
+  useEffect(() => {
+    if (!popupEl) return;
+    const first = tabbables(popupEl)[0];
+    // Если внутри нет ни одного интерактивного элемента, фокус берёт само окно: иначе он
+    // остаётся снаружи, в выключённой странице, и следующий Tab начинает обход с начала.
+    (first ?? popupEl).focus({ preventScroll: true });
+  }, [popupEl]);
+
+  // ── фокус назад: отдельным эффектом, чтобы не сработать на появление узла ────
   useEffect(() => {
     if (!mounted) return;
-    returnTo.current = (document.activeElement as HTMLElement) ?? null;
-    const node = popup.current;
-    if (node) {
-      const first = tabbables(node)[0];
-      (first ?? node).focus({ preventScroll: true });
-    }
     return () => {
       // Фокус возвращается ТУДА, ОТКУДА ПРИШЁЛ. Без этого следующий Tab начинает обход
       // документа с начала — человек нажимает Tab и оказывается в шапке сайта.
@@ -258,6 +290,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
   const mergedRef = useCallback(
     (el: HTMLDivElement | null) => {
       popup.current = el;
+      setPopupEl(el);
       setRef(ref, el);
     },
     [ref]
@@ -317,7 +350,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
           ref={mergedRef}
           // Уходящее окно фокуса не берёт: 220 мс оно ещё видно, и таб успевал попасть
           // на кнопку, которой сейчас не станет.
-          {...(shown ? {} : ({ inert: '' } as Record<string, string>))}
+          {...(leaving ? ({ inert: '' } as Record<string, string>) : {})}
           // Отменяемое — dialog; обязательное решение — alertdialog. Это разные вещи:
           // второе диктор объявляет как требующее ответа, а не как «открылось окно».
           role={dismissible ? 'dialog' : 'alertdialog'}

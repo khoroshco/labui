@@ -106,6 +106,9 @@ export function Playground({ spec, Component, sectionId }: Props) {
   if (has('onToggle')) wired.onToggle = (o: boolean) => set('open', o);
   if (has('onInput')) wired.onInput = (v: unknown) => set('value', v);
   if (has('onChange')) wired.onChange = (v: unknown) => set(has('checked') ? 'checked' : 'value', v);
+  // Подтверждение в витрине просто закрывает окно: настоящее действие знает только
+  // потребитель, а кнопка без обработчика — это ошибка вызова, и компонент о ней говорит.
+  if (has('onConfirm')) wired.onConfirm = () => set('open', false);
 
   const passed = { ...demo, ...wired, ...state };
 

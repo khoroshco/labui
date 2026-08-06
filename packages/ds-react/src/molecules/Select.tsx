@@ -139,6 +139,17 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  // Узел списка живёт в СОСТОЯНИИ, а не только в ref. Причина: слой монтируется не тем же
+  // кадром, что открытие, — портал ждёт, пока станет известен document.body (SSR), — и
+  // эффект, зависевший от «список открыт», отрабатывал по пустому ref. Фокус оставался на
+  // поле, стрелки уходили обратно в обработчик поля, Enter кликал по кнопке и закрывал
+  // список. Снаружи это выглядело как «селект открывается и не слушается». Состояние
+  // будит эффект РОВНО тогда, когда узел появился, чем бы он ни задерживался.
+  const [listEl, setListEl] = useState<HTMLDivElement | null>(null);
+  const holdList = useCallback((el: HTMLDivElement | null) => {
+    listRef.current = el;
+    setListEl(el);
+  }, []);
   const [at, setAt] = useState<Anchored | null>(null);
   const selected = items.findIndex((o) => o.value === current);
   const [active, setActive] = useState(selected);
@@ -210,30 +221,82 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
   }, [open, setOpen]);
 
   // ── фокус на подсвеченную опцию ─────────────────────────────────────────────
+  //
+  // Зависимость от `ready` обязательна. Первым рендером после открытия списка ЕЩЁ НЕТ:
+  // он рисуется только когда посчитана привязка (`at`), а считает её layout-эффект — то
+  // есть на кадр позже. Эффект, зависевший только от [open, active], отрабатывал по
+  // пустому listRef, фокус оставался на поле, и вся клавиатура списка молча не работала:
+  // стрелки уходили обратно в обработчик поля, Enter кликал по кнопке и закрывал список.
+  // Снаружи это выглядело как «селект открывается и не слушается».
   useEffect(() => {
-    if (!open) return;
-    const el = listRef.current?.querySelectorAll<HTMLElement>('[data-opt-item]')[active];
+    if (!open || !listEl) return;
+    const el = listEl.querySelectorAll<HTMLElement>('[data-opt-item]')[active];
     el?.focus({ preventScroll: true });
     el?.scrollIntoView({ block: 'nearest' });
-  }, [open, active]);
+  }, [open, listEl, active]);
 
   // ── поиск по набору букв ────────────────────────────────────────────────────
   const typed = useRef('');
   const typedAt = useRef(0);
-  const seek = (key: string, from: number, wrap: boolean): number => {
+  /**
+   * Поиск по набору. Две тонкости, обе взяты у нативного селекта.
+   *
+   * ПОВТОР ОДНОЙ БУКВЫ — не запрос «аа», а перебор совпадений на «а». Без этого второе
+   * нажатие той же клавиши искало несуществующую подпись и не делало ничего: человек
+   * жмёт «м», «м», «м», ожидая обойти все города на «м», и остаётся на первом.
+   *
+   * ОТКУДА ИСКАТЬ. Запрос из ОДНОЙ буквы ищет со СЛЕДУЮЩЕЙ опции — иначе перебор
+   * упирается в уже выбранную и стоит. Продолженный набор («мо» после «м») ищет с
+   * текущей: иначе «Москва» пропускается ровно тем нажатием, которое её и уточняет.
+   */
+  const seek = (key: string): number => {
     const now = Date.now();
-    typed.current = now - typedAt.current > TYPE_RESET ? key : typed.current + key;
+    const fresh = now - typedAt.current > TYPE_RESET;
+    let next = fresh ? key : typed.current + key;
+    const repeat = !fresh && next.length > 1 && [...next].every((c) => c.toLowerCase() === key.toLowerCase());
+    if (repeat) next = key;
+    typed.current = next;
     typedAt.current = now;
-    const q = typed.current.toLowerCase();
+    const q = next.toLowerCase();
     const n = items.length;
+    if (!n) return -1;
+    const from = open ? active : selected;
+    const start = Math.max(0, from);
+    const step1 = next.length === 1 ? 1 : 0;
     for (let k = 0; k < n; k++) {
-      // Повтор одной и той же буквы перебирает совпадения по кругу — как у нативного
-      // селекта; поэтому старт со следующей опции, а не с текущей.
-      const i = wrap ? (from + 1 + k) % n : (from + k) % n;
+      const i = (start + step1 + k) % n;
       const o = items[i];
       if (!o.disabled && o.label.toLowerCase().startsWith(q)) return i;
     }
     return -1;
+  };
+
+  /**
+   * Перебор подсветки. ОДИН на оба обработчика — поля и списка.
+   *
+   * Своя копия у поля была бы не дублированием, а дырой: между «список открылся» и
+   * «фокус доехал до пункта» проходит кадр, и всё, что человек успел нажать за это
+   * время, приходит ещё на поле. Пока поле умело только открывать, второе быстрое
+   * нажатие стрелки терялось молча.
+   */
+  const navigate = (e: KeyboardEvent<HTMLElement>): boolean => {
+    const n = items.length;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const dir = e.key === 'ArrowDown' ? 1 : -1;
+      // Без зацикливания: у нативного селекта край списка — это край, и «прыжок в начало»
+      // на длинном перечне читается как потеря места.
+      const nextIdx = step(active + dir, dir);
+      if (nextIdx >= 0) setActive(nextIdx);
+      return true;
+    }
+    if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      const nextIdx = e.key === 'Home' ? step(0, 1) : step(n - 1, -1);
+      if (nextIdx >= 0) setActive(nextIdx);
+      return true;
+    }
+    return false;
   };
 
   const onTriggerKey = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -252,7 +315,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
       // Буквы на ЗАКРЫТОМ селекте меняют значение, не открывая список: так ведёт себя
       // нативный <select>, и человек, набравший «евр» в списке валют, ждёт именно этого.
       if (e.key.length === 1 && e.key !== ' ') {
-        const i = seek(e.key, selected < 0 ? 0 : selected, typed.current.length === 0);
+        const i = seek(e.key);
         if (i >= 0) {
           e.preventDefault();
           if (!valueControlled) setOwnValue(items[i].value);
@@ -261,36 +324,28 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
       }
       return;
     }
+    // Список уже открыт, а фокус ещё на поле — ведём подсветку отсюда.
+    if (navigate(e)) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       setOpen(false, 'escape');
+      return;
     }
+    // Tab с открытого списка. Обычно фокус в этот момент уже внутри списка и клавишу
+    // ловит он; но если фокус почему-то остался на поле, уходящий человек не должен
+    // оставить за собой висящую выпадашку.
+    if (e.key === 'Tab' && open) setOpen(false, 'blur');
   };
 
   const onListKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const n = items.length;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      const dir = e.key === 'ArrowDown' ? 1 : -1;
-      // Без зацикливания: у нативного селекта край списка — это край, и «прыжок в начало»
-      // на длинном перечне читается как потеря места.
-      const next = step(active + dir, dir);
-      if (next >= 0) setActive(next);
-      return;
-    }
-    if (e.key === 'Home' || e.key === 'End') {
-      e.preventDefault();
-      const next = e.key === 'Home' ? step(0, 1) : step(n - 1, -1);
-      if (next >= 0) setActive(next);
-      return;
-    }
+    if (navigate(e)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       // Пробел во время набора принадлежит буферу поиска, а не выбору: в «Нью-Йорк» и
       // «Санкт-Петербург» пробел — обычная буква.
       if (e.key === ' ' && Date.now() - typedAt.current < TYPE_RESET) {
         e.preventDefault();
-        const i = seek(' ', active, false);
+        const i = seek(' ');
         if (i >= 0) setActive(i);
         return;
       }
@@ -311,7 +366,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
       return;
     }
     if (e.key.length === 1) {
-      const i = seek(e.key, active, typed.current.length === 0);
+      const i = seek(e.key);
       if (i >= 0) {
         e.preventDefault();
         setActive(i);
@@ -469,7 +524,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
       {open && at ? (
         <Layer>
           <div
-            ref={listRef}
+            ref={holdList}
             id={listId}
             role="listbox"
             data-float="true"
