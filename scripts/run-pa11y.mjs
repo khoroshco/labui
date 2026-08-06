@@ -62,8 +62,10 @@ if (inReact.size < 20) throw new Error(`pa11y: в контракте пакет�
 const filled = Object.entries(FIXTURES).filter(([name]) => inReact.has(name)).flatMap(([name, props]) =>
   ['dark', 'light'].map((theme) => ({
     url: `${base}/harness/?c=${name}&theme=${theme}&props=${encodeURIComponent(JSON.stringify(props))}`,
-    // Компонент в портале внутри .sc-host не появляется — он на body. Ждём его самого.
-    actions: PORTALED.has(name) ? ['wait for element [role="dialog"], [role="alertdialog"] to be visible'] : MOUNTED,
+    // Компонент в портале внутри .sc-host не появляется — он на body. Ждём САМ СЛОЙ, а не
+    // конкретную роль: ролей у порталов уже две (dialog и listbox), и список ролей здесь
+    // разошёлся бы с составом при первом же новом всплывающем.
+    actions: PORTALED.has(name) ? ['wait for element [data-ds-layer] to be visible'] : MOUNTED,
   }))
 );
 

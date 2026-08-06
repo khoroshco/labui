@@ -25,6 +25,19 @@ async function openShowcase(page) {
 const dialog = (page) => page.locator('[role="dialog"], [role="alertdialog"]');
 const button = (page, name) => page.locator('#modal').getByRole('button', { name, exact: true });
 
+test('у окна есть имя, и оно совпадает с заголовком', async ({ page }) => {
+  // axe правило `aria-dialog-name` держит в теге best-practice, а сюита берёт только
+  // wcag2a/aa; у pa11y такой техники нет вовсе. То есть `aria-labelledby={undefined}`
+  // проходил оба движка, и диктор объявлял «диалог» без единого слова о том, какое
+  // решение просят.
+  await openShowcase(page);
+  await button(page, 'Опасное').click();
+  await expect(
+    page.getByRole('alertdialog', { name: /Удалить кампанию/ }).or(page.getByRole('dialog', { name: /Удалить кампанию/ })),
+    'вычисленное имя окна пусто или не совпадает с заголовком'
+  ).toHaveCount(1);
+});
+
 test('открытие: фокус уходит внутрь окна, фон выключается', async ({ page }) => {
   await openShowcase(page);
   await button(page, 'Обычное').click();
@@ -141,10 +154,80 @@ test('окно уходит из DOM не мгновенно, и на время
   // видно, и таб успевал попасть на кнопку, которой сейчас не станет.
   const during = await page.evaluate(() => {
     const popup = document.querySelector('[role="dialog"], [role="alertdialog"]');
-    return popup ? { present: true, inert: popup.hasAttribute('inert') } : { present: false, inert: null };
+    return popup
+      ? { present: true, inert: popup.hasAttribute('inert'), focus: document.activeElement?.textContent?.trim() }
+      : { present: false, inert: null, focus: null };
   });
-  if (during.present) {
-    expect(during.inert, 'уходящее окно обязано быть inert: на его кнопку успевает попасть таб').toBe(true);
-  }
+  // Присутствие — ТРЕБОВАНИЕ, а не условие. Пока оно стояло под `if`, обнуление EXIT
+  // выключало проверку целиком: окно схлопывалось рывком, тело `if` не исполнялось, и
+  // единственное, что оставалось, — «в конце его нет». Гейт зеленел над сломанным
+  // правилом «выход всегда анимирован».
+  expect(during.present, 'окно исчезло в тот же кадр — выход не анимирован').toBe(true);
+  expect(during.inert, 'уходящее окно обязано быть inert: на его кнопку успевает попасть таб').toBe(true);
+  expect(during.focus, 'фокус на 220 мс завис в никуда: Tab в это время начинает обход документа с начала').toBe('Обычное');
   await expect(dialog(page), 'окно обязано исчезнуть, а не остаться навсегда').toHaveCount(0);
+});
+
+test('селект внутри окна лежит ПОВЕРХ него и попадает под указатель', async ({ page }) => {
+  // Самая частая композиция и самое опасное место: оба всплывающих уходят порталом в body
+  // и становятся соседями. Пока номера слоёв жили литералами в двух файлах, список
+  // рисовался ПОД окном и под его затемнением — человек нажимал на поле, фокус уезжал в
+  // невидимый список, и на экране не менялось ничего.
+  await openShowcase(page);
+  await button(page, 'Обычное').click();
+  await expect(dialog(page)).toHaveCount(1);
+  await page.getByRole('combobox', { name: 'Формат выгрузки' }).click();
+
+  const seen = await page.evaluate(() => {
+    const list = document.querySelector('[role="listbox"]');
+    if (!list) return { why: 'списка нет' };
+    const r = list.getBoundingClientRect();
+    const at = document.elementFromPoint(r.left + r.width / 2, r.top + Math.min(18, r.height / 2));
+    return { hit: !!at && (list === at || list.contains(at)), why: at?.tagName ?? 'ничего', w: r.width };
+  });
+  expect(seen.w, 'список нулевой ширины — измерять нечего').toBeGreaterThan(40);
+  expect(seen.hit, `список накрыт окном: в его точке оказалось «${seen.why}»`).toBe(true);
+});
+
+test('Escape в открытом списке закрывает список, а не окно', async ({ page }) => {
+  // События из портала всплывают по дереву REACT, а не по DOM: без явного гашения одно
+  // нажатие закрывало два слоя сразу — список и окно вместе с заполненной формой.
+  await openShowcase(page);
+  await button(page, 'Обычное').click();
+  await page.getByRole('combobox', { name: 'Формат выгрузки' }).click();
+  await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[role="listbox"]'), 'список обязан закрыться').toHaveCount(0);
+  await expect(dialog(page), 'одно нажатие закрыло и окно: клавишу съедает верхний слой, а не оба').toHaveCount(1);
+
+  // А второе нажатие — уже окно.
+  await page.keyboard.press('Escape');
+  await expect(dialog(page)).toHaveCount(0);
+});
+
+test('второе окно не запирает прокрутку страницы навсегда', async ({ page }) => {
+  // Счётчик замков общий, а снимок прежних значений каждая копия брала СВОЙ: вторая
+  // запоминала уже изменённые значения как «прежние» и возвращала их при закрытии.
+  // Страница оставалась без прокрутки и с пустой полосой справа до перезагрузки.
+  await openShowcase(page);
+  const before = await page.evaluate(() => ({
+    overflow: document.body.style.overflow,
+    pad: document.body.style.paddingRight,
+  }));
+
+  await button(page, 'Обычное').click();
+  await expect(dialog(page)).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(dialog(page)).toHaveCount(0);
+  await button(page, 'Опасное').click();
+  await expect(dialog(page)).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(dialog(page)).toHaveCount(0);
+
+  const after = await page.evaluate(() => ({
+    overflow: document.body.style.overflow,
+    pad: document.body.style.paddingRight,
+  }));
+  expect(after, 'прокрутка и компенсация полосы не вернулись к тому, что было до окон').toEqual(before);
 });

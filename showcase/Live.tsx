@@ -10,7 +10,7 @@
  * перестаёт ловить то, что ловит потребитель.
  */
 import { useRef, useState } from 'react';
-import { Button, Island, Modal, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
+import { Button, Island, Modal, Select, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
 
 /** Заголовок живого блока: он не раздел, а врезка внутри него. */
 function Head({ title, note }: { title: string; note: string }) {
@@ -375,6 +375,7 @@ export function IslandRowsNote() {
 export function ModalDemo() {
   const [which, setWhich] = useState<'ask' | 'danger' | 'must' | null>(null);
   const [busy, setBusy] = useState(false);
+  const [format, setFormat] = useState('PNG');
   const close = () => setWhich(null);
 
   return (
@@ -396,7 +397,7 @@ export function ModalDemo() {
         subtitle="Текущие файлы перезапишутся. Выгрузки, сделанные раньше, останутся в истории."
         confirmLabel="Пересобрать"
         cancelLabel="Отмена"
-        loading={busy}
+        confirmLoading={busy}
         onConfirm={() => {
           // Подтверждение НЕ закрывает окно само: ответа сервера ждут прямо в нём, кнопкой
           // со спиннером. Закрывает тот, кто знает, что действие удалось.
@@ -407,12 +408,24 @@ export function ModalDemo() {
           }, 1200);
         }}
       >
-        <Island
-          rows={[
-            { type: 'toggle', label: 'Сохранить прежние в истории', checked: true },
-            { type: 'checkbox', label: 'Прислать письмо, когда закончится' },
-          ]}
-        />
+        <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+          <Island
+            rows={[
+              { type: 'toggle', label: 'Сохранить прежние в истории', checked: true },
+              { type: 'checkbox', label: 'Прислать письмо, когда закончится' },
+            ]}
+          />
+          {/* Селект ВНУТРИ окна — самая частая композиция и самое опасное место: два
+              всплывающих становятся соседями по body, и порядок слоёв им надо откуда-то
+              взять. Здесь это видно руками, а гейт tests/showcase/modal.spec.js проверяет
+              и порядок, и то, что Escape закрывает ровно один слой. */}
+          <Select
+            ariaLabel="Формат выгрузки"
+            options={['JPG', 'PNG', 'WEBP', 'AVIF']}
+            value={format}
+            onChange={setFormat}
+          />
+        </div>
       </Modal>
 
       <Modal
@@ -423,7 +436,7 @@ export function ModalDemo() {
         subtitle="Вместе с ней уйдут 18 форматов и их история выгрузок. Отменить это будет нечем."
         confirmLabel="Удалить"
         cancelLabel="Отмена"
-        tone="danger"
+        confirmTone="danger"
         onConfirm={close}
       />
 

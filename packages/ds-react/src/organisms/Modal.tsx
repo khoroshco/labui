@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -14,7 +13,8 @@ import {
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Layer } from '../lib/Layer.js';
-import { useControlledState, useReducedMotion } from '../lib/hooks.js';
+import { collapsedProps } from '../lib/collapsed.js';
+import { useControlledState, useIsoLayoutEffect, useReducedMotion } from '../lib/hooks.js';
 import { Button } from '../atoms/Button.js';
 
 /** Почему закрылось. Причина — часть контракта, а не догадка потребителя. */
@@ -33,10 +33,15 @@ export interface ModalProps extends PassThrough {
   confirmLabel?: string;
   /** Отмена — собственное действие окна: закрывает и без колбэка. */
   cancelLabel?: string;
-  /** Семантика подтверждения: удаление — danger. Иерархию кнопка выбирает сама. */
-  tone?: 'ok' | 'danger';
-  /** Подтверждение ждёт ответа сервера: кнопка со спиннером, окно не закрывается само. */
-  loading?: boolean;
+  /** Семантика ПОДТВЕРЖДЕНИЯ: удаление — danger. Иерархию кнопка выбирает сама.
+   *  Имя с приставкой не случайно: голое `tone` читалось бы как «тон окна», а красит оно
+   *  ровно одну кнопку. Тот же разбор, что запретил плоский actionVariant у EmptyState —
+   *  только там действие одно, а здесь их два. */
+  confirmTone?: 'ok' | 'danger';
+  /** Подтверждение ждёт ответа сервера: кнопка со спиннером, окно не закрывается само.
+   *  Тоже с приставкой: `loading` в словаре системы означает «содержимое заменяется
+   *  скелетоном», а здесь это состояние одной кнопки. */
+  confirmLoading?: boolean;
   /**
    * Escape и клик по подложке закрывают окно. `false` — решение обязательно, и роль
    * меняется на alertdialog: это разные вещи, а не оттенок одной.
@@ -61,8 +66,17 @@ const tabbables = (root: HTMLElement) =>
     (el) => !el.hasAttribute('inert') && !el.closest('[inert]') && el.offsetParent !== null
   );
 
-/** Сколько окон открыто: прокрутку страницы возвращает последнее закрывшееся, а не первое. */
+/* ЗАМОК ПРОКРУТКИ — ОДИН НА ВСЕ ОКНА, и снимок прежних значений тоже ОДИН.
+ *
+ * Пока снимок брала каждая копия, вложенные окна ломали страницу необратимо: A ставит
+ * `hidden` и запоминает пустую строку, B монтируется поверх и запоминает уже `hidden`;
+ * A закрывается первой (обычный порядок для «подтвердите» поверх формы) — счётчик 1,
+ * восстановления нет; закрывается B — счётчик 0, и она возвращает ТО, ЧТО ЗАПОМНИЛА
+ * САМА: `overflow:hidden` и пустую полосу справа. Страница остаётся мёртвой до F5.
+ */
 let locks = 0;
+let lockedOverflow = '';
+let lockedPad = '';
 
 /**
  * Модальное окно: решение, без которого дальше нельзя.
@@ -106,8 +120,8 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
   size = 'm',
   confirmLabel = '',
   cancelLabel = '',
-  tone,
-  loading = false,
+  confirmTone,
+  confirmLoading = false,
   dismissible = true,
   onConfirm,
   onCancel,
@@ -129,9 +143,11 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
   // оставался на <body>, Escape до обработчика не доходил, ловушка таба не работала.
   const [popupEl, setPopupEl] = useState<HTMLDivElement | null>(null);
   const returnTo = useRef<HTMLElement | null>(null);
+  const returnHome = useRef<HTMLElement | null>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
     if (confirmLabel && !onConfirm) {
       console.warn(
         `Modal: у кнопки «${confirmLabel}» нет onConfirm — нажатие не сделает ничего. ` +
@@ -184,14 +200,25 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
    * пришли» возвращало его в никуда. Layout-эффект выполняется раньше любого обычного,
    * поэтому кнопка запоминается ещё живой.
    */
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (!mounted) return;
-    returnTo.current = (document.activeElement as HTMLElement) ?? null;
+    const el = (document.activeElement as HTMLElement) ?? null;
+    returnTo.current = el;
+    // Запасной адрес возврата: узел, который переживёт исчезновение самой открывашки.
+    // Кнопка «Удалить» стоит в ряду списка, ряд исчезает вместе с записью — и возвращать
+    // фокус становится некуда, а `<body>` означает «обход документа с начала».
+    returnHome.current = (el?.closest('[data-row], [data-island], main, form') as HTMLElement) ?? null;
   }, [mounted]);
 
-  // ── фон выключается: inert + aria-hidden соседям по body ─────────────────────
+  /* ФОН ВЫКЛЮЧЕН, ПОКА ОКНО ОТКРЫТО, а не пока оно в DOM.
+   *
+   * Разница в 220 мс ухода, и она решающая: `inert` не даёт СФОКУСИРОВАТЬ ничего внутри,
+   * поэтому вернуть фокус на кнопку-открывашку, пока фон ещё выключен, физически нельзя —
+   * попытка молча не срабатывает, и фокус остаётся на `<body>`. Уходящее окно к этому
+   * времени само `inert`, так что «два живых слоя» не возникает: живой ровно один.
+   */
   useEffect(() => {
-    if (!mounted || typeof document === 'undefined') return;
+    if (!mounted || !open || typeof document === 'undefined') return;
     const node = popup.current;
     const touched: { el: Element; inert: string | null; hidden: string | null }[] = [];
     for (const el of Array.from(document.body.children)) {
@@ -210,49 +237,57 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
         else t.el.setAttribute('aria-hidden', t.hidden);
       }
     };
-  }, [mounted]);
+  }, [mounted, open]);
 
   // ── прокрутка страницы заперта ──────────────────────────────────────────────
   useEffect(() => {
     if (!mounted || typeof document === 'undefined') return;
-    locks++;
     const body = document.body;
-    const prevOverflow = body.style.overflow;
-    const prevPad = body.style.paddingRight;
-    if (locks === 1) {
+    if (locks === 0) {
+      lockedOverflow = body.style.overflow;
+      lockedPad = body.style.paddingRight;
       const bar = window.innerWidth - document.documentElement.clientWidth;
       body.style.overflow = 'hidden';
       // Компенсация ширины полосы: без неё страница под окном дёргается при открытии.
       if (bar > 0) body.style.paddingRight = `${bar}px`;
     }
+    locks++;
     return () => {
       locks = Math.max(0, locks - 1);
       if (locks === 0) {
-        body.style.overflow = prevOverflow;
-        body.style.paddingRight = prevPad;
+        body.style.overflow = lockedOverflow;
+        body.style.paddingRight = lockedPad;
       }
     };
   }, [mounted]);
 
   // ── фокус внутрь: ровно тогда, когда узел появился ──────────────────────────
   useEffect(() => {
-    if (!popupEl) return;
+    // `open` в зависимостях обязателен: цикл «закрыли-открыли» внутри 220 мс ухода узел
+    // не пересоздаёт, и эффект по одному только [popupEl] не переотрабатывал — окно
+    // открывалось мёртвым, с фокусом на <body>, без Escape и без ловушки таба.
+    if (!popupEl || !open) return;
     const first = tabbables(popupEl)[0];
     // Если внутри нет ни одного интерактивного элемента, фокус берёт само окно: иначе он
     // остаётся снаружи, в выключённой странице, и следующий Tab начинает обход с начала.
     (first ?? popupEl).focus({ preventScroll: true });
-  }, [popupEl]);
+  }, [popupEl, open]);
 
-  // ── фокус назад: отдельным эффектом, чтобы не сработать на появление узла ────
+  /* ФОКУС НАЗАД — В МОМЕНТ НАЧАЛА УХОДА, а не при размонтировании.
+   *
+   * Уходящее окно получает `inert`, и браузер тут же снимает с него фокус на `<body>`.
+   * Пока возврат стоял в очистке эффекта, эти 220 мс фокус лежал в никуда: Tab в это
+   * время начинал обход документа с начала — ровно тот дефект, от которого окно и
+   * защищается. Проверка «уходящее окно inert» его не видела: она смотрит на атрибут.
+   */
   useEffect(() => {
-    if (!mounted) return;
-    return () => {
-      // Фокус возвращается ТУДА, ОТКУДА ПРИШЁЛ. Без этого следующий Tab начинает обход
-      // документа с начала — человек нажимает Tab и оказывается в шапке сайта.
-      const back = returnTo.current;
-      if (back && document.contains(back)) back.focus({ preventScroll: true });
-    };
-  }, [mounted]);
+    if (!mounted || open) return;
+    const back = returnTo.current;
+    const alive = back && document.contains(back) ? back : returnHome.current;
+    if (!alive || !document.contains(alive)) return;
+    if (alive !== back && alive.tabIndex < 0) alive.tabIndex = -1;
+    alive.focus({ preventScroll: true });
+  }, [mounted, open]);
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
@@ -315,6 +350,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
         style={{
           position: 'fixed',
           inset: 0,
+          // dvh, а не растяжка по inset: layout viewport на iOS виртуальная клавиатура не
+          // уменьшает, и подвал с кнопками оказывался под ней без возможности доскроллить.
+          height: '100dvh',
           zIndex: 80,
           display: 'flex',
           alignItems: 'center',
@@ -349,10 +387,11 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
           ref={mergedRef}
           // Уходящее окно фокуса не берёт: 220 мс оно ещё видно, и таб успевал попасть
           // на кнопку, которой сейчас не станет.
-          {...(leaving ? ({ inert: '' } as Record<string, string>) : {})}
+          {...collapsedProps(leaving)}
           // Отменяемое — dialog; обязательное решение — alertdialog. Это разные вещи:
           // второе диктор объявляет как требующее ответа, а не как «открылось окно».
           role={dismissible ? 'dialog' : 'alertdialog'}
+          data-modal="true"
           aria-modal="true"
           aria-labelledby={label ? titleId : undefined}
           aria-describedby={subtitle ? descId : undefined}
@@ -370,9 +409,14 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
             flexDirection: 'column',
             gap: 'var(--sp-4)',
             padding: 'var(--sp-5)',
-            background: 'var(--bg-raised)',
+            // Плавающая поверхность — --bg-float, как у тоста и карточки пина: в тёмной
+            // теме высоту выражает ступень яркости, и окно, выключающее вообще всё, не
+            // может стоять ТЕМНЕЕ всплывающего тоста. Радиус --r-m — тот же, что у всех
+            // поверхностей системы: правила «радиус растёт с размером» в ней нет, а
+            // остров бывает шире окна.
+            background: 'var(--bg-float)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--r-l)',
+            borderRadius: 'var(--r-m)',
             boxShadow: 'var(--shadow-lg)',
             outline: 'none',
             opacity: shown ? '1' : '0',
@@ -431,7 +475,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
                   size="s"
                   tooltip="Закрыть"
                   onClick={() => close('close')}
-                  style={{ flex: 'none', marginRight: 'calc(-1 * var(--sp-2))', marginTop: 'calc(-1 * var(--sp-1))' }}
+                  // Кнопка 36×36 центруется по ПЕРВОЙ СТРОКЕ заголовка (18px × 1.2 ≈ 21.6px):
+                  // сдвиг вверх на полразницы, иначе икс читается съехавшим к базовой линии.
+                  style={{ flex: 'none', marginRight: 'calc(-1 * var(--sp-25))', marginTop: 'calc(-1 * var(--sp-2))' }}
                 />
               ) : null}
             </div>
@@ -452,7 +498,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
                 />
               ) : null}
               {showConfirm ? (
-                <Button label={confirmLabel} variant="primary" tone={tone} loading={loading} onClick={() => onConfirm?.()} />
+                <Button label={confirmLabel} variant="primary" tone={confirmTone} loading={confirmLoading} onClick={() => onConfirm?.()} />
               ) : null}
             </div>
           ) : null}

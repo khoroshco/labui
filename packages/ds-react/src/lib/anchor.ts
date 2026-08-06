@@ -39,8 +39,10 @@ export function anchorTo(anchor: DOMRect, wantHeight: number, viewport = { w: wi
   const height = Math.max(0, Math.min(wantHeight, room));
 
   // Горизонталь: держим ширину якоря, но не даём вылезти за поле экрана — узкий контрол
-  // у правого края иначе уводит выпадашку за границу.
-  const width = anchor.width;
+  // у правого края иначе уводит выпадашку за границу. Ширина тоже ограничена вьюпортом:
+  // якорь бывает шире экрана (поле на всю ширину узкой панели, resize вниз), и тогда
+  // список торчал за правым краем — у него срезало галочку выбранного пункта.
+  const width = Math.min(anchor.width, Math.max(0, viewport.w - EDGE * 2));
   const left = Math.min(Math.max(EDGE, anchor.left), Math.max(EDGE, viewport.w - width - EDGE));
 
   return {

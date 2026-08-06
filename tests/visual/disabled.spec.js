@@ -27,7 +27,14 @@ const DISABLEABLE = [
   'ActionRow',
   'Slider',
   'Disclosure',
+  // Оба гасят чернила и оба не проверялись вовсе: проп есть, а в списке их не было —
+  // «выключенное не ярче --text-disabled» у них держалось только на честном слове.
+  'Select',
+  'Textarea',
 ];
+
+/** Компоненты, которых у замороженного эталона нет по построению — только React. */
+const REACT_ONLY = new Set(['Select', 'Textarea', 'Modal']);
 
 /** Компоненты без чернил: состояние несут заливки, и проверять потолок яркости не на чем. */
 const INKLESS = new Set(['Toggle']);
@@ -35,6 +42,7 @@ const INKLESS = new Set(['Toggle']);
 for (const impl of IMPLS) {
   for (const theme of ['dark', 'light']) {
   for (const name of DISABLEABLE) {
+    if (impl === 'dc' && REACT_ONLY.has(name)) continue;
     test(`${name}: в disabled ничто не ярче --text-disabled (${theme}, ${impl})`, async ({ page }) => {
       const props = { disabled: true };
       // Без подписи кнопка рисует пустой прямоугольник, и гасить в ней нечего: проверка
@@ -48,6 +56,9 @@ for (const impl of IMPLS) {
       // Без опций у ряда под проверку попадает один лейбл, а пилюли — самое вероятное
       // место нарушения потолка — в тест не попадают вовсе.
       if (name === 'ChoiceRow') props.options = ['Первая', 'Вторая'];
+      // Пустое многострочное поле — прямоугольник без чернил: гасить нечего.
+      if (name === 'Textarea') Object.assign(props, { value: 'Логотип уезжает за охранное поле', ariaLabel: 'Комментарий' });
+      if (name === 'Select') Object.assign(props, { options: ['JPG', 'PNG'], value: 'PNG', ariaLabel: 'Формат' });
 
       await open(page, name, props, { theme, impl });
 

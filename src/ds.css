@@ -85,7 +85,9 @@ button:focus, select:focus { outline:none; }
 [data-btn="secondary"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover,
 [data-btn="ghost"][data-tone="danger"]:not(:disabled):not([data-busy="true"]):hover { background:var(--danger-dim) !important; color:var(--danger) !important; }
 /* ховер и пресс — только у живого поля: disabled не подсвечивается, а ошибка и фокус не перекрашиваются в серый */
-[data-field]:not([data-disabled="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong) !important; }
+/* readOnly исключён вместе с disabled: он не открывается, и ховер рамки обещал бы
+   действие, которого нет. */
+[data-field]:not([data-disabled="true"]):not([data-readonly="true"]):not([data-invalid="true"]):not(:focus-within):hover { border-color:var(--border-strong) !important; }
 [data-field][data-disabled="true"]:active { transform:none; }
 /* !important по той же причине, что у ховеров: рамку и тень компонент пишет инлайном.
    Без пометки правило было мёртвым, и переезд на --focus доехал только до React —
@@ -112,7 +114,7 @@ html[data-modality="kb"] [data-row]:focus-visible { outline:none; box-shadow:var
 /* Слой-виджет слайдера: кольцо inset, потому что корень слайдера режет overflow'ом — та же причина, что у рядов острова. Геометрия кольца не меняется: слой лежит inset:0. */
 html[data-modality="kb"] [data-slider]:focus-visible { outline:none; box-shadow:var(--focus-ring-inset); }
 /* кольцо ряда — ТОЛЬКО когда внутри реально сфокусирован текстовый ввод; залётный фокус ряда мышью кольца не даёт */
-[data-row]:has(input:focus) { outline:none; box-shadow:var(--focus-ring-inset); }
+[data-row]:has(input:focus), [data-row]:has(textarea:focus) { outline:none; box-shadow:var(--focus-ring-inset); }
 [data-row]:focus-visible, [data-row]:focus-within { outline:none; }
 html[data-modality="kb"] [data-row]:focus-visible, html[data-modality="kb"] [data-row]:focus-within, html[data-modality="kb"] [data-row] input:focus-visible { outline:none; }
 /* Сепаратор рисует ОБЁРТКА-маунт, а не ряд: у ряда границы нет вовсе, и гашение,
@@ -125,7 +127,8 @@ html[data-modality="kb"] [data-island] > :has([data-row]:focus-visible) + * { bo
 [data-island] > :last-child, [data-island] > :last-child [data-row] { border-bottom-left-radius:var(--r-m); border-bottom-right-radius:var(--r-m); }
 /* сепараторы рядов рисует остров на обёртках-маунтах — пресс ряда (scale) их не двигает */
 [data-island] > * + * { border-top:0.5px solid var(--border-subtle); }
-[data-island] > :has([data-row] input:focus), [data-island] > :has([data-row] input:focus) + * { border-top-color:transparent; }
+[data-island] > :has([data-row] input:focus), [data-island] > :has([data-row] input:focus) + *,
+[data-island] > :has([data-row] textarea:focus), [data-island] > :has([data-row] textarea:focus) + * { border-top-color:transparent; }
 [data-island] > :has([data-row][data-invalid="true"]), [data-island] > :has([data-row][data-invalid="true"]) + * { border-top-color:transparent; }
 /* disabled-ряд: гасим весь ряд и тонируем зону под ним */
 [data-row][data-disabled="true"], [data-row][data-disabled="true"] * { color:var(--text-disabled) !important; cursor:not-allowed !important; }
@@ -156,6 +159,10 @@ label[tabindex]:not([aria-disabled="true"]):not([data-disabled="true"]):active,
    !important переопределял кегль ЛЮБОГО инпута потребителя, включая инлайновый: отбить
    можно было только своим !important. Система не вправе так распоряжаться чужой формой. */
 @media (pointer: coarse) { [data-field] input, [data-field] textarea, [data-field] select, [data-row] input, [data-slider] ~ * input { font-size:var(--fs-l) !important; } }
+/* Пункты списка идут вплотную, без зазора: промах в пять точек — это не «ничего не
+   произошло», а ВЫБОР СОСЕДНЕГО значения, после которого список тут же закрывается.
+   На таче зона добирается до минимума Apple HIG. */
+@media (pointer: coarse) { [data-opt-item] { min-height:var(--touch-target) !important; } }
 /* Раскрывашка секции: пресс есть у каждого интерактивного элемента системы.
    Заголовок широкий, поэтому масштаб мельче края шкалы (.99 у plain против .97 у
    компактной рубрики) — иначе крупный блок «дышит» слишком заметно. */
@@ -188,6 +195,19 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
    на который человек смотрит. Пресс же обязателен у всего интерактивного. */
 [data-opt-item]:active { transform:scale(var(--press-soft)); }
 [data-opt-item] { transition:background .12s ease, transform .18s var(--ease-spring); }
+/* Подсвеченный пункт списка — узел с НАСТОЯЩИМ фокусом. В клавиатурной модальности он
+   обязан нести КОЛЬЦО: одна только подложка --bg-hover даёт 1.15:1 в тёмной теме и 1.11:1
+   в светлой при норме 3:1 для нетекстового индикатора (WCAG 1.4.11) — то есть человек,
+   идущий по списку стрелками, не видит на экране, где он сейчас. Кольцо внутрь: список
+   обрезан overflow'ом, та же причина, что у рядов острова. Под указателем кольца нет —
+   там индикатор сам курсор, и правило системы «залётный фокус мышью кольца не даёт». */
+html[data-modality="kb"] [data-opt-item]:focus { box-shadow:var(--focus-ring-inset); }
+/* Раскрытое поле селекта показывает себя так же, как сфокусированное: фокус в этот момент
+   уехал в портал, поэтому :focus-within на кнопке ложен, и раскрытый селект выглядел бы
+   ровно как селект в покое — связи между полем и висящей под ним плашкой не оставалось
+   ничего, кроме повёрнутого шеврона (а при раскрытии ВВЕРХ и его). */
+[data-select="true"][data-open="true"] { border-color:var(--focus) !important; box-shadow:inset 0 0 0 1px var(--focus) !important; }
+
 @media (prefers-reduced-motion: reduce) {
   /* пресс-масштаб заменяется гашением: факт нажатия остаётся, перемещения нет */
   [data-disc]:active:not([data-disabled="true"]) { transform:none; opacity:.7; }
@@ -284,11 +304,15 @@ button[data-tap="true"][aria-expanded="false"]:hover { color:var(--text-secondar
   html[data-modality="kb"] select:focus-visible, html[data-modality="kb"] [tabindex]:focus-visible,
   html[data-modality="kb"] [role="slider"]:focus-visible { outline:2px solid Highlight !important; outline-offset:2px; }
   /* ряды острова обрезаны overflow — кольцо внутрь */
-  html[data-modality="kb"] [data-row]:focus-visible, [data-row]:has(input:focus) { outline:2px solid Highlight !important; outline-offset:-2px; }
+  html[data-modality="kb"] [data-row]:focus-visible, [data-row]:has(input:focus), [data-row]:has(textarea:focus) { outline:2px solid Highlight !important; outline-offset:-2px; }
   [data-field]:focus-within { outline:2px solid Highlight; outline-offset:-1px; }
   /* Подсветка пункта списка живёт инлайновым фоном, а режим его вырезает: возвращаем
      системным цветом по НАСТОЯЩЕМУ фокусу — он у подсвеченного пункта и есть. */
   [data-opt-item]:focus { background:Highlight !important; color:HighlightText !important; }
+  /* Выключенность пункта несёт только цвет чернил, а режим подменяет авторские цвета:
+     без этой строки «Занятый» выглядит доступным, человек кликает и не понимает, почему
+     ничего не произошло. */
+  [data-opt-item][aria-disabled="true"] { color:GrayText !important; }
   /* 2. Границы полей и сепараторы рядов должны остаться видимыми */
   [data-field] { border-color:ButtonBorder; }
   [data-island] > * + * { border-top-color:ButtonBorder; }

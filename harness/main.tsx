@@ -32,9 +32,14 @@ for (const [k, v] of Object.entries(props)) {
     continue;
   }
   if (v !== '@fn') continue;
-  props[k] = () => {
-    const w = window as unknown as { __calls?: { prop: string; at: number }[] };
-    (w.__calls ??= []).push({ prop: k, at: performance.now() });
+  props[k] = (...args: unknown[]) => {
+    const w = window as unknown as { __calls?: { prop: string; at: number; args: unknown[] }[] };
+    // Аргументы записываются вместе с вызовом: без них ПРИЧИНА закрытия (reason у
+    // onOpenChange) не проверяется ничем — её можно было подменить любой другой, и
+    // документированный сценарий «закрывать по Escape, но не по клику мимо» ломался
+    // у потребителя молча. Значения проходят через JSON: функции и узлы не переносятся.
+    const plain = args.map((a) => (typeof a === 'object' || typeof a === 'function' ? String(a) : a));
+    (w.__calls ??= []).push({ prop: k, at: performance.now(), args: plain });
   };
 }
 

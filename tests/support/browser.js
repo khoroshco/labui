@@ -153,8 +153,10 @@ export async function setProps(page, props) {
     // что нарисовано, но и то, что произошло и КОГДА. Тот же диалект понимает React-харнесс.
     for (const [k, v] of Object.entries(p)) {
       if (v !== '@fn') continue;
-      p[k] = () => {
-        (window.__calls ??= []).push({ prop: k, at: performance.now() });
+      p[k] = (...args) => {
+        // Аргументы записываются вместе с вызовом — см. тот же мост в harness/main.tsx.
+        const plain = args.map((a) => (typeof a === 'object' || typeof a === 'function' ? String(a) : a));
+        (window.__calls ??= []).push({ prop: k, at: performance.now(), args: plain });
       };
     }
     window.__testProps = { ...(window.__testProps ?? {}), ...p };

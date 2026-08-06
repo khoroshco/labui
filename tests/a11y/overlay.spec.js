@@ -35,17 +35,29 @@ const highlighted = (page) =>
     return el.textContent?.trim() ?? '';
   });
 
+/**
+ * Дождаться подсветки. Нажатие возвращается СРАЗУ, а фокус доезжает до пункта следующим
+ * кадром — читать состояние в тот же миг значило бы мерить не результат, а скорость
+ * машины (гейт мигал один раз из пяти). Ожидание конечного состояния строгости не теряет:
+ * подсветка обязана оказаться там, где сказано, и никакая пауза не сделает неверную
+ * подсветку верной. А то, что второе быстрое нажатие не теряется, проверяется само собой —
+ * пауз МЕЖДУ нажатиями здесь нет.
+ */
+async function expectHighlighted(page, text, why) {
+  await expect.poll(() => highlighted(page), { message: why, timeout: 4000 }).toContain(text);
+}
+
 test.describe('Select: клавиатура', () => {
   test('стрелка вниз открывает список и ведёт подсветку от выбранного', async ({ page }) => {
     await openSelect(page, { value: 'Второй' });
     await trigger(page).focus();
     await page.keyboard.press('ArrowDown');
     await expect(list(page), 'стрелка обязана открывать список — так ведёт себя нативный селект').toHaveCount(1);
-    expect(await highlighted(page), 'подсветка начинается с ВЫБРАННОГО, а не с первого пункта').toContain('Второй');
+    await expectHighlighted(page, 'Второй', 'подсветка начинается с ВЫБРАННОГО, а не с первого пункта');
     await page.keyboard.press('ArrowDown');
-    expect(await highlighted(page)).toContain('Третий');
+    await expectHighlighted(page, 'Третий');
     await page.keyboard.press('ArrowUp');
-    expect(await highlighted(page)).toContain('Второй');
+    await expectHighlighted(page, 'Второй');
   });
 
   test('край списка — это край, а не переход в начало', async ({ page }) => {
@@ -53,10 +65,7 @@ test.describe('Select: клавиатура', () => {
     await trigger(page).focus();
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowUp');
-    expect(
-      await highlighted(page),
-      'зацикливание на длинном перечне читается как потеря места — у нативного селекта его нет'
-    ).toContain('Первый');
+    await expectHighlighted(page, 'Первый', 'зацикливание на длинном перечне читается как потеря места — у нативного селекта его нет');
   });
 
   test('Home и End уводят в края', async ({ page }) => {
@@ -64,9 +73,9 @@ test.describe('Select: клавиатура', () => {
     await trigger(page).focus();
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('End');
-    expect(await highlighted(page)).toContain('Четвёртый');
+    await expectHighlighted(page, 'Четвёртый');
     await page.keyboard.press('Home');
-    expect(await highlighted(page)).toContain('Первый');
+    await expectHighlighted(page, 'Первый');
   });
 
   test('Enter выбирает, закрывает и возвращает фокус на поле', async ({ page }) => {
@@ -127,7 +136,7 @@ test.describe('Select: клавиатура', () => {
     await trigger(page).focus();
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
-    expect(await highlighted(page), 'перебор обязан перешагивать через отключённое').toContain('Свободный');
+    await expectHighlighted(page, 'Свободный', 'перебор обязан перешагивать через отключённое');
   });
 
   test('Tab закрывает список и уводит фокус дальше', async ({ page }) => {
@@ -154,20 +163,53 @@ test.describe('Select: роли и форма', () => {
     const found = await page.evaluate((id) => !!document.getElementById(id), controls);
     expect(found, 'ссылка ведёт в несуществующий узел — диктору некуда идти').toBe(true);
     await expect(items(page)).toHaveCount(OPTS.length);
-    await expect(items(page).first()).toHaveAttribute('aria-selected', 'true');
+    // Выбрана НЕ первая и ровно одна. Сверка «первая выбрана» при фикстуре, где выбрана
+    // первая, — это сравнение константы с константой: `aria-selected={true}` у ВСЕХ
+    // пунктов прошло бы её, и диктор объявлял бы каждую строку выбранной.
+    const marked = await page.evaluate(() =>
+      [...document.querySelectorAll('[role="option"][aria-selected="true"]')].map((el) => el.textContent?.trim())
+    );
+    expect(marked, 'выбранной обязана быть ровно одна опция, и та, что в значении').toEqual(['Первый']);
   });
 
-  test('значение уезжает в форму настоящим полем', async ({ page }) => {
-    await openSelect(page, { value: 'Третий', name: 'format' });
+  test('отключённую опцию нельзя выбрать и мышью', async ({ page }) => {
+    // Перебор через неё перешагивает — это проверяет соседний тест. Но за клик отвечает
+    // другая ветка кода, и `if (!o)` вместо `if (!o || o.disabled)` проходил бы её мимо.
+    await openSelect(page, {
+      options: [{ value: 'a', label: 'Доступный' }, { value: 'b', label: 'Занятый', disabled: true }],
+      defaultValue: 'a',
+    });
+    await trigger(page).click();
+    await items(page).nth(1).click({ force: true });
+    await expect(trigger(page), 'клик по отключённой опции её выбрал').toHaveText(/Доступный/);
+    await expect(list(page), 'и заодно закрыл список, будто выбор состоялся').toHaveCount(1);
+  });
+
+  test('значение уезжает в форму настоящим полем — и ПОСЛЕ смены выбора', async ({ page }) => {
+    await openSelect(page, { defaultValue: 'Первый', name: 'format' });
+    // Выбор МЕНЯЕТСЯ до замера: с неизменённым значением проверку проходило и
+    // `defaultValue={current}` вместо `value={current}` — поле становилось неуправляемым,
+    // на монтировании значение верное, а форма после любого выбора отправляла старое.
+    await trigger(page).focus();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(trigger(page)).toHaveText(/Второй/);
+
+    // Поле оборачивается формой НА МЕСТЕ, а не клонируется: клон пережил бы даже переезд
+    // input'а в портал, где никакой формы вокруг него уже нет.
     const data = await page.evaluate(() => {
       const input = document.querySelector('#dc-root input[name="format"]');
       if (!input) return null;
       const form = document.createElement('form');
-      const clone = input.cloneNode(true);
-      form.appendChild(clone);
-      return [...new FormData(form).entries()];
+      const at = input.parentNode;
+      const next = input.nextSibling;
+      form.appendChild(input);
+      const out = [...new FormData(form).entries()];
+      at.insertBefore(input, next);
+      return out;
     });
-    expect(data, 'без нативного поля нет ни FormData, ни автозаполнения, ни required').toEqual([['format', 'Третий']]);
+    expect(data, 'без нативного поля нет ни FormData, ни автозаполнения, ни required').toEqual([['format', 'Второй']]);
   });
 
   test('скрытое поле не берёт фокус и не озвучивается', async ({ page }) => {
@@ -210,11 +252,23 @@ test('список не режется предком с overflow — он в п
   expect(visible.hit, `список обрезан предком: в его точке оказалось «${visible.why}»`).toBe(true);
 });
 
+/**
+ * Клик ДЕЙСТВИТЕЛЬНО мимо.
+ *
+ * Угол (5, 5) для этого не годится: компонент в оснастке стоит в левом верхнем углу, и
+ * клик туда попадает по самому полю — то есть закрывает список СВОИМ путём («trigger»),
+ * а выглядит как «клик снаружи». Ровно на этом и разошлись причины закрытия.
+ */
+async function clickOutside(page) {
+  const box = await trigger(page).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height + 240);
+}
+
 test('клик мимо закрывает список', async ({ page }) => {
   await openSelect(page);
   await trigger(page).click();
   await expect(list(page)).toHaveCount(1);
-  await page.mouse.click(5, 5);
+  await clickOutside(page);
   await expect(list(page)).toHaveCount(0);
 });
 
@@ -227,4 +281,110 @@ test('readOnly показывает значение, но не открывае
   await page.keyboard.press('ArrowDown');
   await expect(list(page)).toHaveCount(0);
   expect(await t.evaluate((el) => el.tabIndex), 'readOnly остаётся в порядке таба').toBeGreaterThanOrEqual(0);
+});
+
+test('причина закрытия называется честно', async ({ page }) => {
+  // `reason` объявлен частью контракта ради одного сценария: «закрывать по Escape, но не
+  // по клику мимо». Пока причину не проверял никто, `setOpen(false, 'outside')` можно
+  // было заменить на `'escape'` — и сценарий у потребителя ломался молча.
+  await openSelect(page, { defaultValue: 'Первый', onOpenChange: '@fn' });
+  await trigger(page).click();
+  await page.keyboard.press('Escape');
+  await trigger(page).click();
+  await clickOutside(page);
+  const reasons = await page.evaluate(() =>
+    (window.__calls ?? []).filter((c) => c.prop === 'onOpenChange').map((c) => `${c.args[0]}:${c.args[1]}`)
+  );
+  expect(reasons, 'причина обязана называть ПУТЬ, которым состояние изменилось').toEqual([
+    'true:trigger',
+    'false:escape',
+    'true:trigger',
+    'false:outside',
+  ]);
+});
+
+test('список едет за якорем, когда страница прокручивается', async ({ page }) => {
+  await openSelect(page);
+  // Прокручиваем не окно, а ПАНЕЛЬ — так селект и стоит в реальном экране: список
+  // форматов в боковой панели с overflow:auto. Слушатель в фазе перехвата обязан ловить
+  // прокрутку любого предка, а не только окна.
+  await page.evaluate(() => {
+    const host = document.querySelector('#dc-root .sc-host');
+    const box = document.createElement('div');
+    box.id = 'scroller';
+    box.style.cssText = 'overflow:auto;height:200px;width:260px';
+    const filler = document.createElement('div');
+    filler.style.cssText = 'height:60px';
+    const tail = document.createElement('div');
+    tail.style.cssText = 'height:900px';
+    host.parentNode.insertBefore(box, host);
+    box.append(filler, host, tail);
+  });
+  await trigger(page).click();
+  const before = await page.evaluate(() => document.querySelector('[role="listbox"]').getBoundingClientRect().top);
+  await page.evaluate(() => {
+    document.getElementById('scroller').scrollTop = 60;
+  });
+  const box = () =>
+    page.evaluate(() => {
+      const list = document.querySelector('[role="listbox"]');
+      const t = document.querySelector('#dc-root [data-select="true"]');
+      return { list: list.getBoundingClientRect().top, trigger: t.getBoundingClientRect().bottom };
+    });
+  // Ждём КОНЕЧНОГО положения, а не фиксированной паузы: пересчёт идёт по событию прокрутки
+  // и приходит следующим кадром, а фиксированная пауза мерила бы скорость машины (гейт
+  // мигал один раз из пяти). Требование при этом не слабеет: расстояние между полем и
+  // списком обязано сойтись, и никакое ожидание не сделает несошедшееся сошедшимся.
+  await expect
+    .poll(async () => Math.abs((await box()).list - (await box()).trigger), {
+      message: 'список уехал от своего поля — привязка пересчитывается, но не туда',
+      timeout: 4000,
+    })
+    .toBeLessThan(20);
+  const after = await box();
+  expect(
+    Math.abs(before - after.list),
+    'список остался висеть на прежнем месте: fixed в портале сам за якорем не едет'
+  ).toBeGreaterThan(30);
+});
+
+test('Textarea: Enter остаётся полю, отправляет Cmd/Ctrl+Enter', async ({ page }) => {
+  await open(page, 'Textarea', { ariaLabel: 'Комментарий', onSubmit: '@fn', defaultValue: 'первая' }, { impl: 'react', freeze: false });
+  const area = page.locator('#dc-root textarea');
+  await area.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('вторая');
+  expect(await area.inputValue(), 'Enter в многострочном поле — перевод строки, и он принадлежит полю').toContain('\n');
+  expect(await page.evaluate(() => (window.__calls ?? []).length), 'одинокий Enter отправлять не имеет права').toBe(0);
+  await page.keyboard.press('ControlOrMeta+Enter');
+  expect(await page.evaluate(() => (window.__calls ?? []).map((c) => c.prop)), 'Cmd/Ctrl+Enter — отправка').toEqual(['onSubmit']);
+});
+
+test('Textarea: поле растёт под содержимое и упирается в потолок', async ({ page }) => {
+  await open(page, 'Textarea', { ariaLabel: 'Комментарий', rows: 2, maxRows: 4 }, { impl: 'react', freeze: false });
+  const area = page.locator('#dc-root textarea');
+  const height = () => area.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+  await area.focus();
+
+  const start = await height();
+  await page.keyboard.type('первая');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('вторая');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('третья');
+  const grown = await height();
+  // Рост — единственная причина, по которой компонент существует отдельно от нативного
+  // тега. Без этой проверки `const want = min` проходило девять тестов из девяти.
+  expect(grown, `поле не выросло под содержимое (${start} → ${grown})`).toBeGreaterThan(start);
+
+  for (const line of ['четвёртая', 'пятая', 'шестая', 'седьмая']) {
+    await page.keyboard.press('Enter');
+    await page.keyboard.type(line);
+  }
+  const capped = await height();
+  expect(capped, 'потолок maxRows не держит: поле выдавливает всё, что под ним').toBeLessThan(grown * 2);
+  expect(
+    await area.evaluate((el) => getComputedStyle(el).overflowY),
+    'упёрлись в потолок — обязана появиться прокрутка, иначе хвост текста недостижим'
+  ).toBe('auto');
 });

@@ -1421,7 +1421,7 @@
           "info": "Отмена — собственное действие окна: закрывает и без колбэка."
         },
         {
-          "name": "tone",
+          "name": "confirmTone",
           "type": "'ok' | 'danger'",
           "options": [
             "ok",
@@ -1429,16 +1429,16 @@
           ],
           "editor": "enum",
           "callback": false,
-          "info": "Семантика подтверждения: удаление — danger. Иерархию кнопка выбирает сама."
+          "info": "Семантика ПОДТВЕРЖДЕНИЯ: удаление — danger. Иерархию кнопка выбирает сама. Имя с приставкой не случайно: голое `tone` читалось бы как «тон окна», а красит оно ровно одну кнопку. Тот же разбор, что запретил плоский actionVariant у EmptyState — только там действие одно, а здесь их два."
         },
         {
-          "name": "loading",
+          "name": "confirmLoading",
           "type": "boolean",
           "options": null,
           "editor": "boolean",
           "default": false,
           "callback": false,
-          "info": "Подтверждение ждёт ответа сервера: кнопка со спиннером, окно не закрывается само."
+          "info": "Подтверждение ждёт ответа сервера: кнопка со спиннером, окно не закрывается само. Тоже с приставкой: `loading` в словаре системы означает «содержимое заменяется скелетоном», а здесь это состояние одной кнопки."
         },
         {
           "name": "dismissible",
@@ -2115,12 +2115,21 @@
           "callback": false
         },
         {
+          "name": "loading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Справочник ещё едет. Пустой список в это время сказал бы «вариантов нет» — неправду."
+        },
+        {
           "name": "ariaLabel",
           "type": "string",
           "options": null,
           "editor": "text",
           "callback": false,
-          "info": "Имя для скринридера, когда подпись лежит СНАРУЖИ компонента."
+          "info": "Имя для скринридера. Роль combobox имя из содержимого НЕ берёт — оно обязательно."
         },
         {
           "name": "ariaLabelledBy",
@@ -2172,6 +2181,21 @@
         {
           "name": "onOpenChange",
           "type": "(open: boolean, reason: SelectReason) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "(e: FocusEvent<HTMLButtonElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true,
+          "info": "Событие отдаётся целиком: библиотеки форм читают из него target и type."
+        },
+        {
+          "name": "onBlur",
+          "type": "(e: FocusEvent<HTMLButtonElement>) => void",
           "options": null,
           "editor": null,
           "callback": true
@@ -2661,14 +2685,15 @@
         },
         {
           "name": "onFocus",
-          "type": "() => void",
+          "type": "(e: FocusEvent<HTMLTextAreaElement>) => void",
           "options": null,
           "editor": null,
-          "callback": true
+          "callback": true,
+          "info": "Событие отдаётся целиком: библиотеки форм читают из него target и type."
         },
         {
           "name": "onBlur",
-          "type": "() => void",
+          "type": "(e: FocusEvent<HTMLTextAreaElement>) => void",
           "options": null,
           "editor": null,
           "callback": true

@@ -4,8 +4,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
  * На сервере useLayoutEffect не выполняется и печатает предупреждение на КАЖДЫЙ рендер.
  * Подменяем его на useEffect там, где DOM'а нет: на клиенте поведение не меняется, а
  * SSR-лог потребителя перестаёт быть красным.
+ *
+ * ЭКСПОРТИРУЕТСЯ, потому что правило одно на пакет, а применялось в одном хуке: три новых
+ * компонента звали `useLayoutEffect` напрямую, и страница формы в Next.js App Router
+ * краснела предупреждением на каждый серверный рендер. Правило, которое нельзя применить,
+ * — это не правило.
  */
-const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+export const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
  * Управляемый и неуправляемый режим — ОДНОЙ идиомой на все контролы.

@@ -77,7 +77,7 @@ export const DEMO: Record<string, Record<string, unknown>> = {
     subtitle: 'Вместе с ней уйдут 18 форматов и их история выгрузок. Отменить это будет нечем.',
     confirmLabel: 'Удалить',
     cancelLabel: 'Отмена',
-    tone: 'danger',
+    confirmTone: 'danger',
   },
   EmptyState: {
     label: 'Пока нет форматов',

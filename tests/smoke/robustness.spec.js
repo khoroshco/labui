@@ -118,9 +118,21 @@ test('Select: пустой список открывается и говорит
   const bag = await open(page, 'Select', { options: [], ariaLabel: 'Площадка' }, react);
   await page.locator('#dc-root [data-select="true"]').click();
   await expect(page.locator('[role="listbox"]')).toHaveCount(1);
-  await expect(page.locator('[role="option"]')).toHaveCount(0);
-  await expect(page.locator('[role="listbox"]'), 'пустая панель без слов читается как поломка').not.toHaveText('');
+  // Плашка объявлена ОПЦИЕЙ, а не просто текстом: обычный div внутри listbox для дерева
+  // доступности не существует вовсе — диктор молчал бы там, где человек видит слова.
+  const empty = page.locator('[role="option"]');
+  await expect(empty).toHaveCount(1);
+  await expect(empty).toHaveAttribute('aria-disabled', 'true');
+  await expect(empty, 'пустая панель без слов читается как поломка').toHaveText('Ничего нет');
   expect(bag.errors).toEqual([]);
+});
+
+test('Select: пока справочник едет, «вариантов нет» — это неправда', async ({ page }) => {
+  // Пустой список и загрузка выглядят одинаково, но означают разное: сказать «вариантов
+  // нет» про справочник, который ещё не приехал, — соврать, и потребитель это скопирует.
+  await open(page, 'Select', { options: [], loading: true, ariaLabel: 'Площадка' }, react);
+  await page.locator('#dc-root [data-select="true"]').click();
+  await expect(page.locator('[role="option"]')).toHaveText('Загружаем…');
 });
 
 test('Select: значение, которого нет в списке, показывает плейсхолдер, а не пустоту', async ({ page }) => {

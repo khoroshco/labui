@@ -1,15 +1,17 @@
 import {
   forwardRef,
   useCallback,
-  useLayoutEffect,
+  useEffect,
   useRef,
   useState,
   type ClipboardEvent,
   type CSSProperties,
+  type FocusEvent,
   type KeyboardEvent,
 } from 'react';
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
+import { useIsoLayoutEffect } from '../lib/hooks.js';
 
 export interface TextareaProps extends PassThrough {
   value?: string;
@@ -39,8 +41,9 @@ export interface TextareaProps extends PassThrough {
   /** Cmd/Ctrl+Enter. Одинокий Enter в многострочном поле — перевод строки, и он не наш. */
   onSubmit?: () => void;
   onEscape?: () => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
+  /** Событие отдаётся целиком: библиотеки форм читают из него target и type. */
+  onFocus?: (e: FocusEvent<HTMLTextAreaElement>) => void;
+  onBlur?: (e: FocusEvent<HTMLTextAreaElement>) => void;
   style?: CSSProperties;
 }
 
@@ -121,7 +124,7 @@ export const Textarea = forwardRef<HTMLLabelElement, TextareaProps>(function Tex
    * Слой — layout-эффект, а не эффект: между покраской с прежней высотой и следующим
    * кадром поле дёрнулось бы на каждый символ, перешедший на новую строку.
    */
-  useLayoutEffect(() => {
+  const measure = useCallback(() => {
     const el = area.current;
     if (!el) return;
     el.style.height = 'auto';
@@ -135,7 +138,40 @@ export const Textarea = forwardRef<HTMLLabelElement, TextareaProps>(function Tex
     // Прокрутка появляется ровно тогда, когда упёрлись в потолок, — и не раньше: полоса,
     // висящая на непрокручиваемом поле, читается как «здесь ещё что-то есть».
     el.style.overflowY = el.scrollHeight > max + 1 ? 'auto' : 'hidden';
-  }, [val, minRows, capRows, bare]);
+  }, [minRows, capRows]);
+
+  useIsoLayoutEffect(() => {
+    measure();
+  }, [val, bare, measure]);
+
+  /* ШИРИНА И ШРИФТ БУДЯТ ЗАМЕР ТАК ЖЕ, КАК ЗНАЧЕНИЕ.
+   *
+   * Высота считается из переноса, а перенос зависит от ширины и от метрик шрифта — но ни
+   * то, ни другое не приходит пропсом. Два отказа отсюда, оба тихие. Сузили окно или
+   * схлопнули соседнюю панель: текст перетёк на лишнюю строку, `scrollHeight` вырос,
+   * высота осталась прежней, а `overflowY` посчитан на старой ширине как `hidden` — хвост
+   * просто обрезан, и доскроллить до него нельзя. И второй: первый замер идёт по
+   * подменному шрифту, поэтому предзаполненный черновик остаётся обрезанным до первого
+   * нажатия клавиши. Тот же приём уже применён в useTrackActive.
+   */
+  useEffect(() => {
+    const el = area.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measure]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.fonts) return;
+    let alive = true;
+    document.fonts.ready.then(() => {
+      if (alive) measure();
+    });
+    return () => {
+      alive = false;
+    };
+  }, [measure]);
 
   /** Перезапуск анимации отказа: тот же animation-name сам себя не рестартует. */
   const shake = () => {
@@ -204,13 +240,13 @@ export const Textarea = forwardRef<HTMLLabelElement, TextareaProps>(function Tex
         placeholder={placeholder}
         maxLength={lim > 0 ? lim : undefined}
         onChange={(e) => set(e.target.value)}
-        onFocus={() => {
+        onFocus={(e) => {
           setFocused(true);
-          onFocus?.();
+          onFocus?.(e);
         }}
-        onBlur={() => {
+        onBlur={(e) => {
           setFocused(false);
-          onBlur?.();
+          onBlur?.(e);
         }}
         onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -219,7 +255,14 @@ export const Textarea = forwardRef<HTMLLabelElement, TextareaProps>(function Tex
             onSubmit();
             return;
           }
-          if (e.key === 'Escape') onEscape?.();
+          if (e.key === 'Escape' && onEscape) {
+            // Гасим всплытие: поле часто стоит ВНУТРИ модального окна, у которого свой
+            // Escape. Без этого одно нажатие и очищало поле, и закрывало окно вместе с
+            // набранным текстом. Клавишу съедает верхний слой — тот, кто её обработал.
+            e.stopPropagation();
+            onEscape();
+            return;
+          }
           // Попытка ввести символ в заполненное поле: браузер молча отбрасывает его и
           // события не даёт — ловим саму попытку. Enter здесь тоже символ: он занимает
           // место в значении, и упереться в предел переводом строки можно ровно так же.
@@ -249,7 +292,11 @@ export const Textarea = forwardRef<HTMLLabelElement, TextareaProps>(function Tex
           // и оставляет поле в размере, который больше не соответствует тексту.
           resize: 'none',
           display: 'block',
-          color: disabled ? 'var(--text-disabled)' : invalid ? 'var(--danger)' : 'var(--text-primary)',
+          // Ошибку несут рамка и сообщение ряда, а НЕ сам набор: здесь это абзац в
+          // несколько строк, то есть содержание, и его уровень яркости — text-primary.
+          // (У Input то же место работает иначе только потому, что там значение короткое
+          // и оно само и есть ошибка.) Плюс --danger на бумаге даёт 4.09:1 при норме 4.5.
+          color: disabled ? 'var(--text-disabled)' : 'var(--text-primary)',
           fontFamily: 'var(--font-ui)',
           fontWeight: 'var(--fw-regular)',
           fontSize: 'var(--fs-m)',
