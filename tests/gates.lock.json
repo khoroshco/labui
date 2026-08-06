@@ -20,6 +20,7 @@
     "parity/dom-parity.spec.js": 78,
     "parity/ref.spec.js": 1,
     "showcase/focus.spec.js": 6,
+    "showcase/pins.spec.js": 5,
     "smoke/all-components.spec.js": 30,
     "smoke/consumer-api.spec.js": 4,
     "smoke/controlled.spec.js": 2,

@@ -6,7 +6,17 @@
  * тултип выглядит незадокументированным, а сценарий постановки пина — несуществующим.
  */
 import { useState } from 'react';
-import { Button, Pin, PinCard, PinComposer } from '../packages/ds-react/src/index';
+import { Button, Pin as PinDrop, PinCard, PinComposer, type PinMessage } from '../packages/ds-react/src/index';
+
+/** Пин канваса: точка привязки, своё сообщение и СПИСОК ответов. */
+interface Pin {
+  x: number;
+  y: number;
+  key?: string;
+  text?: string;
+  resolved?: boolean;
+  replies: PinMessage[];
+}
 
 const frame = {
   display: 'flex',
@@ -33,24 +43,40 @@ export function Tooltip() {
   );
 }
 
-/** Сценарий: клик по полотну ставит пин с композером, тред открывается по клику на пин. */
+/**
+ * Сценарий: клик по полотну ставит пин с композером, тред открывается по клику на пин.
+ *
+ * Проза раздела обещала пять вещей, которых сцена не делала. Каждая — не украшение,
+ * а поведение, которое потребитель скопирует к себе:
+ *   — «решённый пин гаснет» — проп `resolved` в Pin не передавался вовсе;
+ *   — точка непрочитанного ответа зажигалась от СВОЕГО первого сообщения, а не от ответа;
+ *   — «у правого края карточка отражается влево» — она всегда стояла по левому краю и
+ *     уезжала под обрез канваса: у правого края от композера были видны аватар и буква;
+ *   — «наведение даёт превью» — превью не было, хотя PinCard умеет variant='preview';
+ *   — ответ человека подписывался «AI», и слот был ОДИН: второй ответ затирал первый.
+ */
 export function PinCanvas() {
-  const [pins, setPins] = useState<{ x: number; y: number; text?: string; resolved?: boolean; reply?: string }[]>([
-    { x: 28, y: 34, text: 'Логотип уезжает за охранное поле на мобильном.' },
+  const [pins, setPins] = useState<Pin[]>([
+    { x: 28, y: 34, text: 'Логотип уезжает за охранное поле на мобильном.', replies: [] },
   ]);
   const [open, setOpen] = useState<number | null>(null);
   const [draft, setDraft] = useState<number | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
   // Панель канваса: показывать пины, видны ли решённые, очистка. Это ответственность
   // ЭКРАНА, а не компонента — Pin про своё состояние знает, про режим просмотра нет.
   const [show, setShow] = useState(true);
   const [withResolved, setWithResolved] = useState(true);
-  const visible = (p: { resolved?: boolean }) => show && (withResolved || !p.resolved);
+  const visible = (p: Pin) => show && (withResolved || !p.resolved);
+  const patch = (i: number, next: Partial<Pin>) => setPins((list) => list.map((it, k) => (k === i ? { ...it, ...next } : it)));
 
   return (
     <div
       onClick={(e) => {
         const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setPins((p) => [...p, { x: ((e.clientX - box.left) / box.width) * 100, y: ((e.clientY - box.top) / box.height) * 100 }]);
+        setPins((p) => [
+          ...p,
+          { x: ((e.clientX - box.left) / box.width) * 100, y: ((e.clientY - box.top) / box.height) * 100, replies: [] },
+        ]);
         setDraft(pins.length);
         setOpen(null);
       }}
@@ -63,53 +89,80 @@ export function PinCanvas() {
         cursor: 'crosshair',
       }}
     >
-      {pins.map((p, i) => (visible(p) ? (
-        <span key={i} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }} onClick={(e) => e.stopPropagation()}>
-          {/* Клик слушает обёртка: у Pin нет собственного onClick, и переданный проп
-              молча терялся — тред не открывался никогда. */}
-          <span onClick={() => setOpen(open === i ? null : i)} style={{ display: 'inline-block', cursor: 'pointer' }}>
-            <Pin number={i + 1} hasReply={!!p.text} />
+      {pins.map((p, i) => {
+        if (!visible(p)) return null;
+        // ОТРАЖЕНИЕ У КРАЯ. Карточка растёт из точки привязки, и у правого края расти
+        // вправо некуда: канвас режет её overflow'ом. Порог — не «половина», а место
+        // под саму карточку: 360px на канвасе шириной около 900 это примерно 40%.
+        const flip = p.x > 58;
+        const side = flip ? { right: 0 } : { left: 0 };
+        return (
+          <span key={p.key ?? i} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }} onClick={(e) => e.stopPropagation()}>
+            {/* Клик слушает обёртка: у Pin нет собственного onClick, и переданный проп
+                молча терялся — тред не открывался никогда. */}
+            <span
+              // Хуки сцены: они нужны гейту, чтобы отличить каплю от карточки, а превью
+              // от треда — у самих компонентов такого признака нет и заводить его им
+              // незачем. Это разметка ЭКРАНА, как и всё остальное в сценарии.
+              data-scene-pin={String(i)}
+              onClick={() => {
+                setOpen(open === i ? null : i);
+                setHover(null);
+              }}
+              onPointerEnter={() => setHover(i)}
+              onPointerLeave={() => setHover((h) => (h === i ? null : h))}
+              style={{ display: 'inline-block', cursor: 'pointer' }}
+            >
+              <PinDrop number={i + 1} resolved={p.resolved} hasReply={p.replies.length > 0} />
+            </span>
+            {draft === i ? (
+              <span data-scene-composer="" style={{ position: 'absolute', top: 'calc(100% + 8px)', ...side, width: 320, display: 'block' }}>
+                <PinComposer
+                  author="Марина Ковалёва"
+                  onSend={(text: string) => {
+                    patch(i, { text });
+                    setDraft(null);
+                  }}
+                  onCancel={() => {
+                    setPins((list) => list.filter((_, k) => k !== i));
+                    setDraft(null);
+                  }}
+                />
+              </span>
+            ) : null}
+            {/* Превью по наведению: только текст первого сообщения, без действий. Открытый
+                тред его перебивает — двух карточек над одним пином быть не должно. */}
+            {hover === i && open !== i && draft !== i && p.text ? (
+              <span data-scene-preview="" style={{ position: 'absolute', top: 'calc(100% + 8px)', ...side, width: 280, display: 'block', pointerEvents: 'none' }}>
+                <PinCard variant="preview" author="Марина Ковалёва" messages={[{ author: 'Марина Ковалёва', text: p.text }]} />
+              </span>
+            ) : null}
+            {open === i && p.text ? (
+              <span data-scene-thread="" style={{ position: 'absolute', top: 'calc(100% + 8px)', ...side, width: 360, display: 'block' }}>
+                <PinCard
+                  author="Марина Ковалёва"
+                  resolved={p.resolved}
+                  messages={[
+                    { author: 'Марина Ковалёва', text: p.text },
+                    // Ответы — СПИСОК, а не одно поле: второй ответ не имеет права затирать
+                    // первый. Автора несёт сама запись, поэтому ответ человека и подписан
+                    // человеком: раньше любой ответ рендерился как «AI».
+                    ...p.replies,
+                  ]}
+                  onResolve={() => {
+                    patch(i, { resolved: !p.resolved });
+                    setOpen(null);
+                  }}
+                  onClose={() => setOpen(null)}
+                  onSend={(text: string) => {
+                    patch(i, { replies: [...p.replies, { author: 'Пётр Соколов', text }] });
+                  }}
+                />
+              </span>
+            ) : null}
           </span>
-          {draft === i ? (
-            <span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 320, display: 'block' }}>
-              <PinComposer
-                author="Марина Ковалёва"
-                onSend={(text: string) => {
-                  setPins((list) => list.map((it, k) => (k === i ? { ...it, text } : it)));
-                  setDraft(null);
-                }}
-                onCancel={() => {
-                  setPins((list) => list.filter((_, k) => k !== i));
-                  setDraft(null);
-                }}
-              />
-            </span>
-          ) : null}
-          {open === i && p.text ? (
-            <span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 360, display: 'block' }}>
-              <PinCard
-                author="Марина Ковалёва"
-                resolved={p.resolved}
-                messages={[
-                  { author: 'Марина Ковалёва', text: p.text },
-                  // Ответ AI — обычное сообщение треда с автором-роботом: отдельного
-                  // режима у карточки нет, потому что тред один и тот же.
-                  ...(p.reply ? [{ author: 'AI', text: p.reply, ai: true }] : []),
-                ]}
-                onResolve={() => {
-                  setPins((list) => list.map((it, k) => (k === i ? { ...it, resolved: !it.resolved } : it)));
-                  setOpen(null);
-                }}
-                onClose={() => setOpen(null)}
-                onSend={(text: string) => {
-                  setPins((list) => list.map((it, k) => (k === i ? { ...it, reply: text } : it)));
-                  setOpen(null);
-                }}
-              />
-            </span>
-          ) : null}
-        </span>
-      ) : null))}
+        );
+      })}
       {/* Панель канваса. Режим просмотра — ответственность ЭКРАНА: Pin знает про своё
           состояние и не знает, показывают ли его сейчас. */}
       <span
@@ -147,7 +200,13 @@ export function PinCanvas() {
           variant="primary"
           size="xs"
           onClick={() =>
-            setPins((list) => list.map((x) => (x.resolved || !x.text ? x : { ...x, reply: 'Поправил охранное поле и перевыгрузил формат.' })))
+            setPins((list) =>
+              list.map((x) =>
+                x.resolved || !x.text
+                  ? x
+                  : { ...x, replies: [...x.replies, { author: 'AI', text: 'Поправил охранное поле и перевыгрузил формат.', ai: true }] }
+              )
+            )
           }
         />
       </span>
