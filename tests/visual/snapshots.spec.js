@@ -1,8 +1,24 @@
-/* Визуальные снапшоты: каждый компонент в обеих темах и при prefers-reduced-motion.
+/* Визуальные снапшоты: каждый компонент ОБЕИХ реализаций в двух темах и при reduced-motion.
  *
  * Это единственный гейт, который ловит «одинаковое выглядит одинаково» и вообще всё,
  * что не выражается числом: оптику, тон, геометрию, состояния. Снапшоты обновляются
  * ТОЛЬКО осознанно и только посмотрев на диффы — иначе гейт превращается в штамп.
+ *
+ * Почему обе реализации, а не только эталон. До этого снимался ОДИН DC-эталон: у пакета,
+ * который уезжает потребителю, собственной пиксельной меры не было вовсе — она была
+ * унаследована от эталона через паритет с допуском в 900 точек. Подсаженная в самый частый
+ * компонент регрессия (Button size m, боковой отступ 16 → 22: кнопка шире на 12 пикселей)
+ * прошла зелёной через 254 визуальные проверки и через паритет снимков; поймал её только
+ * паритет разметки, который сравнивает геометрию числом. А эталон планируется удалить —
+ * и вместе с ним ушла бы вся пиксельная страховка React-версии.
+ *
+ * Эталоны РАЗДЕЛЬНЫЕ (`dc/…` и `react/…`), а не общие. Общий эталон здесь невозможен:
+ * рантайм DC оборачивает каждый маунт в .sc-host, отсюда сдвиг фазы субпиксельного
+ * сглаживания текста — до ~450 точек на текстовом компоненте при полном совпадении всего
+ * остального. Допуск, который это переживает, слишком широк, чтобы ловить сдвиг на пиксель.
+ * Поэтому каждая реализация меряется СВОИМ эталоном с допуском в 10 точек, а совпадение
+ * двух реализаций между собой держит tests/parity/dom-parity.spec.js — точной сверкой
+ * краски и рамок, без пиксельного шума вовсе.
  *
  * Снимок берётся с #dc-root, а не со страницы целиком: так дифф показывает компонент,
  * а не поля вокруг него. Движение останавливается дважды: встроенным animations:'disabled'
@@ -10,36 +26,55 @@
  * пульсация), Island и PinCard, и снимок ждёт двух одинаковых кадров до таймаута.
  */
 import { expect, test } from '@playwright/test';
-import { dcPages } from '../support/dc.js';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { dcPages, ROOT } from '../support/dc.js';
 import { open } from '../support/browser.js';
 import { FIXTURES } from '../support/fixtures.js';
 
-const components = dcPages()
+const dc = dcPages()
   .filter((p) => p.file.startsWith('src/'))
   .map((p) => p.name);
 
+// Состав React-стороны берётся из ЕГО контракта, а не из migrated.json: migrated — список
+// принятых паритетом, то есть пересечение с эталоном. Компонент, которого у эталона нет по
+// построению (эталон заморожен тегом ds-reference-v0 и расти не может), обязан получить
+// свой снимок сразу, а не после удаления DC-рантайма.
+const react = JSON.parse(readFileSync(path.join(ROOT, 'api.react.json'), 'utf8')).components.map((c) => c.name);
 
-for (const name of components) {
-  for (const theme of ['dark', 'light']) {
-    test(`${name} · ${theme}`, async ({ page }) => {
-      await open(page, name, FIXTURES[name] ?? null, { theme });
-      await expect(page.locator('#dc-root')).toHaveScreenshot(`${name}-${theme}.png`, {
+// Страховка от тихой пустоты: список, собравшийся не из того места, дал бы зелёную сюиту
+// из нуля снимков — и выглядела бы она точно так же, как полная.
+test('обе реализации предъявили состав', () => {
+  expect(dc.length, 'страниц эталона не найдено — состав собрался не из того места').toBeGreaterThan(20);
+  expect(react.length, 'React-контракт пуст — состав собрался не из того места').toBeGreaterThan(20);
+});
+
+for (const [impl, components] of [
+  ['dc', dc],
+  ['react', react],
+]) {
+  for (const name of components) {
+    for (const theme of ['dark', 'light']) {
+      test(`${name} · ${theme} (${impl})`, async ({ page }) => {
+        await open(page, name, FIXTURES[name] ?? null, { theme, impl });
+        await expect(page.locator('#dc-root')).toHaveScreenshot([impl, `${name}-${theme}.png`], {
+          animations: 'disabled',
+          threshold: 0.01,
+          maxDiffPixels: 10,
+        });
+      });
+    }
+
+    test(`${name} · reduced-motion (${impl})`, async ({ page }) => {
+      // Уважение к prefers-reduced-motion — часть контракта: крупные перемещения, пресс и
+      // пружины заменяются фейдами, а цвет и фокус остаются. Картинка обязана остаться той же.
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await open(page, name, FIXTURES[name] ?? null, { theme: 'dark', impl });
+      await expect(page.locator('#dc-root')).toHaveScreenshot([impl, `${name}-reduced-motion.png`], {
         animations: 'disabled',
         threshold: 0.01,
         maxDiffPixels: 10,
       });
     });
   }
-
-  test(`${name} · reduced-motion`, async ({ page }) => {
-    // Уважение к prefers-reduced-motion — часть контракта: крупные перемещения, пресс и
-    // пружины заменяются фейдами, а цвет и фокус остаются. Картинка обязана остаться той же.
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await open(page, name, FIXTURES[name] ?? null, { theme: 'dark' });
-    await expect(page.locator('#dc-root')).toHaveScreenshot(`${name}-reduced-motion.png`, {
-      animations: 'disabled',
-      threshold: 0.01,
-        maxDiffPixels: 10,
-    });
-  });
 }
