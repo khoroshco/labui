@@ -5,8 +5,20 @@ name: Релиз
 # GITHUB_TOKEN, которому дано право packages: write. Видимость пакета наследуется от
 # репозитория, поэтому приватный репозиторий даёт приватные пакеты.
 # Корневой пакет labui помечен private — случайный publish не пройдёт.
+#
+# ЗАПУСК ПОСЛЕ CI, А НЕ ПАРАЛЛЕЛЬНО С НИМ. Раньше здесь стоял `on: push` и собственный
+# `npm run verify`: один и тот же полный прогон исполнялся на один мёрж трижды (PR, push
+# в main и здесь), четвёртый раз — в Витрине. Дело не в минутах. Прогон рос вместе с
+# сюитами и на релизе 0.3.0 не уложился в timeout-minutes: 15 — джоба «отменилась» на
+# середине гейтов, `changeset publish` не выполнился, и версия, влитая в main, осталась
+# неопубликованной. МОЛЧА: красного чека при этом нет, потому что публикация — не гейт.
+#
+# Теперь релиз ждёт ЗАВЕРШЕНИЯ CI на том же SHA и публикует, только если тот зелёный.
+# «Релиз проходит те же гейты» остаётся правдой — но проходит их один раз.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -19,12 +31,19 @@ concurrency: release
 
 jobs:
   release:
+    # Красный или отменённый CI публикации не даёт. Ручной запуск — осознанное решение
+    # человека, и своего workflow_run у него нет.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # ИМЕННО тот коммит, который прошёл гейты. По умолчанию checkout в workflow_run
+          # берёт вершину ветки по умолчанию — то есть публиковал бы непроверенный SHA,
+          # если за время прогона в main успел приехать ещё один мёрж.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -35,10 +54,12 @@ jobs:
 
       - run: npm ci
 
-      # Гейты прогоняются здесь же: релиз не имеет права публиковать красный main.
-      # Отдельный workflow на push бежал бы параллельно с CI, а не после него.
-      - name: Все гейты перед публикацией
-        run: npx playwright install --with-deps chromium && npm run verify
+      # Гейты уже прошли — на этом же SHA, в прогоне CI, который нас и запустил. Ссылку
+      # печатаем, чтобы «релиз прошёл гейты» можно было проверить, а не принять на веру.
+      - name: Какой прогон гейтов впустил этот релиз
+        run: |
+          echo "CI:  ${{ github.event.workflow_run.html_url || 'ручной запуск' }}"
+          echo "SHA: ${{ github.event.workflow_run.head_sha || github.sha }}"
 
       # changesets сам решает, что делать: есть незакрытые записи — открывает PR с версиями
       # и CHANGELOG; записи уже влиты — публикует.

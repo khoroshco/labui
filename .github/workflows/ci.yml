@@ -57,12 +57,15 @@ jobs:
   browser:
     name: ${{ matrix.suite.title }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         suite:
-          - { title: Smoke и снимки, cmd: 'npm run test:smoke && npm run test:visual' }
+          # Снимки уехали в свою джобу: с переходом на матрицу реализаций их стало вдвое
+          # больше (81 → 163), и вместе со smoke сюита перестала укладываться в лимит.
+          - { title: Smoke, cmd: 'npm run test:smoke' }
+          - { title: Снимки и визуал, cmd: 'npm run test:visual' }
           - { title: Паритет, cmd: 'npm run test:parity' }
           - { title: Доступность, cmd: 'npm run test:a11y' }
           # Витрина — своя поверхность и свой сервер: до этой сюиты её не открывал ни один
