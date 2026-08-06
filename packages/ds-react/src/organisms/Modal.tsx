@@ -14,7 +14,7 @@ import {
 import { setRef } from '../lib/refs.js';
 import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Layer } from '../lib/Layer.js';
-import { useReducedMotion } from '../lib/hooks.js';
+import { useControlledState, useReducedMotion } from '../lib/hooks.js';
 import { Button } from '../atoms/Button.js';
 
 /** Почему закрылось. Причина — часть контракта, а не догадка потребителя. */
@@ -115,10 +115,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
   style,
   ...rest
 }, ref) {
-  // Режим управления фиксируется на монтировании — общее правило системы (ADR 0011).
-  const { current: controlled } = useRef(openProp !== undefined);
-  const [ownOpen, setOwnOpen] = useState(defaultOpen);
-  const open = controlled ? (openProp ?? ownOpen) : ownOpen;
+  // Режим управления фиксируется на монтировании — общее правило системы (ADR 0011),
+  // и реализация та же, что у всех контролов: смена режима предупреждает в консоли.
+  const [open, setOwnOpen] = useControlledState(openProp, defaultOpen);
 
   const reactId = useId();
   const titleId = `${reactId}-title`;
@@ -171,10 +170,10 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
 
   const close = useCallback(
     (reason: ModalReason) => {
-      if (!controlled) setOwnOpen(false);
+      setOwnOpen(false);
       onOpenChange?.(false, reason);
     },
-    [controlled, onOpenChange]
+    [setOwnOpen, onOpenChange]
   );
 
   /* КТО ОТКРЫЛ — запоминаем ДО того, как фон станет inert.

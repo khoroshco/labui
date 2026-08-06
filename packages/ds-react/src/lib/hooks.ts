@@ -18,6 +18,48 @@ const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayo
  *
  * Инвариант тот же, что был: пока значение приходит сверху, контрол показывает РОВНО его.
  */
+/**
+ * Режим управления БЕЗ колбэка: значение, свой сеттер и признак «владеет родитель».
+ *
+ * Нужен там, где колбэк не сводится к `(next) => void`: у селекта и модалки он несёт ещё
+ * и ПРИЧИНУ изменения (`onOpenChange(open, reason)`). Пока этой развилки не было, оба
+ * компонента переписывали идиому у себя — и переписывали не целиком: фиксация режима
+ * приезжала, а предупреждение о смене режима терялось. Одна реализация на всех — и
+ * теряться нечему.
+ */
+export function useControlledState<T>(value: T | undefined, defaultValue: T): [T, (next: T) => void, boolean] {
+  // Режим фиксируется на МОНТИРОВАНИИ и больше не пересчитывается — см. useControlled ниже.
+  const { current: controlled } = useRef(value !== undefined);
+  const [own, setOwn] = useState<T>(controlled ? (value as T) : defaultValue);
+  const seen = useRef(value);
+  if (controlled && value !== undefined && value !== seen.current) {
+    seen.current = value;
+    setOwn(value);
+  }
+  const current = controlled ? (value ?? own) : own;
+
+  if (process.env.NODE_ENV !== 'production') {
+    const now = value !== undefined;
+    if (now !== controlled) {
+      console.warn(
+        `[@khoroshco/ds] Контрол сменил режим управления: был ${controlled ? 'управляемым' : 'неуправляемым'}, ` +
+          `стал ${now ? 'управляемым' : 'неуправляемым'}. Режим фиксируется на монтировании — ` +
+          `выберите один: value + onChange либо defaultValue.`
+      );
+    }
+  }
+
+  // Сеттер сам знает, что управляемому контролу своё состояние трогать нельзя: иначе
+  // каждый вызывающий обязан помнить об этом, а забыть достаточно одному.
+  const set = useCallback(
+    (next: T) => {
+      if (!controlled) setOwn(next);
+    },
+    [controlled]
+  );
+  return [current, set, controlled];
+}
+
 export function useControlled<T>(
   value: T | undefined,
   defaultValue: T,

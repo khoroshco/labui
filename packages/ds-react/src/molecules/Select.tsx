@@ -14,7 +14,7 @@ import { passThrough, type PassThrough } from '../lib/passthrough.js';
 import { Icon, type IconName } from '../lib/Icon.js';
 import { Layer } from '../lib/Layer.js';
 import { anchorTo, type Anchored } from '../lib/anchor.js';
-import { useReducedMotion } from '../lib/hooks.js';
+import { useControlledState, useReducedMotion } from '../lib/hooks.js';
 
 export type SelectOption = string | { value: string; label?: string; icon?: IconName; disabled?: boolean };
 
@@ -122,19 +122,12 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
   const reactId = useId();
   const listId = `${reactId}-list`;
 
-  // Режим управления фиксируется на монтировании — то же правило, что у остальных
-  // контролов (docs/adr/0011). Здесь две независимые оси: значение и раскрытость.
-  const { current: valueControlled } = useRef(value !== undefined);
-  const { current: openControlled } = useRef(openProp !== undefined);
-  const [ownValue, setOwnValue] = useState(value ?? defaultValue);
-  const seenValue = useRef(value);
-  if (valueControlled && value !== undefined && value !== seenValue.current) {
-    seenValue.current = value;
-    setOwnValue(value);
-  }
-  const [ownOpen, setOwnOpen] = useState(defaultOpen);
-  const current = valueControlled ? (value ?? ownValue) : ownValue;
-  const open = (openControlled ? (openProp ?? ownOpen) : ownOpen) && !disabled && !readOnly;
+  // Режим управления фиксируется на монтировании — то же правило и та же реализация, что
+  // у остальных контролов (docs/adr/0011). Осей здесь ДВЕ и они независимы: значение и
+  // раскрытость; у каждой свой режим, свой дефолт и своё предупреждение о смене режима.
+  const [current, setOwnValue, valueControlled] = useControlledState(value, defaultValue);
+  const [rawOpen, setOwnOpen] = useControlledState(openProp, defaultOpen);
+  const open = rawOpen && !disabled && !readOnly;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -157,16 +150,16 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
 
   const setOpen = useCallback(
     (next: boolean, reason: SelectReason) => {
-      if (!openControlled) setOwnOpen(next);
+      setOwnOpen(next);
       onOpenChange?.(next, reason);
     },
-    [openControlled, onOpenChange]
+    [setOwnOpen, onOpenChange]
   );
 
   const pick = (i: number, reason: SelectReason = 'item') => {
     const o = items[i];
     if (!o || o.disabled) return;
-    if (!valueControlled) setOwnValue(o.value);
+    setOwnValue(o.value);
     onChange?.(o.value);
     setOpen(false, reason);
     triggerRef.current?.focus();
@@ -318,7 +311,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
         const i = seek(e.key);
         if (i >= 0) {
           e.preventDefault();
-          if (!valueControlled) setOwnValue(items[i].value);
+          setOwnValue(items[i].value);
           onChange?.(items[i].value);
         }
       }

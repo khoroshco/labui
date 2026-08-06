@@ -42,6 +42,22 @@ const dc = dcPages()
 // свой снимок сразу, а не после удаления DC-рантайма.
 const react = JSON.parse(readFileSync(path.join(ROOT, 'api.react.json'), 'utf8')).components.map((c) => c.name);
 
+/**
+ * Снять компонент.
+ *
+ * Обычному снимаем его корень: так дифф показывает компонент, а не поля вокруг него.
+ * Компонент в ПОРТАЛЕ живёт не внутри корня (слой лежит на body, чтобы его не резал
+ * overflow предка) — снимок корня был бы снимком пустоты, зелёным навсегда. Такому
+ * снимаем ВЬЮПОРТ, и это правильно по существу: модальное окно и есть состояние всей
+ * страницы, а не кусок вёрстки. Рамку body для этого брать нельзя — у страницы с одним
+ * fixed-слоем её высота нулевая, и снимок не устаканивается вовсе.
+ */
+const SHOT = { animations: 'disabled', threshold: 0.01, maxDiffPixels: 10 };
+async function shoot(page, name, target) {
+  if (PORTALED.has(name)) await expect(page).toHaveScreenshot(target, SHOT);
+  else await expect(page.locator('#dc-root')).toHaveScreenshot(target, SHOT);
+}
+
 // Страховка от тихой пустоты: список, собравшийся не из того места, дал бы зелёную сюиту
 // из нуля снимков — и выглядела бы она точно так же, как полная.
 test('обе реализации предъявили состав', () => {
@@ -57,14 +73,7 @@ for (const [impl, components] of [
     for (const theme of ['dark', 'light']) {
       test(`${name} · ${theme} (${impl})`, async ({ page }) => {
         await open(page, name, FIXTURES[name] ?? null, { theme, impl });
-        // Компонент в портале живёт НЕ внутри #dc-root: снимок корня был бы снимком
-        // пустоты — зелёным навсегда. Такому снимаем страницу целиком, и это правильно
-        // по существу: модалка и есть состояние всей страницы, а не кусок вёрстки.
-        await expect(page.locator(PORTALED.has(name) ? 'body' : '#dc-root')).toHaveScreenshot([impl, `${name}-${theme}.png`], {
-          animations: 'disabled',
-          threshold: 0.01,
-          maxDiffPixels: 10,
-        });
+        await shoot(page, name, [impl, `${name}-${theme}.png`]);
       });
     }
 
@@ -73,11 +82,7 @@ for (const [impl, components] of [
       // пружины заменяются фейдами, а цвет и фокус остаются. Картинка обязана остаться той же.
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await open(page, name, FIXTURES[name] ?? null, { theme: 'dark', impl });
-      await expect(page.locator(PORTALED.has(name) ? 'body' : '#dc-root')).toHaveScreenshot([impl, `${name}-reduced-motion.png`], {
-        animations: 'disabled',
-        threshold: 0.01,
-        maxDiffPixels: 10,
-      });
+      await shoot(page, name, [impl, `${name}-reduced-motion.png`]);
     });
   }
 }

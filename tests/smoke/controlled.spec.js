@@ -42,3 +42,27 @@ test('неуправляемый контрол ведёт своё и не сл
     'true'
   );
 });
+
+test('Select: значение сверху ушло в undefined — показывается последнее пришедшее', async ({ page }) => {
+  await open(page, 'Select', { options: ['JPG', 'PNG', 'WEBP'], value: 'WEBP', defaultValue: 'JPG', ariaLabel: 'Формат' }, react);
+  const trigger = page.locator('#dc-root [data-select="true"]');
+  await expect(trigger).toHaveText(/WEBP/);
+  await setProps(page, { value: undefined });
+  await expect(
+    trigger,
+    'селект откатился на defaultValue с монтирования — на экране значение, которого никто не выбирал'
+  ).toHaveText(/WEBP/);
+});
+
+test('Modal: раскрытость тоже фиксируется на монтировании', async ({ page }) => {
+  // У окна две независимые оси управления, и вторая — раскрытость. Смонтированное
+  // неуправляемым (open не задан) окно не имеет права начать слушаться пропа: половина
+  // потребителей передаёт open условно, и «то слушается, то нет» — худший исход.
+  await open(page, 'Modal', { defaultOpen: false, label: 'Ничего' }, react);
+  await expect(page.locator('[role="dialog"]')).toHaveCount(0);
+  await setProps(page, { open: true });
+  await expect(
+    page.locator('[role="dialog"]'),
+    'окно смонтировано неуправляемым: проп сверху не имеет права его открыть, а смена режима — предупреждение в консоли'
+  ).toHaveCount(0);
+});

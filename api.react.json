@@ -1478,7 +1478,7 @@
           "callback": false
         }
       ],
-      "status": "unknown",
+      "status": "beta",
       "mounts": [
         "Button"
       ],
@@ -2184,7 +2184,7 @@
           "callback": false
         }
       ],
-      "status": "unknown",
+      "status": "beta",
       "mounts": [],
       "mountedBy": []
     },
@@ -2681,7 +2681,7 @@
           "callback": false
         }
       ],
-      "status": "unknown",
+      "status": "beta",
       "mounts": [],
       "mountedBy": []
     },
