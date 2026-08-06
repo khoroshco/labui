@@ -146,7 +146,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
   // Режим управления фиксируется на монтировании — то же правило и та же реализация, что
   // у остальных контролов (docs/adr/0011). Осей здесь ДВЕ и они независимы: значение и
   // раскрытость; у каждой свой режим, свой дефолт и своё предупреждение о смене режима.
-  const [current, setOwnValue, valueControlled] = useControlledState(value, defaultValue);
+  const [current, setOwnValue] = useControlledState(value, defaultValue);
   const [rawOpen, setOwnOpen] = useControlledState(openProp, defaultOpen);
   const open = rawOpen && !disabled && !readOnly;
 
