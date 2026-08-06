@@ -321,27 +321,37 @@ test('список едет за якорем, когда страница пр�
     box.append(filler, host, tail);
   });
   await trigger(page).click();
-  const before = await page.evaluate(() => document.querySelector('[role="listbox"]').getBoundingClientRect().top);
+  // Ждём список ДО первого замера: без этого `before` считался по ещё не смонтированному
+  // узлу и падал исключением вместо внятного сообщения — на медленной машине.
+  await expect(list(page)).toHaveCount(1);
+  const before = await page.evaluate(() => document.querySelector('[role="listbox"]')?.getBoundingClientRect().top ?? null);
+  expect(before, 'списка нет — мерить нечего').not.toBeNull();
   await page.evaluate(() => {
     document.getElementById('scroller').scrollTop = 60;
   });
   const box = () =>
     page.evaluate(() => {
-      const list = document.querySelector('[role="listbox"]');
+      const el = document.querySelector('[role="listbox"]');
       const t = document.querySelector('#dc-root [data-select="true"]');
-      return { list: list.getBoundingClientRect().top, trigger: t.getBoundingClientRect().bottom };
+      // null вместо исключения: ожидание ниже должно ПОВТОРИТЬ замер, а не упасть с
+      // «Cannot read properties of null» — такое сообщение не говорит ничего.
+      return el && t ? { list: el.getBoundingClientRect().top, trigger: t.getBoundingClientRect().bottom } : null;
     });
   // Ждём КОНЕЧНОГО положения, а не фиксированной паузы: пересчёт идёт по событию прокрутки
   // и приходит следующим кадром, а фиксированная пауза мерила бы скорость машины (гейт
   // мигал один раз из пяти). Требование при этом не слабеет: расстояние между полем и
   // списком обязано сойтись, и никакое ожидание не сделает несошедшееся сошедшимся.
   await expect
-    .poll(async () => Math.abs((await box()).list - (await box()).trigger), {
+    .poll(async () => {
+      const b = await box();
+      return b ? Math.abs(b.list - b.trigger) : Number.POSITIVE_INFINITY;
+    }, {
       message: 'список уехал от своего поля — привязка пересчитывается, но не туда',
       timeout: 4000,
     })
     .toBeLessThan(20);
   const after = await box();
+  expect(after, 'список закрылся во время прокрутки').not.toBeNull();
   expect(
     Math.abs(before - after.list),
     'список остался висеть на прежнем месте: fixed в портале сам за якорем не едет'
