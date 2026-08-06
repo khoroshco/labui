@@ -388,3 +388,126 @@ test('Textarea: поле растёт под содержимое и упира�
     'упёрлись в потолок — обязана появиться прокрутка, иначе хвост текста недостижим'
   ).toBe('auto');
 });
+
+test('ArrowUp на пустом значении ведёт к ПОСЛЕДНЕЙ опции', async ({ page }) => {
+  // Обработчик клавиши считает это явно, но эффект восстановления подсветки перебивал
+  // его результат значением из прошлого сеанса — и стрелка вверх приводила к первой.
+  await openSelect(page);
+  await trigger(page).focus();
+  await page.keyboard.press('ArrowUp');
+  await expectHighlighted(page, 'Четвёртый', 'ArrowUp на пустом значении обязан вести к последней опции');
+});
+
+test('повторное открытие показывает ВЫБРАННОЕ, а не брошенное в прошлый раз', async ({ page }) => {
+  await openSelect(page, { defaultValue: 'Первый' });
+  await trigger(page).focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown'); // подсветка ушла на «Третий», выбора не было
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('ArrowDown');
+  await expectHighlighted(page, 'Первый', 'подсветка вернулась туда, где её бросили, а не на выбранное');
+});
+
+test('быстрое закрытие и открытие не оставляет фокус на поле', async ({ page }) => {
+  // Внутри времени ухода узел списка не пересоздаётся: если inert стоит и на входящем
+  // кадре, фокус молча не переезжает, и список открыт, но не слушается.
+  await openSelect(page, { defaultValue: 'Первый' });
+  await trigger(page).click();
+  await expect(list(page)).toHaveCount(1);
+  await trigger(page).click(); // закрыли
+  await trigger(page).click(); // и сразу открыли
+  await expectHighlighted(page, 'Первый', 'список открыт, а фокус остался на поле — клавиатура мертва');
+});
+
+test('справочник сменился целиком — клавиатура остаётся живой', async ({ page }) => {
+  await openSelect(page);
+  await trigger(page).click();
+  await expect(list(page)).toHaveCount(1);
+  // Родитель отдал ДРУГОЙ массив с тем же числом опций: индекс подсветки не изменился,
+  // но все узлы пересозданы, и фокус упал на body.
+  await page.evaluate(() => window.__setProps({ options: ['Альфа', 'Бета', 'Гамма', 'Дельта'] }));
+  await expectHighlighted(page, 'Альфа', 'после смены списка подсветка потеряна, а с ней и клавиатура');
+  await page.keyboard.press('ArrowDown');
+  await expectHighlighted(page, 'Бета', 'стрелки перестали работать после обновления списка');
+});
+
+test('первая буква на пустом значении не пропускает первую опцию', async ({ page }) => {
+  await openSelect(page, { options: ['Abakan', 'Bryansk', 'Arkhangelsk'] });
+  await trigger(page).focus();
+  await page.keyboard.press('a');
+  await expect(trigger(page), 'перебор пропустил первую опцию, будто она уже выбрана').toHaveText(/Abakan/);
+});
+
+test('управляемый селект отдаёт выбор наверх и НЕ меняет показанное сам', async ({ page }) => {
+  // Все остальные проверки выбора открывают селект неуправляемым, поэтому картинку меняет
+  // его собственное состояние — и удаление `onChange?.(...)` прошло бы мимо всей сюиты.
+  // А на витрине селект именно управляемый.
+  await openSelect(page, { value: 'Первый', onChange: '@fn' });
+  await trigger(page).click();
+  await items(page).nth(2).click();
+  const calls = await page.evaluate(() => (window.__calls ?? []).filter((c) => c.prop === 'onChange').map((c) => c.args[0]));
+  expect(calls, 'выбор не доехал до родителя: onChange не вызван').toEqual(['Третий']);
+  await expect(
+    trigger(page),
+    'управляемый контрол показал СВОЁ значение вместо пришедшего сверху — родитель его не принимал'
+  ).toHaveText(/Первый/);
+});
+
+test('readOnly не меняет значение ни буквой, ни стрелкой', async ({ page }) => {
+  // «Список не открылся» — признак, а не следствие: производная `open` держит список
+  // закрытым сама по себе, и снятие проверки readOnly в обработчике оставляло бы буквы
+  // рабочими — значение менялось бы у поля, объявленного нередактируемым.
+  await openSelect(page, { value: 'Первый', readOnly: true, onChange: '@fn' });
+  await trigger(page).focus();
+  // Буква и стрелка — два РАЗНЫХ пути изменения значения у закрытого селекта.
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('End');
+  await page.keyboard.press('v');
+  await expect(trigger(page), 'readOnly изменил значение с клавиатуры').toHaveText(/Первый/);
+  const calls = await page.evaluate(() => (window.__calls ?? []).length);
+  expect(calls, 'readOnly позвал onChange').toBe(0);
+});
+
+test('PageUp и PageDown ходят страницей списка', async ({ page }) => {
+  const many = Array.from({ length: 20 }, (_, i) => `Опция ${i + 1}`);
+  await openSelect(page, { options: many, defaultValue: 'Опция 1' });
+  await trigger(page).focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('PageDown');
+  await expectHighlighted(page, 'Опция 8', 'страница списка — это семь видимых опций, а не одна');
+  await page.keyboard.press('PageUp');
+  await expectHighlighted(page, 'Опция 1');
+});
+
+test('Enter открывает список и прокручивает к выбранному', async ({ page }) => {
+  const many = Array.from({ length: 40 }, (_, i) => `Опция ${i + 1}`);
+  await openSelect(page, { options: many, defaultValue: 'Опция 30' });
+  await trigger(page).focus();
+  await page.keyboard.press('Enter');
+  await expectHighlighted(page, 'Опция 30', 'Enter обязан открывать список');
+  const seen = await page.evaluate(() => {
+    const el = document.activeElement;
+    const list = document.querySelector('[role="listbox"]');
+    if (!el || !list) return false;
+    const a = el.getBoundingClientRect();
+    const b = list.getBoundingClientRect();
+    return a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
+  });
+  expect(seen, 'подсвеченная опция вне видимой части списка: открыли и не прокрутили').toBe(true);
+});
+
+test('Escape в Textarea не всплывает наружу', async ({ page }) => {
+  // Тот же случай, что у селекта внутри окна: поле часто стоит в модалке, и одно нажатие
+  // не имеет права закрыть и поле, и окно вместе с набранным текстом.
+  await open(page, 'Textarea', { ariaLabel: 'Комментарий', onEscape: '@fn' }, { impl: 'react', freeze: false });
+  await page.evaluate(() => {
+    window.__outer = 0;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') window.__outer++;
+    });
+  });
+  await page.locator('#dc-root textarea').focus();
+  await page.keyboard.press('Escape');
+  expect(await page.evaluate(() => (window.__calls ?? []).length), 'onEscape не вызван').toBe(1);
+  expect(await page.evaluate(() => window.__outer), 'Escape дошёл до документа: внешний слой закроется вторым').toBe(0);
+});

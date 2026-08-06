@@ -45,11 +45,12 @@ export function anchorTo(anchor: DOMRect, wantHeight: number, viewport = { w: wi
   const width = Math.min(anchor.width, Math.max(0, viewport.w - EDGE * 2));
   const left = Math.min(Math.max(EDGE, anchor.left), Math.max(EDGE, viewport.w - width - EDGE));
 
-  return {
-    top: side === 'bottom' ? anchor.bottom + GAP : anchor.top - GAP - height,
-    left,
-    width,
-    maxHeight: height,
-    side,
-  };
+  // Вертикаль тоже прижимается к экрану. Якорь может уехать за край своего скроллера
+  // (панель прокрутили, поле ушло выше её верха), и тогда честно посчитанное
+  // «под якорем» оказывается отрицательным: список целиком за пределами вьюпорта, а
+  // раскрытым он числится, и фокус внутри — клавиатуру захватывает невидимый слой.
+  const wanted = side === 'bottom' ? anchor.bottom + GAP : anchor.top - GAP - height;
+  const top = Math.min(Math.max(EDGE, wanted), Math.max(EDGE, viewport.h - height - EDGE));
+
+  return { top, left, width, maxHeight: height, side };
 }

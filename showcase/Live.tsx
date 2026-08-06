@@ -376,6 +376,7 @@ export function ModalDemo() {
   const [which, setWhich] = useState<'ask' | 'danger' | 'must' | null>(null);
   const [busy, setBusy] = useState(false);
   const [format, setFormat] = useState('PNG');
+  const [nested, setNested] = useState(false);
   const close = () => setWhich(null);
 
   return (
@@ -425,8 +426,28 @@ export function ModalDemo() {
             value={format}
             onChange={setFormat}
           />
+          <Button label="Бросить" variant="ghost" tone="danger" size="s" onClick={() => setNested(true)} />
         </div>
       </Modal>
+
+      {/* Вложенное окно: подтверждение поверх формы — типовая пара, и одновременно самый
+          опасный случай для глобальных побочных эффектов. Оба окна закрываются ОДНИМ
+          действием: если каждое возвращает свой снимок фона и прокрутки, страница
+          остаётся выключенной навсегда. Гейт tests/showcase/modal.spec.js проверяет. */}
+      <Modal
+        open={nested}
+        onOpenChange={() => setNested(false)}
+        size="s"
+        label="Бросить сборку?"
+        subtitle="Настройки не сохранятся."
+        confirmLabel="Бросить"
+        cancelLabel="Продолжить"
+        confirmTone="danger"
+        onConfirm={() => {
+          setNested(false);
+          close();
+        }}
+      />
 
       <Modal
         open={which === 'danger'}

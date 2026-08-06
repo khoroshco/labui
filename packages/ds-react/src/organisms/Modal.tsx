@@ -58,13 +58,82 @@ const WIDTH = { s: '380px', m: '520px', l: '760px' } as const;
 const EXIT = 220;
 
 /** Что можно сфокусировать табом. Скрытое и inert сюда не попадает. */
-const TABBABLE =
-  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const TABBABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+  // Редактор, встроенный фрейм и медиа с контролами тоже берут таб. Без них липкая
+  // панель редактора внутри окна выпадала из ловушки — то есть становилась недостижимой
+  // с клавиатуры ИЛИ выпускала фокус наружу, смотря что стояло рядом.
+  '[contenteditable]:not([contenteditable="false"])',
+  'iframe',
+  'audio[controls]',
+  'video[controls]',
+  'summary',
+].join(',');
 
+/**
+ * Видимость меряется СЛЕДСТВИЕМ — есть ли у элемента рамки, — а не признаком.
+ * `offsetParent !== null` выглядит той же проверкой и ложен для `position: fixed`:
+ * по спецификации у фиксированного элемента offsetParent пуст. Липкая кнопка «Применить»
+ * в углу окна из-за этого выпадала из ловушки целиком.
+ */
 const tabbables = (root: HTMLElement) =>
   [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
-    (el) => !el.hasAttribute('inert') && !el.closest('[inert]') && el.offsetParent !== null
+    (el) => !el.hasAttribute('inert') && !el.closest('[inert]') && el.getClientRects().length > 0
   );
+
+/* ФОН ВЫКЛЮЧАЕТСЯ ОДНИМ РЕЕСТРОМ НА ВСЕ ОКНА, а не каждым окном по отдельности.
+ *
+ * Личный снимок у каждой копии ломал страницу необратимо ровно так же, как ломал её
+ * личный снимок замка прокрутки. Два окна, закрытые одним коммитом: React выполняет все
+ * очистки подряд, первая снимает атрибуты, вторая возвращает ЗАПОМНЕННОЕ ЕЮ — то есть
+ * `inert` и `aria-hidden`, поставленные первой. Окон нет, а страница не берёт ни таб, ни
+ * указатель, ни диктора. До перезагрузки.
+ *
+ * Реестр решает и второе: соседи ПЕРЕСМАТРИВАЮТСЯ на каждое изменение, поэтому тост или
+ * чужой портал, появившийся в body уже после открытия, тоже выключается — раньше он
+ * оставался живым и мог лечь поверх подложки.
+ *
+ * Живым остаётся слой ВЕРХНЕГО окна: у вложенных окон нижнее выключается вместе с фоном.
+ */
+const openModals: HTMLElement[] = [];
+let bgSnapshot: { el: Element; inert: string | null; hidden: string | null }[] | null = null;
+
+function applyBackground() {
+  if (typeof document === 'undefined') return;
+  const top = openModals[openModals.length - 1] ?? null;
+  if (!top) {
+    for (const t of bgSnapshot ?? []) {
+      // Возвращаем ПРЕЖНЕЕ значение, а не снимаем атрибут: у соседа он мог быть свой.
+      if (t.inert === null) t.el.removeAttribute('inert');
+      else t.el.setAttribute('inert', t.inert);
+      if (t.hidden === null) t.el.removeAttribute('aria-hidden');
+      else t.el.setAttribute('aria-hidden', t.hidden);
+    }
+    bgSnapshot = null;
+    return;
+  }
+  if (!bgSnapshot) {
+    bgSnapshot = [...document.body.children].map((el) => ({
+      el,
+      inert: el.getAttribute('inert'),
+      hidden: el.getAttribute('aria-hidden'),
+    }));
+  }
+  for (const el of [...document.body.children]) {
+    if (el.contains(top)) {
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+      continue;
+    }
+    el.setAttribute('inert', '');
+    el.setAttribute('aria-hidden', 'true');
+  }
+}
 
 /* ЗАМОК ПРОКРУТКИ — ОДИН НА ВСЕ ОКНА, и снимок прежних значений тоже ОДИН.
  *
@@ -201,14 +270,20 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
    * поэтому кнопка запоминается ещё живой.
    */
   useIsoLayoutEffect(() => {
-    if (!mounted) return;
+    // Зависимость — ОТКРЫТИЕ, а не присутствие в DOM: узел живёт ещё 220 мс после
+    // закрытия, и цикл «закрыли-открыли» внутри этого срока `mounted` не сбрасывал —
+    // окно второго шага мастера возвращало фокус на кнопку первого.
+    if (!open) return;
     const el = (document.activeElement as HTMLElement) ?? null;
-    returnTo.current = el;
+    // `<body>` открывашкой не бывает: окно, открытое таймером, ответом сервера или просто
+    // `defaultOpen`, «возвращало» бы фокус в никуда — а это и есть «обход документа с
+    // начала», от которого возврат и защищает.
+    returnTo.current = el && el !== document.body ? el : null;
     // Запасной адрес возврата: узел, который переживёт исчезновение самой открывашки.
     // Кнопка «Удалить» стоит в ряду списка, ряд исчезает вместе с записью — и возвращать
     // фокус становится некуда, а `<body>` означает «обход документа с начала».
-    returnHome.current = (el?.closest('[data-row], [data-island], main, form') as HTMLElement) ?? null;
-  }, [mounted]);
+    returnHome.current = (returnTo.current?.closest('[data-row], [data-island], main, form') as HTMLElement) ?? null;
+  }, [open]);
 
   /* ФОН ВЫКЛЮЧЕН, ПОКА ОКНО ОТКРЫТО, а не пока оно в DOM.
    *
@@ -218,30 +293,19 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
    * времени само `inert`, так что «два живых слоя» не возникает: живой ровно один.
    */
   useEffect(() => {
-    if (!mounted || !open || typeof document === 'undefined') return;
-    const node = popup.current;
-    const touched: { el: Element; inert: string | null; hidden: string | null }[] = [];
-    for (const el of Array.from(document.body.children)) {
-      if (node && el.contains(node)) continue;
-      touched.push({ el, inert: el.getAttribute('inert'), hidden: el.getAttribute('aria-hidden') });
-      el.setAttribute('inert', '');
-      el.setAttribute('aria-hidden', 'true');
-    }
+    if (!open || !popupEl) return;
+    openModals.push(popupEl);
+    applyBackground();
     return () => {
-      for (const t of touched) {
-        // Возвращаем ПРЕЖНЕЕ значение, а не снимаем атрибут: у соседа он мог быть свой —
-        // вложенное окно как раз этот случай, и снятие «починило» бы фон под ним.
-        if (t.inert === null) t.el.removeAttribute('inert');
-        else t.el.setAttribute('inert', t.inert);
-        if (t.hidden === null) t.el.removeAttribute('aria-hidden');
-        else t.el.setAttribute('aria-hidden', t.hidden);
-      }
+      const i = openModals.indexOf(popupEl);
+      if (i >= 0) openModals.splice(i, 1);
+      applyBackground();
     };
-  }, [mounted, open]);
+  }, [open, popupEl]);
 
   // ── прокрутка страницы заперта ──────────────────────────────────────────────
   useEffect(() => {
-    if (!mounted || typeof document === 'undefined') return;
+    if (!mounted) return;
     const body = document.body;
     if (locks === 0) {
       lockedOverflow = body.style.overflow;
@@ -280,14 +344,23 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
    * время начинал обход документа с начала — ровно тот дефект, от которого окно и
    * защищается. Проверка «уходящее окно inert» его не видела: она смотрит на атрибут.
    */
-  useEffect(() => {
-    if (!mounted || open) return;
+  const restoreFocus = useCallback(() => {
     const back = returnTo.current;
     const alive = back && document.contains(back) ? back : returnHome.current;
-    if (!alive || !document.contains(alive)) return;
+    if (!alive || !document.contains(alive) || alive === document.body) return;
     if (alive !== back && alive.tabIndex < 0) alive.tabIndex = -1;
     alive.focus({ preventScroll: true });
-  }, [mounted, open]);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || open) return;
+    restoreFocus();
+  }, [mounted, open, restoreFocus]);
+
+  // Родителя размонтировали с открытым окном — обычное дело для `{open && <Modal/>}` и
+  // для смены вкладки. Эффект выше в этом случае не исполняется вовсе, и фокус остаётся
+  // на `<body>`: следующий Tab начинает обход документа с начала.
+  useEffect(() => () => restoreFocus(), [restoreFocus]);
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
@@ -353,7 +426,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
           // dvh, а не растяжка по inset: layout viewport на iOS виртуальная клавиатура не
           // уменьшает, и подвал с кнопками оказывался под ней без возможности доскроллить.
           height: '100dvh',
-          zIndex: 80,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -369,7 +441,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
           // клавиатуры и диктора её нет вовсе.
           aria-hidden="true"
           onClick={(e: MouseEvent) => {
-            if (!dismissible) return;
+            // Уходящее окно уже закрыто: без этой проверки клик в те же 220 мс присылал
+            // ВТОРОЕ закрытие с причиной «backdrop» и съедал клик, адресованный странице.
+            if (!dismissible || !open) return;
             e.stopPropagation();
             close('backdrop');
           }}
@@ -380,6 +454,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
             opacity: shown ? '1' : '0',
             transition: `opacity ${shown ? '.24s' : '.2s'} ${shown ? 'var(--ease-out)' : 'var(--ease-in)'}`,
             cursor: dismissible ? 'pointer' : 'default',
+            pointerEvents: open ? 'auto' : 'none',
           }}
         />
         <div
@@ -403,7 +478,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal({
             position: 'relative',
             zIndex: 1,
             width: '100%',
-            maxWidth: WIDTH[size] ?? WIDTH.m,
+            maxWidth: WIDTH[size],
             margin: 'auto',
             display: 'flex',
             flexDirection: 'column',

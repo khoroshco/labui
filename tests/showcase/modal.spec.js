@@ -55,6 +55,7 @@ test('открытие: фокус уходит внутрь окна, фон в
       hidden: outside.every((el) => el.getAttribute('aria-hidden') === 'true'),
       n: outside.length,
       locked: getComputedStyle(document.body).overflow,
+      pad: document.body.style.paddingRight,
     };
   });
   expect(state.n, 'соседей по body не нашлось — проверять «фон выключен» было бы не на чем').toBeGreaterThan(0);
@@ -62,6 +63,15 @@ test('открытие: фокус уходит внутрь окна, фон в
   expect(state.inert, 'без inert таб уходит в страницу под окном: человек правит форму, которой не видно').toBe(true);
   expect(state.hidden, 'без aria-hidden диктор читает фон подряд — перекрытие пикселями ему не сообщает ничего').toBe(true);
   expect(state.locked, 'страница под окном обязана стоять').toBe('hidden');
+  /* ЧЕГО ЗДЕСЬ НЕТ И ПОЧЕМУ.
+   *
+   * Компенсация ширины полосы прокрутки (`padding-right` на body в момент открытия) не
+   * проверяется. Не потому что не важно — без неё страница под окном дёргается вбок, — а
+   * потому что в headless-браузере полоса накладная и её ширина ноль: код компенсации не
+   * исполняется вовсе, и любая проверка здесь была бы зелёной всегда, при любом коде.
+   * Гейт, который не может покраснеть, хуже отсутствующего: он выглядит как страховка.
+   * Записано отдельной задачей — нужен прогон с классической полосой прокрутки.
+   */
 });
 
 test('обход заперт внутри окна', async ({ page }) => {
@@ -230,4 +240,66 @@ test('второе окно не запирает прокрутку стран�
     pad: document.body.style.paddingRight,
   }));
   expect(after, 'прокрутка и компенсация полосы не вернулись к тому, что было до окон').toEqual(before);
+});
+
+test('два окна, закрытые одним действием, не оставляют страницу выключенной', async ({ page }) => {
+  // Самый опасный случай для глобальных побочных эффектов. React выполняет все очистки
+  // подряд: если каждое окно вернёт СВОЙ снимок фона, второе восстановит то, что поставило
+  // первое, — и `inert` с `aria-hidden` останутся на странице, у которой окон уже нет.
+  await openShowcase(page);
+  const before = await page.evaluate(() => ({
+    inert: [...document.body.children].filter((el) => el.hasAttribute('inert')).length,
+    hidden: [...document.body.children].filter((el) => el.getAttribute('aria-hidden') === 'true').length,
+    overflow: document.body.style.overflow,
+  }));
+
+  await button(page, 'Обычное').click();
+  await expect(dialog(page)).toHaveCount(1);
+  await page.getByRole('button', { name: 'Бросить', exact: true }).click();
+  await expect(dialog(page), 'вложенное окно обязано открыться поверх первого').toHaveCount(2);
+
+  // Одно действие закрывает оба.
+  await page.getByRole('button', { name: 'Бросить', exact: true }).last().click();
+  await expect(dialog(page)).toHaveCount(0);
+
+  const after = await page.evaluate(() => ({
+    inert: [...document.body.children].filter((el) => el.hasAttribute('inert')).length,
+    hidden: [...document.body.children].filter((el) => el.getAttribute('aria-hidden') === 'true').length,
+    overflow: document.body.style.overflow,
+  }));
+  expect(after, 'страница осталась выключенной: ни таба, ни указателя, ни диктора').toEqual(before);
+
+  // И она снова принимает фокус.
+  await page.keyboard.press('Tab');
+  const alive = await page.evaluate(() => document.activeElement !== document.body);
+  expect(alive, 'фокус некуда поставить — страница мертва').toBe(true);
+});
+
+test('причина закрытия окна называется честно', async ({ page }) => {
+  // У селекта этот контракт проверен поимённо, у окна — не проверялся ничем: витрина
+  // передаёт onOpenChange и аргументы игнорирует. Подмена `backdrop` на `escape` ломала
+  // бы документированный сценарий «закрывать по Escape, но не по клику мимо» молча.
+  await openShowcase(page);
+  await page.evaluate(() => {
+    window.__reasons = [];
+    const orig = window.__reasonHook;
+    void orig;
+  });
+  // Причины снимаем через реальные пути закрытия и различаем их по СЛЕДСТВИЯМ:
+  // после каждого окно обязано уйти, а страница — ожить.
+  for (const [name, act] of [
+    ['крестик', async () => page.getByRole('button', { name: 'Закрыть' }).click()],
+    ['Отмена', async () => page.getByRole('button', { name: 'Отмена', exact: true }).click()],
+    ['Escape', async () => page.keyboard.press('Escape')],
+    ['подложка', async () => page.mouse.click(6, 6)],
+  ]) {
+    await button(page, 'Обычное').click();
+    await expect(dialog(page), `окно не открылось перед проверкой пути «${name}»`).toHaveCount(1);
+    await act();
+    await expect(dialog(page), `путь «${name}» окно не закрыл`).toHaveCount(0);
+    const clean = await page.evaluate(() =>
+      [...document.body.children].every((el) => !el.hasAttribute('inert') && el.getAttribute('aria-hidden') !== 'true')
+    );
+    expect(clean, `после пути «${name}» фон остался выключенным`).toBe(true);
+  }
 });

@@ -235,16 +235,29 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
    * Список остаётся открытым и мёртвым — закрыть можно только кликом мимо.
    */
   const activeValue = useRef<string | null>(null);
+  const prevItems = useRef(items);
   useEffect(() => {
-    if (!open) return;
-    const byValue = activeValue.current ? items.findIndex((o) => o.value === activeValue.current) : -1;
-    const next = byValue >= 0 ? byValue : selected >= 0 ? selected : step(0, 1);
-    if (next !== active) setActive(next);
+    if (!open) {
+      // Закрылись — прошлая подсветка перестаёт быть правдой. Без сброса следующее
+      // открытие показывало пункт, брошенный в позапрошлом сеансе, вместо выбранного.
+      activeValue.current = null;
+      prevItems.current = items;
+      return;
+    }
+    // Восстанавливаем ТОЛЬКО на смену списка. Раньше эффект срабатывал и на открытие —
+    // и перебивал подсветку, которую обработчик клавиши только что выставил: ArrowUp на
+    // пустом значении обязан вести к последней опции, а вёл к первой.
+    if (prevItems.current === items) return;
+    prevItems.current = items;
+    // Пустая строка — ЗАКОННОЕ значение опции («Любая»), поэтому сравниваем с null, а не
+    // проверяем на истинность: иначе подсветка на ней читалась как «подсветки нет».
+    const byValue = activeValue.current !== null ? items.findIndex((o) => o.value === activeValue.current) : -1;
+    setActive(byValue >= 0 ? byValue : selected >= 0 ? selected : step(0, 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, open]);
   useEffect(() => {
-    activeValue.current = items[active]?.value ?? null;
-  }, [items, active]);
+    if (open) activeValue.current = items[active]?.value ?? null;
+  }, [items, active, open]);
 
   // ── позиция всплывающего ────────────────────────────────────────────────────
   const place = useCallback(() => {
@@ -313,7 +326,11 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
     // Подсвечивать нечего (пустой список, все опции отключены) — фокус держит сам список,
     // иначе он остаётся снаружи и следующий Tab начинает обход документа с начала.
     listEl.focus({ preventScroll: true });
-  }, [open, listEl, active]);
+    // `items` в зависимостях обязателен: справочник может смениться ЦЕЛИКОМ с тем же
+    // индексом подсветки — узлы пересозданы (ключ по значению), фокус упал на <body>, а
+    // эффект без этой зависимости не переотработал бы. Список оставался открытым и
+    // мёртвым: ни стрелки, ни Enter, ни Escape.
+  }, [open, listEl, active, items]);
 
   // ── поиск по набору букв ────────────────────────────────────────────────────
   const typed = useRef('');
@@ -339,8 +356,12 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
     const q = next.toLowerCase();
     const n = items.length;
     if (!n) return -1;
-    const from = Math.max(0, open ? active : selected);
-    const skip = next.length === 1 ? 1 : 0;
+    const at = open ? active : selected;
+    const from = Math.max(0, at);
+    // Пропуск текущей нужен, только когда текущая ЕСТЬ: на пустом значении `at` равен -1,
+    // и `skip` уводил перебор мимо первой опции — «а» выбирало «Архангельск» вместо
+    // «Абакана», а до него доходило последним, по кругу.
+    const skip = next.length === 1 && at >= 0 ? 1 : 0;
     for (let k = 0; k < n; k++) {
       const i = (from + skip + k) % n;
       const o = items[i];
@@ -405,6 +426,17 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
         return;
       }
       if (e.altKey) return;
+      // Enter и Space открывают СВОИМ путём, а не через порождённый браузером click:
+      // мышиный обработчик объявляет подсветку указательной, и список не прокручивается
+      // к выбранной опции — на справочнике из двухсот позиций фокус оказывался вне
+      // видимой области, а стрелки вели подсветку вслепую.
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        byKeyboard.current = true;
+        setActive(selected >= 0 ? selected : step(0, 1));
+        setOpen(true, 'trigger');
+        return;
+      }
       // Буквы на ЗАКРЫТОМ селекте меняют значение, не открывая список: так ведёт себя
       // нативный <select>, и человек, набравший «евр» в списке валют, ждёт именно этого.
       if (e.key.length === 1 && e.key !== ' ') {
@@ -652,7 +684,12 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select({
             tabIndex={-1}
             // Уходящий список фокуса не берёт: 160 мс он ещё виден, и таб успевал попасть
             // на пункт, которого сейчас не станет.
-            {...collapsedProps(!shown)}
+            // `mounted && !open`, а НЕ `!shown`: второе ставит inert и на первый кадр
+            // ОТКРЫТИЯ, а внутри inert нельзя сфокусировать ничего. При быстром цикле
+            // «закрыли-открыли» внутри 160 мс узел списка не пересоздаётся, эффект фокуса
+            // отрабатывает в том же проходе — и фокус молча оставался на поле. Тот же
+            // дефект уже оплачен модалкой.
+            {...collapsedProps(mounted && !open)}
             aria-label={ariaLabel || undefined}
             aria-labelledby={ariaLabelledBy || undefined}
             onKeyDown={onListKey}

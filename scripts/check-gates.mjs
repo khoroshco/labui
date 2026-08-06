@@ -59,8 +59,14 @@ const KNOBS = [
   ['loops', /for\s*\(\s*let\s+\w+\s*=\s*0;\s*\w+\s*<\s*(\d+)/g],
 ];
 
-/** Выключение теста: след обязан остаться. */
-const MUTES = /\b(?:test|test\.describe)\.(skip|fixme|only)\b/g;
+/**
+ * Выключение теста: след обязан остаться.
+ *
+ * `fail` здесь не для симметрии: это самый дешёвый способ сделать красный тест зелёным —
+ * внести регрессию и объявить упавший тест «ожидаемо падающим». Число тестов в файле не
+ * меняется, `skip` не появляется, слепок совпадает.
+ */
+const MUTES = /\b(?:test|test\.describe)\.(skip|fixme|only|fail)\b/g;
 
 /** Состав сюиты: имя файла → число тестов. Браузер не поднимается. */
 function listSuite(dir) {
@@ -141,7 +147,11 @@ function snapshot() {
     for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
       const rel = `${dir}/${entry.name}`;
       if (entry.isDirectory()) walk(rel);
-      else if (/\.(spec|test)\.(m?js)$/.test(entry.name)) testFiles.push(rel);
+      // Оснастка (`tests/support`) тоже в списке: там живут пороги, которыми ослабляется
+      // сразу ВСЯ сюита. `settle(page, { quiet: 120, rounds: 24 })` при `{ quiet: 1,
+      // rounds: 1 }` заставляет axe и паритет смотреть на недомонтированное дерево и
+      // честно докладывать ноль нарушений — а слепок этого файла не видел вовсе.
+      else if (/\.(spec|test)\.(m?js)$/.test(entry.name) || dir.endsWith('/support')) testFiles.push(rel);
     }
   };
   walk('tests');

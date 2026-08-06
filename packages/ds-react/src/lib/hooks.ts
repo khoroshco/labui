@@ -111,13 +111,23 @@ export function useControlled<T>(
 
 /** prefers-reduced-motion: крупные перемещения и пружины заменяются фейдами. */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(
-    () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  /* Первый рендер ВСЕГДА «движение разрешено», и это не небрежность.
+   *
+   * `matchMedia` на сервере нет, поэтому синхронное чтение давало разное на сервере и на
+   * первом клиентском рендере: у человека с включённым «поменьше движения» разметка
+   * расходилась на каждом компоненте, который спрашивает этот хук, — предупреждение о
+   * гидрации в React 18 и повторный рендер в React 19.
+   *
+   * Цена — один кадр: настоящее значение приезжает эффектом сразу после монтирования. За
+   * этот кадр ничего не успевает начаться, а глобальное правило ds.css гасит анимации до
+   * 0.01 мс независимо от того, что думает JS.
+   */
+  const [reduced, setReduced] = useState(false);
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return;
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
     const on = () => setReduced(mq.matches);
+    on();
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
