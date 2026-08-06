@@ -48,12 +48,21 @@ test('решённый пин гаснет, но не исчезает', async (
   const before = await dropFill(page);
   expect(before, 'капля не найдена — проверять нечего').toBeTruthy();
 
-  // Открыть тред и нажать «Решено».
+  // Открыть тред и нажать «Решено». Ждём КАЖДЫЙ шаг: клик по кнопке, которой ещё нет,
+  // на медленной машине уходит в пустоту, и проверка обвиняет компонент в том, чего он
+  // не делал.
   await pin(page).click();
-  await page.getByRole('button', { name: 'Решено' }).click();
+  await expect(thread(page), 'тред не открылся — нажимать «Решено» негде').toHaveCount(1);
+  await thread(page).getByRole('button', { name: 'Решено' }).click();
 
-  const after = await dropFill(page);
-  expect(after, 'проп resolved не доехал до Pin: решённый пин выглядит как обычный').not.toBe(before);
+  // Ждём КОНЕЧНОГО цвета: смена идёт переходом .2s, и мгновенный замер попадает в его
+  // середину. Требование при этом не слабеет — цвет обязан измениться.
+  await expect
+    .poll(() => dropFill(page), { message: 'проп resolved не доехал до Pin: решённый пин выглядит как обычный' })
+    .not.toBe(before);
+  // Отдельно: капля обязана НАЙТИСЬ. Без этой строки проверка выше зеленела бы и на
+  // пропавшем узле — null не равен прежнему цвету.
+  expect(await dropFill(page), 'капли больше нет: решённый пин исчез, а обязан погаснуть').toBeTruthy();
   await expect(pin(page), 'решённый пин гаснет, а не исчезает').toHaveCount(1);
 });
 
