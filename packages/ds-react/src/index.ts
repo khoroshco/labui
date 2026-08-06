@@ -28,6 +28,7 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonTone, type Button
 export { CycleButton, type CycleButtonProps } from './atoms/CycleButton.js';
 export { OptionGroup, type OptionGroupProps, type OptionItem } from './atoms/OptionGroup.js';
 export { Input, type InputProps } from './atoms/Input.js';
+export { Textarea, type TextareaProps } from './atoms/Textarea.js';
 
 export { RowLabel, type RowLabelProps } from './molecules/RowLabel.js';
 export { RowInfo, type RowInfoProps } from './molecules/RowInfo.js';
@@ -44,6 +45,8 @@ export { PinCard, type PinCardProps, type PinMessage } from './molecules/PinCard
 export { PinComposer, type PinComposerProps } from './molecules/PinComposer.js';
 export { Toast, type ToastLevel, type ToastProps } from './molecules/Toast.js';
 export { Disclosure, type DisclosureProps } from './molecules/Disclosure.js';
+export { Select, type SelectOption, type SelectProps, type SelectReason } from './molecules/Select.js';
 
 export { EmptyState, type EmptyStateProps } from './organisms/EmptyState.js';
 export { Island, type IslandProps, type IslandRow } from './organisms/Island.js';
+export { Modal, type ModalProps, type ModalReason } from './organisms/Modal.js';

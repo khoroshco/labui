@@ -10,7 +10,7 @@
  * перестаёт ловить то, что ловит потребитель.
  */
 import { useRef, useState } from 'react';
-import { Button, Island, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
+import { Button, Island, Modal, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
 
 /** Заголовок живого блока: он не раздел, а врезка внутри него. */
 function Head({ title, note }: { title: string; note: string }) {
@@ -367,5 +367,76 @@ export function IslandRowsNote() {
         'Колбэк уходит вниз ровно тот, что дал конфиг: значение без колбэка замораживает контрол (ADR 0011).',
       ]}
     />
+  );
+}
+
+// ── Модальное окно: три случая, которые различаются не оформлением, а правами ──
+
+export function ModalDemo() {
+  const [which, setWhich] = useState<'ask' | 'danger' | 'must' | null>(null);
+  const [busy, setBusy] = useState(false);
+  const close = () => setWhich(null);
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--sp-4)' }}>
+      <Head
+        title="Три окна"
+        note="Плейграунд показывает окно; здесь видно то, чего в пропсах не разглядеть — что происходит с ФОНОМ. Откройте любое и попробуйте Tab: обхода за пределы окна нет, страница под ним не прокручивается, а после закрытия фокус возвращается на ту же кнопку, которой окно открыли."
+      />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+        <Button label="Обычное" variant="secondary" onClick={() => setWhich('ask')} />
+        <Button label="Опасное" variant="secondary" tone="danger" onClick={() => setWhich('danger')} />
+        <Button label="Обязательное решение" variant="secondary" onClick={() => setWhich('must')} />
+      </div>
+
+      <Modal
+        open={which === 'ask'}
+        onOpenChange={close}
+        label="Пересобрать 18 форматов?"
+        subtitle="Текущие файлы перезапишутся. Выгрузки, сделанные раньше, останутся в истории."
+        confirmLabel="Пересобрать"
+        cancelLabel="Отмена"
+        loading={busy}
+        onConfirm={() => {
+          // Подтверждение НЕ закрывает окно само: ответа сервера ждут прямо в нём, кнопкой
+          // со спиннером. Закрывает тот, кто знает, что действие удалось.
+          setBusy(true);
+          setTimeout(() => {
+            setBusy(false);
+            close();
+          }, 1200);
+        }}
+      >
+        <Island
+          rows={[
+            { type: 'toggle', label: 'Сохранить прежние в истории', checked: true },
+            { type: 'checkbox', label: 'Прислать письмо, когда закончится' },
+          ]}
+        />
+      </Modal>
+
+      <Modal
+        open={which === 'danger'}
+        onOpenChange={close}
+        size="s"
+        label="Удалить кампанию «Осенний сейл»?"
+        subtitle="Вместе с ней уйдут 18 форматов и их история выгрузок. Отменить это будет нечем."
+        confirmLabel="Удалить"
+        cancelLabel="Отмена"
+        tone="danger"
+        onConfirm={close}
+      />
+
+      <Modal
+        open={which === 'must'}
+        onOpenChange={close}
+        size="s"
+        dismissible={false}
+        label="Сессия истекла"
+        subtitle="Дальше без входа нельзя: Escape и клик мимо здесь не работают, и крестика нет — решение обязательно."
+        confirmLabel="Войти снова"
+        onConfirm={close}
+      />
+    </div>
   );
 }

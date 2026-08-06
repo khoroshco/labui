@@ -11,6 +11,12 @@ export const DEMO: Record<string, Record<string, unknown>> = {
   Button: { label: 'Выгрузить' },
   Input: { value: 'Осенний сейл', ariaLabel: 'Название кампании' },
   Checkbox: { label: 'Применить ко всем форматам' },
+  Textarea: {
+    value: 'Логотип уезжает за охранное поле на мобильном. Поправьте отступ и пересоберите пакет.',
+    ariaLabel: 'Комментарий к макету',
+    placeholder: 'Что поправить',
+  },
+
   Toggle: { label: 'Живое превью' },
   CycleButton: { options: ['PX', '%', 'PT'] },
   OptionGroup: { options: ['JPG', 'PNG', 'WEBP'], value: 1 },
@@ -38,6 +44,11 @@ export const DEMO: Record<string, Record<string, unknown>> = {
       ['Требуют внимания', '4'],
     ],
   },
+  Select: {
+    options: ['Facebook', 'Instagram', 'ВКонтакте', 'Одноклассники', 'Telegram', 'Яндекс.Директ', 'MyTarget'],
+    value: 'ВКонтакте',
+    ariaLabel: 'Площадка размещения',
+  },
   Toast: { text: '12 форматов готовы к выгрузке', level: 'info', actionLabel: 'Открыть' },
   PinCard: {
     author: 'Марина Ковалёва',
@@ -57,6 +68,17 @@ export const DEMO: Record<string, Record<string, unknown>> = {
       { type: 'action', label: 'Выгрузить' },
     ],
   },
+  Modal: {
+    // open задан С САМОГО НАЧАЛА, а не появляется по щелчку тумблера: режим управления
+    // фиксируется на монтировании (ADR 0011), и окно, смонтированное без него, на проп
+    // сверху уже не отреагирует — панель щёлкала бы вхолостую.
+    open: false,
+    label: 'Удалить кампанию «Осенний сейл»?',
+    subtitle: 'Вместе с ней уйдут 18 форматов и их история выгрузок. Отменить это будет нечем.',
+    confirmLabel: 'Удалить',
+    cancelLabel: 'Отмена',
+    tone: 'danger',
+  },
   EmptyState: {
     label: 'Пока нет форматов',
     subtitle: 'Добавьте первый баннер — остальные размеры пересчитаются сами',
@@ -66,6 +88,8 @@ export const DEMO: Record<string, Record<string, unknown>> = {
 
 /** Компоненты, которым нужна своя ширина: иначе демо растягивается на весь экран. */
 export const WIDTH: Record<string, string> = {
+  Textarea: '380px',
+  Select: '280px',
   PinCard: '400px',
   PinComposer: '360px',
   Toast: '420px',
