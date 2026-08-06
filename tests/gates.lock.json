@@ -1,0 +1,73 @@
+{
+  "_почему": [
+    "Слепок гейтов: сколько тестов в каждом файле и какими числами их можно ослабить.",
+    "Расширение допуска и удаление теста — это решение, а не мелочь в диффе: гейт",
+    "краснеет, пока решение не записано ЗДЕСЬ, отдельной строкой, которую видно.",
+    "Перезаписывается осознанно: node scripts/check-gates.mjs --record",
+    "muted — выключенные тесты; ключ «файл:вид», значение — причина. Пусто и должно быть пусто."
+  ],
+  "muted": {},
+  "tests": {
+    "a11y/axe.spec.js": 112,
+    "a11y/contrast.spec.js": 2,
+    "a11y/focus-ring.spec.js": 5,
+    "a11y/keyboard.spec.js": 8,
+    "a11y/modes.spec.js": 5,
+    "a11y/native-keys.spec.js": 7,
+    "a11y/timing.spec.js": 3,
+    "a11y/wiring.spec.js": 5,
+    "parity/behaviour.spec.js": 18,
+    "parity/dom-parity.spec.js": 78,
+    "parity/react-parity.spec.js": 55,
+    "parity/ref.spec.js": 1,
+    "showcase/focus.spec.js": 6,
+    "smoke/all-components.spec.js": 30,
+    "smoke/consumer-api.spec.js": 4,
+    "smoke/controlled.spec.js": 2,
+    "smoke/mount-race.spec.js": 1,
+    "smoke/robustness.spec.js": 10,
+    "visual/disabled.spec.js": 58,
+    "visual/hit-zones.spec.js": 10,
+    "visual/hover.spec.js": 86,
+    "visual/optical.spec.js": 9,
+    "visual/reduced-motion.spec.js": 2,
+    "visual/snapshots.spec.js": 81,
+    "visual/structure.spec.js": 8
+  },
+  "units": 60,
+  "knobs": {
+    "tests/a11y/modes.spec.js": {
+      "timeout": [
+        5000
+      ]
+    },
+    "tests/parity/dom-parity.spec.js": {
+      "timeout": [
+        120000
+      ]
+    },
+    "tests/parity/react-parity.spec.js": {
+      "maxDiffPixels": [
+        900
+      ],
+      "threshold": [
+        0.02
+      ]
+    },
+    "tests/parity/ref.spec.js": {
+      "timeout": [
+        180000
+      ]
+    },
+    "tests/visual/snapshots.spec.js": {
+      "maxDiffPixels": [
+        10,
+        10
+      ],
+      "threshold": [
+        0.01,
+        0.01
+      ]
+    }
+  }
+}
