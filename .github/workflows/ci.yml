@@ -56,6 +56,20 @@ jobs:
 
   browser:
     name: ${{ matrix.suite.title }}
+    # ТОЛЬКО НА PR, и это не экономия за счёт надёжности.
+    #
+    # Защита ветки стоит со «strict»: ветка обязана быть свежей перед мёржем, и автомёрж
+    # подтягивает main сам. Значит дерево squash-коммита совпадает с деревом головы PR —
+    # того самого, которое браузерные сюиты только что проверили. Прогон на main
+    # пересматривал тот же код второй раз: 168 биллинг-минут из 613 за месяц, четверть
+    # всего CI, и ни одной находки за всё время.
+    #
+    # Тот же класс, что уже вычищен у релиза и витрины: гейт, который бежит параллельно
+    # тому, что его и породило. Здесь он бежал ПОСЛЕ — и всё равно по тому же дереву.
+    #
+    # На push в main остаётся быстрая джоба: линтеры, типы, юниты и обе сборки. Она нужна
+    # не как страховка, а потому что релиз ждёт агрегатный чек этого прогона.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -128,8 +142,19 @@ jobs:
       # skipped — законный результат: на push в main эта джоба не запускается.
       - name: Итог
         run: |
-          if [ "${{ needs.fast.result }}" != "success" ] || [ "${{ needs.browser.result }}" != "success" ]; then
-            echo "::error::Гейты красные: линтеры «${{ needs.fast.result }}», браузерные «${{ needs.browser.result }}»"
+          if [ "${{ needs.fast.result }}" != "success" ]; then
+            echo "::error::Гейты красные: линтеры «${{ needs.fast.result }}»"
+            exit 1
+          fi
+          # skipped — законный результат для браузерных сюит на push в main: там они не
+          # запускаются, потому что проверять им нечего (см. комментарий у джобы browser).
+          if [ "${{ needs.browser.result }}" != "success" ] && [ "${{ needs.browser.result }}" != "skipped" ]; then
+            echo "::error::Гейты красные: браузерные «${{ needs.browser.result }}»"
+            exit 1
+          fi
+          # Но на PR пропуск браузерных сюит недопустим: там они и есть проверка.
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ needs.browser.result }}" != "success" ]; then
+            echo "::error::На PR браузерные сюиты обязаны отработать, а не быть пропущены"
             exit 1
           fi
           if [ "${{ needs.changeset.result }}" != "success" ] && [ "${{ needs.changeset.result }}" != "skipped" ]; then
