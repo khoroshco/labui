@@ -37,6 +37,13 @@ export const EXAMPLES: Record<string, Example[]> = {
     { c: 'Input', p: { value: 24, suffix: "px", style: {"width": "90px"} } },
     { c: 'Input', p: { prefix: "https://", value: "hvost-i-lapy.ru/sale", style: {"width": "230px"} } },
   ],
+  textarea: [
+    { c: 'Textarea', p: { placeholder: "Что поправить", ariaLabel: "Комментарий", style: {"width": "320px"} } },
+    { c: 'Textarea', p: { value: "Короткая заметка", rows: 2, ariaLabel: "Заметка", style: {"width": "320px"} } },
+    { c: 'Textarea', p: { value: "Поле растёт под содержимое, пока строк меньше потолка. Дальше оно перестаёт расти и прокручивается внутри себя — иначе длинный текст выдавливает кнопку отправки за экран.", maxRows: 4, ariaLabel: "Описание", style: {"width": "320px"} } },
+    { c: 'Textarea', p: { value: "erid не похож на токен", invalid: true, ariaLabel: "Токен", style: {"width": "320px"} } },
+    { c: 'Textarea', p: { value: "Правка запрещена", disabled: true, ariaLabel: "Комментарий", style: {"width": "320px"} } },
+  ],
   cyclebutton: [
     { c: 'CycleButton', p: { options: demoUnitOpts } },
     { c: 'CycleButton', p: { options: demoCycleOpts } },
@@ -92,6 +99,13 @@ export const EXAMPLES: Record<string, Example[]> = {
   slider: [
     { c: 'Slider', p: { label: "Охранное поле", value: 24, min: 0, max: 64, step: 1, unit: "px" } },
     { c: 'Slider', p: { label: "Скругление CTA", value: 12, min: 0, max: 32, step: 1, unit: "px", snapStep: 4 } },
+  ],
+  select: [
+    { c: 'Select', p: { options: ["JPG", "PNG", "WEBP", "AVIF"], value: "PNG", ariaLabel: "Формат", style: {"width": "200px"} } },
+    { c: 'Select', p: { placeholder: "Не выбрано", options: ["Растр", "Вектор"], ariaLabel: "Тип выхода", style: {"width": "200px"} } },
+    { c: 'Select', p: { icon: "layers", options: ["Все слои", "Только видимые"], value: "Все слои", ariaLabel: "Слои", style: {"width": "220px"} } },
+    { c: 'Select', p: { options: ["RUB", "USD", "EUR"], value: "RUB", invalid: true, ariaLabel: "Валюта", style: {"width": "160px"} } },
+    { c: 'Select', p: { options: ["JPG", "PNG"], value: "JPG", disabled: true, ariaLabel: "Формат", style: {"width": "160px"} } },
   ],
   toast: [
     { c: 'Toast', p: { text: "12 форматов готовы к выгрузке", level: "ok" } },

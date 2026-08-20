@@ -109,3 +109,107 @@ test('PinComposer: пустая отправка — это отмена, а н�
     'onCancel',
   ]);
 });
+
+// ── новые компоненты: то, чего витрина не показывает никогда ──────────────────
+
+test('Select: пустой список открывается и говорит, что вариантов нет', async ({ page }) => {
+  // Справочник ещё не пришёл — это законное состояние, а не повод падать. И не повод
+  // молча показать пустую панель: пустота читается как «сломалось».
+  const bag = await open(page, 'Select', { options: [], ariaLabel: 'Площадка' }, react);
+  await page.locator('#dc-root [data-select="true"]').click();
+  await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+  // Плашка объявлена ОПЦИЕЙ, а не просто текстом: обычный div внутри listbox для дерева
+  // доступности не существует вовсе — диктор молчал бы там, где человек видит слова.
+  const empty = page.locator('[role="option"]');
+  await expect(empty).toHaveCount(1);
+  await expect(empty).toHaveAttribute('aria-disabled', 'true');
+  await expect(empty, 'пустая панель без слов читается как поломка').toHaveText('Ничего нет');
+  expect(bag.errors).toEqual([]);
+});
+
+test('Select: пока справочник едет, «вариантов нет» — это неправда', async ({ page }) => {
+  // Пустой список и загрузка выглядят одинаково, но означают разное: сказать «вариантов
+  // нет» про справочник, который ещё не приехал, — соврать, и потребитель это скопирует.
+  await open(page, 'Select', { options: [], loading: true, ariaLabel: 'Площадка' }, react);
+  await page.locator('#dc-root [data-select="true"]').click();
+  await expect(page.locator('[role="option"]')).toHaveText('Загружаем…');
+});
+
+test('Select: значение, которого нет в списке, показывает плейсхолдер, а не пустоту', async ({ page }) => {
+  // Значение приходит с сервера и может отстать от справочника: выбранной опции больше
+  // нет. Поле обязано честно сказать «не выбрано», а не показать пустую строку.
+  await open(page, 'Select', { options: ['JPG', 'PNG'], value: 'HEIC', placeholder: 'Не выбрано', ariaLabel: 'Формат' }, react);
+  await expect(page.locator('#dc-root [data-select="true"]')).toHaveText(/Не выбрано/);
+});
+
+test('Select: перебор в списке из одной опции никуда не уезжает', async ({ page }) => {
+  await open(page, 'Select', { options: ['Единственный'], defaultValue: 'Единственный', ariaLabel: 'Формат' }, react);
+  const trigger = page.locator('#dc-root [data-select="true"]');
+  await trigger.focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowUp');
+  const role = await page.evaluate(() => document.activeElement?.getAttribute('role'));
+  expect(role, 'край списка из одной опции — это она сама, а не потеря фокуса').toBe('option');
+});
+
+test('Select: список из одних отключённых опций не крадёт фокус в никуда', async ({ page }) => {
+  const bag = await open(
+    page,
+    'Select',
+    { options: [{ value: 'a', label: 'Занято', disabled: true }, { value: 'b', label: 'Тоже занято', disabled: true }], ariaLabel: 'Слот' },
+    react
+  );
+  const trigger = page.locator('#dc-root [data-select="true"]');
+  await trigger.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+  // Подсвечивать нечего — фокус остаётся там, где был, и Escape закрывает.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+  expect(bag.errors).toEqual([]);
+});
+
+test('Textarea: maxRows меньше rows не схлопывает поле', async ({ page }) => {
+  // Конфиг приходит из данных, и «maxRows: 1 при rows: 4» там ничем не хуже осмысленного.
+  await open(page, 'Textarea', { rows: 4, maxRows: 1, value: 'строка', ariaLabel: 'Комментарий' }, react);
+  const h = await page.locator('#dc-root textarea').evaluate((el) => el.getBoundingClientRect().height);
+  expect(h, 'потолок ниже пола оставил бы поле нулевой высоты').toBeGreaterThan(40);
+});
+
+test('Textarea: длинный текст упирается в потолок и прокручивается, а не растёт бесконечно', async ({ page }) => {
+  const long = Array.from({ length: 60 }, (_, i) => `строка ${i}`).join('\n');
+  await open(page, 'Textarea', { value: long, rows: 2, maxRows: 4, ariaLabel: 'Комментарий' }, react);
+  const box = await page.locator('#dc-root textarea').evaluate((el) => ({
+    h: el.getBoundingClientRect().height,
+    scroll: el.scrollHeight,
+    overflow: getComputedStyle(el).overflowY,
+  }));
+  expect(box.h, 'без потолка поле выдавливает кнопку отправки за экран').toBeLessThan(160);
+  expect(box.scroll, 'содержимого больше, чем видно, — иначе проверять нечего').toBeGreaterThan(box.h);
+  expect(box.overflow, 'упёрлись в потолок — обязана появиться прокрутка, иначе текст недостижим').toBe('auto');
+});
+
+test('Modal: закрытое окно не оставляет страницу выключенной', async ({ page }) => {
+  const bag = await open(page, 'Modal', { open: false, label: 'Ничего' }, react);
+  const state = await page.evaluate(() => ({
+    inert: [...document.body.children].some((el) => el.hasAttribute('inert')),
+    overflow: getComputedStyle(document.body).overflow,
+    dialogs: document.querySelectorAll('[role="dialog"], [role="alertdialog"]').length,
+  }));
+  expect(state.dialogs, 'закрытое окно не рисует ничего').toBe(0);
+  expect(state.inert, 'закрытое окно не имеет права выключать страницу').toBe(false);
+  expect(state.overflow, 'и не имеет права запирать прокрутку').not.toBe('hidden');
+  expect(bag.errors).toEqual([]);
+});
+
+test('Modal: окно без единого интерактивного элемента всё равно держит фокус', async ({ page }) => {
+  // Ни кнопок, ни полей: сообщение и всё. Фокусировать нечего, но оставлять фокус
+  // снаружи нельзя — там выключённая страница, и следующий Tab уйдёт в её начало.
+  await open(page, 'Modal', { open: true, label: 'Идёт сборка', dismissible: false }, react);
+  const inside = await page.evaluate(() => {
+    const popup = document.querySelector('[role="alertdialog"]');
+    return !!popup && (popup === document.activeElement || popup.contains(document.activeElement));
+  });
+  expect(inside, 'фокус остался снаружи окна, в выключённой странице').toBe(true);
+});

@@ -92,7 +92,25 @@ export function Playground({ spec, Component, sectionId }: Props) {
       };
     });
 
-  const passed = { ...demo, ...state };
+  /* Колбэки к тем значениям, которыми крутит панель.
+   *
+   * Плейграунд — потребитель системы, а не альбом картинок, и живёт по тем же правилам:
+   * контрол, получивший значение сверху, обязан получить и колбэк, иначе он замирает
+   * (ADR 0011). Для модалки это уже не неудобство, а ЛОВУШКА: открытое окно делает фон
+   * inert, вместе с панелью, — закрыть его стало бы нечем. Связь выводится из контракта,
+   * а не пишется списком: появился компонент с той же парой — он подключён сам.
+   */
+  const has = (n: string) => spec.props.some((p) => p.name === n);
+  const wired: Record<string, unknown> = {};
+  if (has('onOpenChange')) wired.onOpenChange = (o: boolean) => set('open', o);
+  if (has('onToggle')) wired.onToggle = (o: boolean) => set('open', o);
+  if (has('onInput')) wired.onInput = (v: unknown) => set('value', v);
+  if (has('onChange')) wired.onChange = (v: unknown) => set(has('checked') ? 'checked' : 'value', v);
+  // Подтверждение в витрине просто закрывает окно: настоящее действие знает только
+  // потребитель, а кнопка без обработчика — это ошибка вызова, и компонент о ней говорит.
+  if (has('onConfirm')) wired.onConfirm = () => set('open', false);
+
+  const passed = { ...demo, ...wired, ...state };
 
   const examples = EXAMPLES[sectionId] ?? [];
 

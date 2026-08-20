@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { buildFlatMap } from './vite-plugin-flat-ds.mjs';
 import flatDs from './vite-plugin-flat-ds.mjs';
-import { FIXTURES } from '../tests/support/fixtures.js';
+import { FIXTURES, PORTALED } from '../tests/support/fixtures.js';
 
 const PORT = 5275; // свой порт: 5173 занимает npm run dev, 5174 — витрина, 5273/5274 — Playwright
 // Корень — от файла, а не от cwd: запуск из подкаталога молча отдавал пустой список URL,
@@ -50,16 +50,22 @@ const MOUNTED = ['wait for element #dc-root .sc-host to be visible'];
 
 const pages = pageUrls.map((url) => ({ url, actions: MOUNTED }));
 
-// Только мигрированные: панель пропсов витрины живёт лишь в эталоне, и харнесс на такой
-// запрос честно отвечает «нет компонента» — ждать в нём смонтированного острова бессмысленно.
+// Состав — из КОНТРАКТА ПАКЕТА, а не из migrated.json. Раньше стоял второй список
+// (принятые паритетом), и компонент, у которого эталона нет по построению, второй движок
+// доступности не видел вовсе. Панель пропсов витрины (SbControls) живёт только в эталоне,
+// и харнесс на такой запрос честно отвечает «нет компонента» — её фикстура сюда не идёт.
 const inReact = new Set(
-  JSON.parse(fs.readFileSync(path.join(root, 'packages/ds-react/migrated.json'), 'utf8')).components
+  JSON.parse(fs.readFileSync(path.join(root, 'api.react.json'), 'utf8')).components.map((c) => c.name)
 );
+if (inReact.size < 20) throw new Error(`pa11y: в контракте пакета ${inReact.size} компонентов — список собрался не из того места`);
 
 const filled = Object.entries(FIXTURES).filter(([name]) => inReact.has(name)).flatMap(([name, props]) =>
   ['dark', 'light'].map((theme) => ({
     url: `${base}/harness/?c=${name}&theme=${theme}&props=${encodeURIComponent(JSON.stringify(props))}`,
-    actions: MOUNTED,
+    // Компонент в портале внутри .sc-host не появляется — он на body. Ждём САМ СЛОЙ, а не
+    // конкретную роль: ролей у порталов уже две (dialog и listbox), и список ролей здесь
+    // разошёлся бы с составом при первом же новом всплывающем.
+    actions: PORTALED.has(name) ? ['wait for element [data-ds-layer] to be visible'] : MOUNTED,
   }))
 );
 

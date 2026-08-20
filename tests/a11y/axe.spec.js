@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { dcPages, ROOT } from '../support/dc.js';
 import { IMPLS, open } from '../support/browser.js';
-import { propsFor } from '../support/fixtures.js';
+import { PORTALED, propsFor } from '../support/fixtures.js';
 
 /** Ledger известных нарушений: гейт красный на всём, чего в нём нет, и на том,
  *  что в нём есть, но больше не воспроизводится. */
@@ -27,16 +27,35 @@ const migrated = new Set(
 // доступности у того, что уезжает потребителю, не проверял никто: второй движок (pa11y)
 // видел шесть компонентов из двадцати семи, а имя контрола он считает по разметке, а не
 // по вычисленному имени. Витрина есть только в DC, поэтому её проверяем как страницу.
-for (const { name, file } of dcPages()) {
-  for (const impl of IMPLS) {
-    if (impl === 'react' && !migrated.has(name)) continue;
+//
+// Состав REACT-стороны берётся из ЕГО контракта, а не из пересечения с эталоном. Раньше
+// стоял фильтр по migrated.json, то есть по списку принятых паритетом: компонент, у
+// которого эталона нет по построению (эталон заморожен и расти не может), не проверялся
+// на доступность вообще — ни одним из двух движков, и молча.
+const reactApi = JSON.parse(readFileSync(path.join(ROOT, 'api.react.json'), 'utf8'));
+const CASES = [
+  ...dcPages().map(({ name, file }) => ({ name, file, impl: 'dc' })),
+  ...reactApi.components.map((c) => ({ name: c.name, file: c.file, impl: 'react' })),
+];
+// Страховка от тихой пустоты: список, собравшийся не из того места, дал бы зелёную сюиту.
+test('состав проверок доступности собран', () => {
+  expect(CASES.filter((c) => c.impl === 'dc').length, 'страниц эталона не найдено').toBeGreaterThan(20);
+  expect(CASES.filter((c) => c.impl === 'react').length, 'React-контракт пуст').toBeGreaterThan(20);
+  expect(IMPLS.length, 'реализаций две — иначе матрица собрана не из того места').toBe(2);
+  expect([...migrated].length, 'список принятых паритетом пуст').toBeGreaterThan(20);
+});
+
+for (const { name, file, impl } of CASES) {
+  {
   for (const theme of ['dark', 'light']) {
     test(`${file} · ${theme}${impl === 'react' ? ' · react' : ''}`, async ({ page }) => {
       await open(page, name, propsFor(name, api), { theme, impl });
 
       const { violations } = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-        .include('#dc-root')
+        // Компонент в портале живёт не внутри корня: сузив область до #dc-root, движок
+        // проверил бы пустой узел и честно доложил ноль нарушений.
+        .include(PORTALED.has(name) ? 'body' : '#dc-root')
         .analyze();
 
       // Записи ledger'а сверяются ПО ЧИСЛУ УЗЛОВ, а не по одному id правила. С одним id

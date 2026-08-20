@@ -46,10 +46,27 @@ const KNOBS = [
   ['maxDiffPixels', /\bmaxDiffPixels:\s*(\d+)/g],
   ['threshold', /\bthreshold:\s*([\d.]+)/g],
   ['timeout', /\b(?:setTimeout|timeout:)\s*\(?\s*([\d_]+)/g],
+  // Порог, объявленный КОНСТАНТОЙ, — такая же ручка, только называется иначе. Слепок её
+  // не видел, и `const VISIBLE = { max: 6, mean: 0.4 }` в ховер-гейте можно было заменить
+  // на `{ max: 0, mean: 0 }`: половина «ВИДНО» у девяноста тестов превращалась в
+  // «больше или равно нулю», и слепок оставался зелёным. Ровно та дыра, ради которой он
+  // и заведён, просто цифра называлась не maxDiffPixels.
+  // `all` — брать ВСЕ числа объявления, а не первое: у порога вида
+  // `{ max: 6, mean: 0.4 }` половина ушла бы из-под наблюдения.
+  ['consts', /\bconst\s+[A-Z][A-Z0-9_]*\s*=\s*\{[^}]*\}/g, true],
+  // Число шагов в цикле — тоже порог: `for (let i = 0; i < 14; i++)` в ловушке таба при
+  // `< 1` перестаёт что-либо ловить.
+  ['loops', /for\s*\(\s*let\s+\w+\s*=\s*0;\s*\w+\s*<\s*(\d+)/g],
 ];
 
-/** Выключение теста: след обязан остаться. */
-const MUTES = /\b(?:test|test\.describe)\.(skip|fixme|only)\b/g;
+/**
+ * Выключение теста: след обязан остаться.
+ *
+ * `fail` здесь не для симметрии: это самый дешёвый способ сделать красный тест зелёным —
+ * внести регрессию и объявить упавший тест «ожидаемо падающим». Число тестов в файле не
+ * меняется, `skip` не появляется, слепок совпадает.
+ */
+const MUTES = /\b(?:test|test\.describe)\.(skip|fixme|only|fail)\b/g;
 
 /** Состав сюиты: имя файла → число тестов. Браузер не поднимается. */
 function listSuite(dir) {
@@ -104,8 +121,14 @@ function knobsOf(files) {
   for (const file of files) {
     const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
     const found = {};
-    for (const [name, re] of KNOBS) {
-      const values = [...src.matchAll(new RegExp(re.source, re.flags))].map((m) => Number(m[1].replace(/_/g, '')));
+    for (const [name, re, all] of KNOBS) {
+      const hits = [...src.matchAll(new RegExp(re.source, re.flags))];
+      const raw = all ? hits.flatMap((m) => m[0].match(/-?\d[\d_.]*/g) ?? []) : hits.map((m) => m[1]);
+      const values = raw
+        .map((v) => Number(String(v).replace(/_/g, '')))
+        // NaN — это не «ноль», а «регексп поймал не число»: записанный, он выглядел бы
+        // как настоящий порог и сравнивался бы сам с собой вечно.
+        .filter((v) => Number.isFinite(v));
       if (values.length) found[name] = values.sort((a, b) => a - b);
     }
     const muted = [...src.matchAll(new RegExp(MUTES.source, MUTES.flags))].map((m) => m[1]);
@@ -124,7 +147,11 @@ function snapshot() {
     for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
       const rel = `${dir}/${entry.name}`;
       if (entry.isDirectory()) walk(rel);
-      else if (/\.(spec|test)\.(m?js)$/.test(entry.name)) testFiles.push(rel);
+      // Оснастка (`tests/support`) тоже в списке: там живут пороги, которыми ослабляется
+      // сразу ВСЯ сюита. `settle(page, { quiet: 120, rounds: 24 })` при `{ quiet: 1,
+      // rounds: 1 }` заставляет axe и паритет смотреть на недомонтированное дерево и
+      // честно докладывать ноль нарушений — а слепок этого файла не видел вовсе.
+      else if (/\.(spec|test)\.(m?js)$/.test(entry.name) || dir.endsWith('/support')) testFiles.push(rel);
     }
   };
   walk('tests');

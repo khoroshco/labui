@@ -4,8 +4,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
  * На сервере useLayoutEffect не выполняется и печатает предупреждение на КАЖДЫЙ рендер.
  * Подменяем его на useEffect там, где DOM'а нет: на клиенте поведение не меняется, а
  * SSR-лог потребителя перестаёт быть красным.
+ *
+ * ЭКСПОРТИРУЕТСЯ, потому что правило одно на пакет, а применялось в одном хуке: три новых
+ * компонента звали `useLayoutEffect` напрямую, и страница формы в Next.js App Router
+ * краснела предупреждением на каждый серверный рендер. Правило, которое нельзя применить,
+ * — это не правило.
  */
-const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+export const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
  * Управляемый и неуправляемый режим — ОДНОЙ идиомой на все контролы.
@@ -18,6 +23,48 @@ const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayo
  *
  * Инвариант тот же, что был: пока значение приходит сверху, контрол показывает РОВНО его.
  */
+/**
+ * Режим управления БЕЗ колбэка: значение, свой сеттер и признак «владеет родитель».
+ *
+ * Нужен там, где колбэк не сводится к `(next) => void`: у селекта и модалки он несёт ещё
+ * и ПРИЧИНУ изменения (`onOpenChange(open, reason)`). Пока этой развилки не было, оба
+ * компонента переписывали идиому у себя — и переписывали не целиком: фиксация режима
+ * приезжала, а предупреждение о смене режима терялось. Одна реализация на всех — и
+ * теряться нечему.
+ */
+export function useControlledState<T>(value: T | undefined, defaultValue: T): [T, (next: T) => void, boolean] {
+  // Режим фиксируется на МОНТИРОВАНИИ и больше не пересчитывается — см. useControlled ниже.
+  const { current: controlled } = useRef(value !== undefined);
+  const [own, setOwn] = useState<T>(controlled ? (value as T) : defaultValue);
+  const seen = useRef(value);
+  if (controlled && value !== undefined && value !== seen.current) {
+    seen.current = value;
+    setOwn(value);
+  }
+  const current = controlled ? (value ?? own) : own;
+
+  if (process.env.NODE_ENV !== 'production') {
+    const now = value !== undefined;
+    if (now !== controlled) {
+      console.warn(
+        `[@khoroshco/ds] Контрол сменил режим управления: был ${controlled ? 'управляемым' : 'неуправляемым'}, ` +
+          `стал ${now ? 'управляемым' : 'неуправляемым'}. Режим фиксируется на монтировании — ` +
+          `выберите один: value + onChange либо defaultValue.`
+      );
+    }
+  }
+
+  // Сеттер сам знает, что управляемому контролу своё состояние трогать нельзя: иначе
+  // каждый вызывающий обязан помнить об этом, а забыть достаточно одному.
+  const set = useCallback(
+    (next: T) => {
+      if (!controlled) setOwn(next);
+    },
+    [controlled]
+  );
+  return [current, set, controlled];
+}
+
 export function useControlled<T>(
   value: T | undefined,
   defaultValue: T,
@@ -64,13 +111,23 @@ export function useControlled<T>(
 
 /** prefers-reduced-motion: крупные перемещения и пружины заменяются фейдами. */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(
-    () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  /* Первый рендер ВСЕГДА «движение разрешено», и это не небрежность.
+   *
+   * `matchMedia` на сервере нет, поэтому синхронное чтение давало разное на сервере и на
+   * первом клиентском рендере: у человека с включённым «поменьше движения» разметка
+   * расходилась на каждом компоненте, который спрашивает этот хук, — предупреждение о
+   * гидрации в React 18 и повторный рендер в React 19.
+   *
+   * Цена — один кадр: настоящее значение приезжает эффектом сразу после монтирования. За
+   * этот кадр ничего не успевает начаться, а глобальное правило ds.css гасит анимации до
+   * 0.01 мс независимо от того, что думает JS.
+   */
+  const [reduced, setReduced] = useState(false);
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return;
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
     const on = () => setReduced(mq.matches);
+    on();
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);

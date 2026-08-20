@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import * as DS from '../packages/ds-react/src/index';
 import api from '../api.react.json';
-import { BadgeNote, EridIsland, IslandBuilder, IslandRowsNote, ToastNote, ToastStack } from './Live';
+import { BadgeNote, EridIsland, IslandBuilder, IslandRowsNote, ModalDemo, ToastNote, ToastStack } from './Live';
 import { Playground, type ComponentSpec } from './Playground';
 import { Primitives } from './Primitives';
 import { PinCanvas, Tooltip } from './Scenes';
@@ -40,6 +40,7 @@ const LIVE: Record<string, () => JSX.Element> = {
     </>
   ),
   badge: BadgeNote,
+  modal: ModalDemo,
 };
 
 function SectionBody({ section }: { section: Section }) {

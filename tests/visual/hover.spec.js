@@ -193,6 +193,24 @@ const CASES = [
     target: '[data-field]',
   },
   {
+    name: 'Select: рамка поля',
+    keys: ['[data-field]:not([data-disabled="true"])'],
+    component: 'Select',
+    props: { options: ['JPG', 'PNG'], ariaLabel: 'Формат' },
+    target: '[data-select="true"]',
+    // Компонента нет у замороженного эталона по построению: он заморожен тегом
+    // ds-reference-v0 и расти не может.
+    impls: ['react'],
+  },
+  {
+    name: 'Textarea: рамка поля',
+    keys: ['[data-field]:not([data-disabled="true"])'],
+    component: 'Textarea',
+    props: { ariaLabel: 'Комментарий', placeholder: 'Что поправить' },
+    target: '[data-field]',
+    impls: ['react'],
+  },
+  {
     name: 'Input: кнопка очистки',
     keys: ['[data-field] button[data-tap="true"]'],
     component: 'Input',
@@ -364,6 +382,8 @@ const VISIBLE_FAINT = { max: 6, mean: 0.02 }; // тонкие линии: пло
 for (const impl of IMPLS) {
   for (const theme of ['dark', 'light']) {
     for (const c of CASES) {
+      // Компонент, которого у эталона нет по построению, проверяется только в React.
+      if (c.impls && !c.impls.includes(impl)) continue;
       test(`ховер ${c.name} — ${theme} (${impl})`, async ({ page }) => {
         // Управляемость набирается на своём диалекте: у эталона признак — колбэк,
         // у React — само наличие value (ADR 0011). Отдать React value без onChange

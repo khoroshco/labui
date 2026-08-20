@@ -13,7 +13,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { brokenRefs, emit, flatten, readSource, ROOT, unresolved } from './build-tokens-css.mjs';
-import { components, report, showcase } from './lib/dc.mjs';
+import { components, reactSources, report, showcase } from './lib/dc.mjs';
 
 const doc = readSource();
 const flat = flatten(doc);
@@ -52,6 +52,11 @@ for (const name of Object.keys(flat.light)) {
 // 3. орфаны: токен объявлен, но им никто не пользуется
 const usage = [
   ...components().map((c) => c.template + c.logic),
+  // Исходники ПАКЕТА — то, что уезжает потребителю. Их здесь не было, и это делало
+  // проверку однобокой: токен, которым пользуется только React-версия, считался орфаном
+  // (так и вышло с --overlay), а токен, из React-версии выкинутый, продолжал числиться
+  // живым, пока его называл замороженный эталон. Обе ошибки — в одном месте.
+  ...reactSources().map((r) => r.body),
   ...showcase().map((s) => s.src),
   fs.readFileSync(path.join(ROOT, 'src/ds.css'), 'utf8'),
 ].join('\n');

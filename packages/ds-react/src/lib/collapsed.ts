@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import { version as reactVersion, type HTMLAttributes } from 'react';
 
 /**
  * Атрибуты СВЁРНУТОЙ области.
@@ -19,9 +19,23 @@ import type { HTMLAttributes } from 'react';
  *
  * Держит гейт tests/showcase/focus.spec.js.
  */
+/* ЗНАЧЕНИЕ ЗАВИСИТ ОТ ВЕРСИИ REACT, и это не перестраховка.
+ *
+ * React 18 про `inert` не знает: неизвестный БУЛЕВ проп он не рендерит вовсе, а строку
+ * рендерит как есть — значит нужна строка, и пустая подходит (`inert=""` браузер читает
+ * как «включено»).
+ *
+ * React 19 знает `inert` как булев атрибут. Пустая строка для булева атрибута — это
+ * ЛОЖЬ: атрибут в DOM не попадает, в консоли «Received an empty string for a boolean
+ * attribute». То есть на 19-й версии — а её разрешает peerDependencies — свёрнутые
+ * раскрывашки, подсказки и уходящее окно снова оказывались бы в табе и в озвучке,
+ * молча: разметка валидна, гейты на 18-й зелёные.
+ *
+ * Поэтому версия спрашивается у самого React, а не угадывается по типам.
+ */
+const BOOLEAN_INERT = Number.parseInt(reactVersion, 10) >= 19;
+
 export function collapsedProps(collapsed: boolean): HTMLAttributes<HTMLElement> {
-  // `inert` описан в типах React только с 19-й версии, а пакет собирается на 18-й.
-  // Значение — пустая строка, а не true: неизвестный булев проп React 18 не рендерит
-  // вовсе, тогда как `inert=""` браузер читает как «включено».
-  return collapsed ? ({ inert: '' } as HTMLAttributes<HTMLElement>) : {};
+  if (!collapsed) return {};
+  return (BOOLEAN_INERT ? { inert: true } : { inert: '' }) as unknown as HTMLAttributes<HTMLElement>;
 }

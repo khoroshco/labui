@@ -10,7 +10,7 @@
  * перестаёт ловить то, что ловит потребитель.
  */
 import { useRef, useState } from 'react';
-import { Button, Island, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
+import { Button, Island, Modal, Select, Toast, type IslandRow, type ToastLevel } from '../packages/ds-react/src/index';
 
 /** Заголовок живого блока: он не раздел, а врезка внутри него. */
 function Head({ title, note }: { title: string; note: string }) {
@@ -367,5 +367,110 @@ export function IslandRowsNote() {
         'Колбэк уходит вниз ровно тот, что дал конфиг: значение без колбэка замораживает контрол (ADR 0011).',
       ]}
     />
+  );
+}
+
+// ── Модальное окно: три случая, которые различаются не оформлением, а правами ──
+
+export function ModalDemo() {
+  const [which, setWhich] = useState<'ask' | 'danger' | 'must' | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [format, setFormat] = useState('PNG');
+  const [nested, setNested] = useState(false);
+  const close = () => setWhich(null);
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--sp-4)' }}>
+      <Head
+        title="Три окна"
+        note="Плейграунд показывает окно; здесь видно то, чего в пропсах не разглядеть — что происходит с ФОНОМ. Откройте любое и попробуйте Tab: обхода за пределы окна нет, страница под ним не прокручивается, а после закрытия фокус возвращается на ту же кнопку, которой окно открыли."
+      />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+        <Button label="Обычное" variant="secondary" onClick={() => setWhich('ask')} />
+        <Button label="Опасное" variant="secondary" tone="danger" onClick={() => setWhich('danger')} />
+        <Button label="Обязательное решение" variant="secondary" onClick={() => setWhich('must')} />
+      </div>
+
+      <Modal
+        open={which === 'ask'}
+        onOpenChange={close}
+        label="Пересобрать 18 форматов?"
+        subtitle="Текущие файлы перезапишутся. Выгрузки, сделанные раньше, останутся в истории."
+        confirmLabel="Пересобрать"
+        cancelLabel="Отмена"
+        confirmLoading={busy}
+        onConfirm={() => {
+          // Подтверждение НЕ закрывает окно само: ответа сервера ждут прямо в нём, кнопкой
+          // со спиннером. Закрывает тот, кто знает, что действие удалось.
+          setBusy(true);
+          setTimeout(() => {
+            setBusy(false);
+            close();
+          }, 1200);
+        }}
+      >
+        <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+          <Island
+            rows={[
+              { type: 'toggle', label: 'Сохранить прежние в истории', checked: true },
+              { type: 'checkbox', label: 'Прислать письмо, когда закончится' },
+            ]}
+          />
+          {/* Селект ВНУТРИ окна — самая частая композиция и самое опасное место: два
+              всплывающих становятся соседями по body, и порядок слоёв им надо откуда-то
+              взять. Здесь это видно руками, а гейт tests/showcase/modal.spec.js проверяет
+              и порядок, и то, что Escape закрывает ровно один слой. */}
+          <Select
+            ariaLabel="Формат выгрузки"
+            options={['JPG', 'PNG', 'WEBP', 'AVIF']}
+            value={format}
+            onChange={setFormat}
+          />
+          <Button label="Бросить" variant="ghost" tone="danger" size="s" onClick={() => setNested(true)} />
+        </div>
+      </Modal>
+
+      {/* Вложенное окно: подтверждение поверх формы — типовая пара, и одновременно самый
+          опасный случай для глобальных побочных эффектов. Оба окна закрываются ОДНИМ
+          действием: если каждое возвращает свой снимок фона и прокрутки, страница
+          остаётся выключенной навсегда. Гейт tests/showcase/modal.spec.js проверяет. */}
+      <Modal
+        open={nested}
+        onOpenChange={() => setNested(false)}
+        size="s"
+        label="Бросить сборку?"
+        subtitle="Настройки не сохранятся."
+        confirmLabel="Бросить"
+        cancelLabel="Продолжить"
+        confirmTone="danger"
+        onConfirm={() => {
+          setNested(false);
+          close();
+        }}
+      />
+
+      <Modal
+        open={which === 'danger'}
+        onOpenChange={close}
+        size="s"
+        label="Удалить кампанию «Осенний сейл»?"
+        subtitle="Вместе с ней уйдут 18 форматов и их история выгрузок. Отменить это будет нечем."
+        confirmLabel="Удалить"
+        cancelLabel="Отмена"
+        confirmTone="danger"
+        onConfirm={close}
+      />
+
+      <Modal
+        open={which === 'must'}
+        onOpenChange={close}
+        size="s"
+        dismissible={false}
+        label="Сессия истекла"
+        subtitle="Дальше без входа нельзя: Escape и клик мимо здесь не работают, и крестика нет — решение обязательно."
+        confirmLabel="Войти снова"
+        onConfirm={close}
+      />
+    </div>
   );
 }

@@ -109,6 +109,11 @@ const LEVELS = ['atoms', 'molecules', 'organisms'];
 const components = [];
 const mounts = new Map();
 
+/** Все имена компонентов пакета — по раскладке файлов. Нужны, чтобы посчитать вложения. */
+const allNames = reactSources()
+  .filter(({ file }) => LEVELS.some((l) => file.includes(`/${l}/`)))
+  .map(({ file }) => path.basename(file, '.tsx'));
+
 for (const { file, body } of reactSources()) {
   const level = LEVELS.find((l) => file.includes(`/${l}/`));
   if (!level) continue;
@@ -116,7 +121,13 @@ for (const { file, body } of reactSources()) {
   // Разбор ОДИН на все гейты — scripts/lib/tsx.mjs. Своя копия здесь и в check-props
   // разошлась регекспами, и гейты начали расходиться в том, что считать пропом.
   for (const { name, declared, defaults: rawDefaults } of interfacesOf(body)) {
-    if (!migrated.includes(name)) continue;
+    // Состав выводится ИЗ РАСКЛАДКИ: компонент — это файл своего имени в atoms/molecules/
+    // organisms. Раньше здесь стоял фильтр по migrated.json, а это список ПРИНЯТЫХ
+    // ПАРИТЕТОМ, то есть пересечение с замороженным эталоном. Компонент, у которого
+    // эталона нет по построению (эталон заморожен тегом ds-reference-v0 и расти не может),
+    // в контракт не попадал вовсе — молча: ни витрины, ни снимков, ни проверки пропсов
+    // у него не было, а все линтеры при этом оставались зелёными.
+    if (name !== path.basename(file, '.tsx')) continue;
 
     const defaults = {};
     for (const [k, v] of Object.entries(rawDefaults)) {
@@ -137,7 +148,7 @@ for (const { file, body } of reactSources()) {
       };
     });
 
-    const used = migrated.filter((other) => other !== name && new RegExp(`<${other}[\\s/>]`).test(body));
+    const used = allNames.filter((other) => other !== name && new RegExp(`<${other}[\\s/>]`).test(body));
     mounts.set(name, used);
     components.push({ name, level, file, props });
   }
@@ -147,6 +158,9 @@ for (const { file, body } of reactSources()) {
 const problems = [];
 const missing = migrated.filter((n) => !components.some((c) => c.name === n));
 if (missing.length) problems.push(`не разобраны компоненты: ${missing.join(', ')}`);
+// Файл-компонент без разобранного интерфейса — это молча потерянный компонент.
+const silent = allNames.filter((n) => !components.some((c) => c.name === n));
+if (silent.length) problems.push(`файлы есть, а контракта нет: ${silent.join(', ')} — интерфейс назван не «ИмяProps» или разбор сорвался`);
 for (const c of components) {
   if (c.props.length < 2) problems.push(`${c.name}: разобрано ${c.props.length} пропсов — похоже, разбор сорвался`);
   for (const p of c.props) {

@@ -397,6 +397,7 @@
       "mountedBy": [
         "ActionRow",
         "EmptyState",
+        "Modal",
         "PinCard",
         "PinComposer",
         "Toast"
@@ -1296,10 +1297,10 @@
       "mounts": [
         "CycleButton",
         "Input",
+        "Skeleton",
         "RowInfo",
         "RowLabel",
-        "RowMsg",
-        "Skeleton"
+        "RowMsg"
       ],
       "mountedBy": [
         "Island"
@@ -1341,6 +1342,145 @@
         "ChoiceRow",
         "InputRow",
         "SwitchRow"
+      ],
+      "mountedBy": []
+    },
+    {
+      "name": "Modal",
+      "level": "organisms",
+      "file": "packages/ds-react/src/organisms/Modal.tsx",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Заголовок. Он же имя окна для скринридера — без него окно безымянно."
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Подзаголовок: одна фраза о последствии. Он же описание окна."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "options": null,
+          "editor": null,
+          "callback": false
+        },
+        {
+          "name": "size",
+          "type": "'s' | 'm' | 'l'",
+          "options": [
+            "s",
+            "m",
+            "l"
+          ],
+          "editor": "enum",
+          "default": "m",
+          "callback": false
+        },
+        {
+          "name": "confirmLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Подтверждающее действие. Кнопку рисует ПОДПИСЬ: задал подпись — значит нужна кнопка."
+        },
+        {
+          "name": "cancelLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false,
+          "info": "Отмена — собственное действие окна: закрывает и без колбэка."
+        },
+        {
+          "name": "confirmTone",
+          "type": "'ok' | 'danger'",
+          "options": [
+            "ok",
+            "danger"
+          ],
+          "editor": "enum",
+          "callback": false,
+          "info": "Семантика ПОДТВЕРЖДЕНИЯ: удаление — danger. Иерархию кнопка выбирает сама. Имя с приставкой не случайно: голое `tone` читалось бы как «тон окна», а красит оно ровно одну кнопку. Тот же разбор, что запретил плоский actionVariant у EmptyState — только там действие одно, а здесь их два."
+        },
+        {
+          "name": "confirmLoading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Подтверждение ждёт ответа сервера: кнопка со спиннером, окно не закрывается само. Тоже с приставкой: `loading` в словаре системы означает «содержимое заменяется скелетоном», а здесь это состояние одной кнопки."
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": true,
+          "callback": false,
+          "info": "Escape и клик по подложке закрывают окно. `false` — решение обязательно, и роль меняется на alertdialog: это разные вещи, а не оттенок одной."
+        },
+        {
+          "name": "onConfirm",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean, reason: ModalReason) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [
+        "Button"
       ],
       "mountedBy": []
     },
@@ -1896,6 +2036,183 @@
       "mountedBy": []
     },
     {
+      "name": "Select",
+      "level": "molecules",
+      "file": "packages/ds-react/src/molecules/Select.tsx",
+      "props": [
+        {
+          "name": "options",
+          "type": "SelectOption[]",
+          "options": null,
+          "editor": null,
+          "default": [],
+          "callback": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Значение выбранной опции, а не её номер — см. комментарий у компонента."
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "Выберите",
+          "callback": false,
+          "info": "Текст, пока не выбрано ничего. Пустой строкой выбор не подменяем."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя поля: без него нет ни FormData, ни нативной проверки required."
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Значение видно, менять нельзя. В отличие от disabled остаётся в табе и в форме."
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Справочник ещё едет. Пустой список в это время сказал бы «вариантов нет» — неправду."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя для скринридера. Роль combobox имя из содержимого НЕ берёт — оно обязательно."
+        },
+        {
+          "name": "ariaLabelledBy",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Ссылка на подпись, а не её копия."
+        },
+        {
+          "name": "describedBy",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Связь с описанием и сообщением об ошибке."
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ''",
+          "options": null,
+          "editor": "icon",
+          "default": "",
+          "callback": false,
+          "info": "Иконка слева в поле — как у Input."
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "callback": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean, reason: SelectReason) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "(e: FocusEvent<HTMLButtonElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true,
+          "info": "Событие отдаётся целиком: библиотеки форм читают из него target и type."
+        },
+        {
+          "name": "onBlur",
+          "type": "(e: FocusEvent<HTMLButtonElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
       "name": "Skeleton",
       "level": "atoms",
       "file": "packages/ds-react/src/atoms/Skeleton.tsx",
@@ -2161,10 +2478,10 @@
       ],
       "status": "stable",
       "mounts": [
+        "Toggle",
         "RowInfo",
         "RowLabel",
-        "RowMsg",
-        "Toggle"
+        "RowMsg"
       ],
       "mountedBy": [
         "Island"
@@ -2214,6 +2531,182 @@
         }
       ],
       "status": "stable",
+      "mounts": [],
+      "mountedBy": []
+    },
+    {
+      "name": "Textarea",
+      "level": "atoms",
+      "file": "packages/ds-react/src/atoms/Textarea.tsx",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя для скринридера, когда подпись лежит СНАРУЖИ компонента."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Имя поля: без него нет ни FormData, ни автозаполнения."
+        },
+        {
+          "name": "autoComplete",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "describedBy",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "callback": false,
+          "info": "Связь с описанием и сообщением об ошибке: их рисует ряд, а знать о них — полю."
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "options": null,
+          "editor": "text",
+          "default": "",
+          "callback": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 3,
+          "callback": false,
+          "info": "Сколько строк поле занимает ПУСТЫМ: минимальная высота, ниже которой оно не садится."
+        },
+        {
+          "name": "maxRows",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "default": 8,
+          "callback": false,
+          "info": "Потолок роста. Дальше поле не растёт, а прокручивается внутри себя."
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "options": null,
+          "editor": "int",
+          "callback": false,
+          "info": "Жёсткий предел на нативном поле; счётчика нет — предел ощущается остановкой ввода."
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Рамка краснеет тем же --danger, что и сообщение ряда."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "options": null,
+          "editor": "boolean",
+          "default": false,
+          "callback": false,
+          "info": "Голый ввод для рядов: обвязкой владеет ряд."
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onSubmit",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true,
+          "info": "Cmd/Ctrl+Enter. Одинокий Enter в многострочном поле — перевод строки, и он не наш."
+        },
+        {
+          "name": "onEscape",
+          "type": "() => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "onFocus",
+          "type": "(e: FocusEvent<HTMLTextAreaElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true,
+          "info": "Событие отдаётся целиком: библиотеки форм читают из него target и type."
+        },
+        {
+          "name": "onBlur",
+          "type": "(e: FocusEvent<HTMLTextAreaElement>) => void",
+          "options": null,
+          "editor": null,
+          "callback": true
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "options": null,
+          "editor": null,
+          "callback": false
+        }
+      ],
+      "status": "beta",
       "mounts": [],
       "mountedBy": []
     },
