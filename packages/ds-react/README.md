@@ -2,9 +2,9 @@
 
 Компоненты дизайн-системы Banner Lab на React. 27 компонентов: атомы, ряды, остров.
 
-Пакет публикуется **приватно**, в реестр GitHub Packages: он для своих сервисов, а не для
-всех ([ADR 0003](../../docs/adr/0003-private-publishing.md)). Чтобы поставить, нужен
-`.npmrc` рядом с `package.json` потребителя и токен GitHub с правом `read:packages`:
+Пакет публикуется в реестр GitHub Packages ([ADR 0014](../../docs/adr/0014-public-repository.md)).
+Токен на чтение нужен и для публичного пакета: этот реестр требует аутентификации независимо
+от видимости. Нужен `.npmrc` рядом с `package.json` потребителя и токен с правом `read:packages`:
 
 ```
 @khoroshco:registry=https://npm.pkg.github.com
