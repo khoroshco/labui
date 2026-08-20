@@ -1,6 +1,6 @@
 # Banner Lab DS
 
-Дизайн-система Banner Lab: 27 компонентов, токены, витрина-спека. Код рабочий, а не мокапы — открывается в браузере и соблюдает свои правила.
+Дизайн-система Banner Lab: 30 компонентов, токены, витрина-спека. Код рабочий, а не мокапы — открывается в браузере и соблюдает свои правила.
 
 **Живая витрина:** https://khoroshco.github.io/labui/
 
@@ -31,7 +31,7 @@ showcase/            витрина на React: разделы, плейграу
 api.react.json       машинный контракт ПАКЕТА: пропсы, типы, дефолты, подсказки ⓘ
 api.json             машинный источник состава ЭТАЛОНА: пропсы, уровни, статусы, вложенность
 components.json      рукописное: зрелость stable/beta и правила композиции
-packages/ds-react/   @khoroshco/ds — 27 компонентов на React: ТА реализация, что уезжает
+packages/ds-react/   @khoroshco/ds — 30 компонентов на React: ТА реализация, что уезжает
 src/                 ЗАМОРОЖЕННЫЙ эталон (тег ds-reference-v0) — только для сверки;
                      живые входы обеих реализаций: ds.css, svgs/, fonts/, собираемый tokens.css
   atoms/             Button, Input, Checkbox, Toggle, CycleButton, OptionGroup, Badge, Skeleton, Avatar, Pin
